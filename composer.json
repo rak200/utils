@@ -1,0 +1,39 @@
+{
+    "name": "rak200/utils",
+    "description": "General-purpose static utility helpers for PHP 8.4+ (Str, Arr, Num, Rand, Regex, Hash, Bit, File, Json, Base64, Dt).",
+    "version": "0.1.0",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["utils", "helpers", "string", "array", "uuid", "ulid", "datetime", "php84"],
+    "homepage": "https://github.com/rak200/utils",
+    "authors": [
+        {
+            "name": "rak200",
+            "email": "rak.ricardo@windowslive.com",
+            "homepage": "https://github.com/rak200"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/rak200/utils/issues",
+        "source": "https://github.com/rak200/utils"
+    },
+    "require": {
+        "php": "^8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rak200\\Utils\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.1"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Rak200\\Utils\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

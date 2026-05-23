@@ -6,9 +6,20 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 
+/**
+ * PCRE regular expression helpers that throw on invalid patterns instead of
+ * surfacing the silent `false` / null returns of the underlying preg_* functions.
+ *
+ * @author rak200 <rak.ricardo@windowslive.com>
+ */
 final class Regex {
     private function __construct() {}
 
+    /**
+     * Returns true if $pattern matches anywhere in $subject.
+     *
+     * @throws RuntimeException When $pattern is invalid.
+     */
     public static function matches(string $pattern, string $subject): bool {
         $result = preg_match($pattern, $subject);
         if ($result === false) {
@@ -18,6 +29,10 @@ final class Regex {
     }
 
     /**
+     * Returns the first match of $pattern in $subject, including any capture
+     * groups indexed by position and by name.
+     *
+     * @throws RuntimeException When $pattern is invalid or there is no match.
      * @return array<int|string, string>
      */
     public static function match(string $pattern, string $subject): array {
@@ -29,6 +44,9 @@ final class Regex {
     }
 
     /**
+     * Returns the first match of $pattern in $subject, or null when there is no match.
+     *
+     * @throws RuntimeException When $pattern is invalid.
      * @return array<int|string, string>|null
      */
     public static function matchOrNull(string $pattern, string $subject): ?array {
@@ -41,6 +59,10 @@ final class Regex {
     }
 
     /**
+     * Returns every match of $pattern in $subject. The outer keys are the group
+     * indexes/names; each value is the list of captures for that group.
+     *
+     * @throws RuntimeException When $pattern is invalid.
      * @return array<int|string, list<string>>
      */
     public static function matchAll(string $pattern, string $subject): array {
@@ -52,6 +74,12 @@ final class Regex {
         return $matches;
     }
 
+    /**
+     * Replaces every match of $pattern in $subject with $replacement.
+     * $replacement may reference capture groups (e.g. "$1", "${name}").
+     *
+     * @throws RuntimeException When $pattern is invalid.
+     */
     public static function replace(string $pattern, string $replacement, string $subject): string {
         $result = preg_replace($pattern, $replacement, $subject);
         if ($result === null) {
@@ -60,6 +88,13 @@ final class Regex {
         return $result;
     }
 
+    /**
+     * Replaces every match of $pattern in $subject with the result of $callback,
+     * which receives the matches array and returns the replacement string.
+     *
+     * @param callable(array<int|string, string>): string $callback
+     * @throws RuntimeException When $pattern is invalid.
+     */
     public static function replaceCallback(string $pattern, callable $callback, string $subject): string {
         $result = preg_replace_callback($pattern, $callback, $subject);
         if ($result === null) {
@@ -69,6 +104,9 @@ final class Regex {
     }
 
     /**
+     * Splits $subject on every match of $pattern.
+     *
+     * @throws RuntimeException When $pattern is invalid.
      * @return list<string>
      */
     public static function split(string $pattern, string $subject): array {
@@ -79,6 +117,10 @@ final class Regex {
         return $result;
     }
 
+    /**
+     * Escapes regex meta-characters in $value (and the given $delimiter) so
+     * the result can be embedded literally inside a pattern.
+     */
     public static function quote(string $value, string $delimiter = '/'): string {
         return preg_quote($value, $delimiter);
     }

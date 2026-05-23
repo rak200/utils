@@ -6,31 +6,60 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 
+/**
+ * Bit-manipulation helpers operating on the native PHP int (platform-sized,
+ * 32 or 64 bits depending on PHP_INT_SIZE).
+ *
+ * @author rak200 <rak.ricardo@windowslive.com>
+ */
 final class Bit {
     private const int BITS = PHP_INT_SIZE * 8;
 
     private function __construct() {}
 
+    /**
+     * Returns $value with the bit at index $bit set to 1.
+     *
+     * @throws RuntimeException When $bit is out of range [0, PHP_INT_SIZE*8 - 1].
+     */
     public static function set(int $value, int $bit): int {
         self::checkBitIndex($bit);
         return $value | (1 << $bit);
     }
 
+    /**
+     * Returns $value with the bit at index $bit cleared to 0.
+     *
+     * @throws RuntimeException When $bit is out of range.
+     */
     public static function unset(int $value, int $bit): int {
         self::checkBitIndex($bit);
         return $value & ~(1 << $bit);
     }
 
+    /**
+     * Returns $value with the bit at index $bit flipped.
+     *
+     * @throws RuntimeException When $bit is out of range.
+     */
     public static function toggle(int $value, int $bit): int {
         self::checkBitIndex($bit);
         return $value ^ (1 << $bit);
     }
 
+    /**
+     * Returns true when the bit at index $bit is set.
+     *
+     * @throws RuntimeException When $bit is out of range.
+     */
     public static function has(int $value, int $bit): bool {
         self::checkBitIndex($bit);
         return ($value & (1 << $bit)) !== 0;
     }
 
+    /**
+     * Returns the population count (number of bits set to 1) of $value.
+     */
     public static function count(int $value): int {
         $count = 0;
         for ($i = 0; $i < self::BITS; $i++) {
@@ -41,6 +70,10 @@ final class Bit {
         return $count;
     }
 
+    /**
+     * Returns the number of leading zero bits in $value. Returns PHP_INT_SIZE*8
+     * when $value is 0.
+     */
     public static function leadingZeros(int $value): int {
         if ($value === 0) {
             return self::BITS;
@@ -53,6 +86,10 @@ final class Bit {
         return self::BITS;
     }
 
+    /**
+     * Returns the number of trailing zero bits in $value. Returns PHP_INT_SIZE*8
+     * when $value is 0.
+     */
     public static function trailingZeros(int $value): int {
         if ($value === 0) {
             return self::BITS;

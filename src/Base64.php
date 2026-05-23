@@ -6,13 +6,27 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 
+/**
+ * Base64 helpers, including the URL-safe variant (RFC 4648 §5) without padding.
+ *
+ * @author rak200 <rak.ricardo@windowslive.com>
+ */
 final class Base64 {
     private function __construct() {}
 
+    /**
+     * Encodes $value as standard Base64.
+     */
     public static function encode(string $value): string {
         return base64_encode($value);
     }
 
+    /**
+     * Decodes a standard Base64 string. Strict: rejects any non-alphabet
+     * character.
+     *
+     * @throws RuntimeException When $value is not valid Base64.
+     */
     public static function decode(string $value): string {
         $result = base64_decode($value, true);
         if ($result === false) {
@@ -21,10 +35,20 @@ final class Base64 {
         return $result;
     }
 
+    /**
+     * Encodes $value as URL-safe Base64 (replaces '+/' with '-_') with the
+     * trailing '=' padding stripped.
+     */
     public static function encodeUrl(string $value): string {
         return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
+    /**
+     * Decodes a URL-safe Base64 string. Missing '=' padding is restored before
+     * decoding.
+     *
+     * @throws RuntimeException When $value is not valid URL-safe Base64.
+     */
     public static function decodeUrl(string $value): string {
         $encoded = strtr($value, '-_', '+/');
         $padded = $encoded . str_repeat('=', (4 - strlen($encoded) % 4) % 4);

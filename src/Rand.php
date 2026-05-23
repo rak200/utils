@@ -6,10 +6,22 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 
+/**
+ * Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators.
+ *
+ * @author rak200 <rak.ricardo@windowslive.com>
+ */
 final class Rand {
+    /** Decimal digits 0-9. */
     public const string NUM = '0123456789';
+
+    /** Lowercase hexadecimal digits 0-9 a-f. */
     public const string HEX = '0123456789abcdef';
+
+    /** ASCII letters a-z A-Z. */
     public const string ALPHA = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    /** ASCII letters and decimal digits. */
     public const string ALNUM = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
     private const string CROCKFORD_BASE32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -17,6 +29,11 @@ final class Rand {
 
     private function __construct() {}
 
+    /**
+     * Returns a cryptographically-secure integer in the closed range [$min, $max].
+     *
+     * @throws RuntimeException When $min > $max.
+     */
     public static function int(int $min, int $max): int {
         if ($min > $max) {
             throw new RuntimeException('Min cannot be greater than max.');
@@ -24,6 +41,11 @@ final class Rand {
         return random_int($min, $max);
     }
 
+    /**
+     * Returns a cryptographically-seeded float in the closed range [$min, $max].
+     *
+     * @throws RuntimeException When $min > $max.
+     */
     public static function float(float $min, float $max): float {
         if ($min > $max) {
             throw new RuntimeException('Min cannot be greater than max.');
@@ -32,6 +54,11 @@ final class Rand {
         return $min + ($max - $min) * $ratio;
     }
 
+    /**
+     * Returns $length cryptographically-secure random bytes (raw binary).
+     *
+     * @throws RuntimeException When $length < 1.
+     */
     public static function bytes(int $length): string {
         if ($length < 1) {
             throw new RuntimeException('Length must be at least 1.');
@@ -39,6 +66,11 @@ final class Rand {
         return random_bytes($length);
     }
 
+    /**
+     * Returns a random string of $length characters drawn from $alphabet.
+     *
+     * @throws RuntimeException When $length < 1 or $alphabet is empty.
+     */
     public static function string(int $length, string $alphabet = self::ALNUM): string {
         if ($length < 1) {
             throw new RuntimeException('Length must be at least 1.');
@@ -52,6 +84,8 @@ final class Rand {
     /**
      * Generates a string by replacing every '#' in $pattern with a random
      * character from $alphabet. All other characters are emitted literally.
+     *
+     * @throws RuntimeException When $pattern or $alphabet is empty.
      */
     public static function masked(string $pattern, string $alphabet = self::ALNUM): string {
         if ($pattern === '') {
@@ -70,6 +104,9 @@ final class Rand {
         return $result;
     }
 
+    /**
+     * Generates a random UUID version 4 (RFC 4122) in canonical 8-4-4-4-12 hex form.
+     */
     public static function uuid(): string {
         $bytes = random_bytes(16);
         $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
@@ -77,6 +114,10 @@ final class Rand {
         return self::formatUuid($bytes);
     }
 
+    /**
+     * Generates a UUID version 7 (time-ordered, RFC 9562) using the current
+     * millisecond timestamp as a prefix.
+     */
     public static function uuidV7(): string {
         $timestampMs = (int) (microtime(true) * 1000);
         $bytes = chr(($timestampMs >> 40) & 0xff)
@@ -91,6 +132,10 @@ final class Rand {
         return self::formatUuid($bytes);
     }
 
+    /**
+     * Generates a ULID: 26 Crockford Base32 characters, time-ordered by
+     * millisecond prefix.
+     */
     public static function ulid(): string {
         $timestampMs = (int) (microtime(true) * 1000);
         $bytes = chr(($timestampMs >> 40) & 0xff)
@@ -103,6 +148,11 @@ final class Rand {
         return self::encodeCrockfordBase32($bytes);
     }
 
+    /**
+     * Generates a NanoID using the standard 64-character URL-safe alphabet.
+     *
+     * @throws RuntimeException When $length < 1.
+     */
     public static function nanoid(int $length = 21): string {
         if ($length < 1) {
             throw new RuntimeException('Length must be at least 1.');

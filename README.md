@@ -34,6 +34,10 @@ composer require rak200/utils
 - **`Base64`** — standard and URL-safe (no-padding) encode/decode.
 - **`Dt`** — `DateTimeImmutable` helpers: construction, formatting (incl. `Dt::sql()`), arithmetic, comparison, period boundaries, diff in integer units.
 
+## Documentation
+
+Per-method reference with runnable examples lives in [`docs/`](docs/README.md).
+
 ## Conventions
 
 - All classes are `final` with a `private` constructor — pure static API, no instances.

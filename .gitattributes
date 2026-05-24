@@ -7,3 +7,4 @@
 /tests            export-ignore
 /phpunit.xml      export-ignore
 /CLAUDE.md        export-ignore
+/docs             export-ignore

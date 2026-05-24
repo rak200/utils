@@ -1,5 +1,7 @@
 # Str
 
+[← Reference](README.md)
+
 Multibyte-safe string helpers.
 
 ```php
@@ -14,14 +16,20 @@ use Rak200\Utils\Str;
 - [`upper` / `lower`](#upper--lower)
 - [`contains`](#contains)
 - [`startsWith` / `endsWith`](#startswith--endswith)
+- [`indexOf` / `lastIndexOf`](#indexof--lastindexof)
+- [`count`](#count)
 - [`trim` / `trimStart` / `trimEnd`](#trim--trimstart--trimend)
+- [`substring`](#substring)
 - [`replace`](#replace)
+- [`replaceFirst` / `replaceLast`](#replacefirst--replacelast)
 - [`split`](#split)
 - [`join`](#join)
 - [`wrap`](#wrap)
 - [`padStart` / `padEnd`](#padstart--padend)
 - [`repeat`](#repeat)
 - [`reverse`](#reverse)
+- [`truncate`](#truncate)
+- [`slug`](#slug)
 - [`toCamelCase` / `toPascalCase` / `toSnakeCase` / `toKebabCase`](#tocamelcase--topascalcase--tosnakecase--tokebabcase)
 
 ---
@@ -99,6 +107,32 @@ Str::endsWith('file.tar.gz', '.gz');       // true
 
 ---
 
+## `indexOf` / `lastIndexOf`
+
+0-based character index of the first/last occurrence of `$needle` (multibyte-aware), or `-1` when not found. An empty needle returns `-1` (no meaningful position).
+
+```php
+Str::indexOf('hello world', 'world');     // 6
+Str::indexOf('hello', 'xyz');             // -1
+Str::indexOf('ação válida', 'á', 2);      // 7
+Str::lastIndexOf('abcabc', 'c');          // 5
+Str::lastIndexOf('abc', 'z');             // -1
+```
+
+---
+
+## `count`
+
+Number of non-overlapping occurrences of `$needle` in `$haystack` (byte-level via `substr_count`). An empty needle returns `0`.
+
+```php
+Str::count('abcabcabc', 'a');       // 3
+Str::count('aaaa', 'aa');           // 2   (non-overlapping)
+Str::count('abc', 'z');             // 0
+```
+
+---
+
 ## `trim` / `trimStart` / `trimEnd`
 
 Strip characters from one or both ends. Default character set is ASCII whitespace.
@@ -112,6 +146,18 @@ Str::trimEnd('  hello  ');             // '  hello'
 
 ---
 
+## `substring`
+
+Multibyte-safe slicing. When `$length` is `null`, takes everything from `$start` to the end.
+
+```php
+Str::substring('hello', 1, 3);        // 'ell'
+Str::substring('ação', 1);            // 'ção'
+Str::substring('hello', -3);          // 'llo'
+```
+
+---
+
 ## `replace`
 
 Replaces every occurrence of `$search` with `$replacement`.
@@ -119,6 +165,18 @@ Replaces every occurrence of `$search` with `$replacement`.
 ```php
 Str::replace('hello world', 'world', 'there');   // 'hello there'
 Str::replace('a-b-c', '-', '/');                 // 'a/b/c'
+```
+
+---
+
+## `replaceFirst` / `replaceLast`
+
+Replace only the first/last occurrence. Returns the subject unchanged when `$search` is empty or not found.
+
+```php
+Str::replaceFirst('foo-foo-foo', 'foo', 'xyz');   // 'xyz-foo-foo'
+Str::replaceLast('foo-foo-foo', 'foo', 'xyz');    // 'foo-foo-xyz'
+Str::replaceFirst('hello', 'x', 'y');             // 'hello'  (not found)
 ```
 
 ---
@@ -193,9 +251,36 @@ Str::reverse('ação');     // 'oãça'
 
 ---
 
+## `truncate`
+
+Truncates to at most `$length` characters, appending `$ellipsis` when truncation actually happens. When `$length` is shorter than `$ellipsis`, returns the leading `$length` characters of `$ellipsis`.
+
+```php
+Str::truncate('hello', 10);              // 'hello'
+Str::truncate('hello world', 4);         // 'hel…'
+Str::truncate('hello world', 6);         // 'hello…'
+Str::truncate('hello', 2);               // 'h…'
+Str::truncate('hello world', 5, '...');  // 'he...'
+```
+
+---
+
+## `slug`
+
+URL-friendly slug. Best-effort transliteration to ASCII via `iconv`, lowercases, and collapses runs of non-alphanumerics into `$separator`.
+
+```php
+Str::slug('Hello World!');           // 'hello-world'
+Str::slug('Olá, mundo!');            // 'ola-mundo'
+Str::slug('foo  bar', '_');          // 'foo_bar'
+Str::slug('   ');                    // ''
+```
+
+---
+
 ## `toCamelCase` / `toPascalCase` / `toSnakeCase` / `toKebabCase`
 
-Case conversion. Splits the input into words on whitespace, dashes, underscores, and case transitions (camelCase / PascalCase boundaries).
+Case conversion. Splits the input into words on whitespace, dashes, underscores, and case transitions (camelCase / PascalCase boundaries — unicode-aware via `\p{Ll}` / `\p{Nd}` / `\p{Lu}`).
 
 ```php
 Str::toCamelCase('hello world');     // 'helloWorld'
@@ -204,5 +289,7 @@ Str::toPascalCase('hello world');    // 'HelloWorld'
 Str::toPascalCase('hello-world');    // 'HelloWorld'
 Str::toSnakeCase('HelloWorld');      // 'hello_world'
 Str::toSnakeCase('helloWorld');      // 'hello_world'
+Str::toSnakeCase('HTMLParser');      // 'html_parser'
+Str::toSnakeCase('óÁgua');           // 'ó_água'        (unicode boundary)
 Str::toKebabCase('HelloWorld');      // 'hello-world'
 ```

@@ -7,7 +7,8 @@ PHP's standard library is broad but inconsistent in naming, type-strictness and 
 ## Requirements
 
 - PHP 8.4+
-- No runtime dependencies
+- Extensions: `bcmath` (used by `Num` for `BcMath\Number` support) and `mbstring` (used by `Str`). Both are bundled with PHP and enabled by default on most distributions.
+- No Composer runtime dependencies.
 
 ## Installation
 
@@ -21,7 +22,7 @@ composer require rak200/utils
 
 - **`Str`** — string operations (multibyte-safe by default): blank checks, case helpers, search, trim, split/join, padding, case conversions (`toCamelCase`/`toSnakeCase`/...).
 - **`Arr`** — array operations: emptiness, first/last lookup, find, filter/map/reduce, flatten, groupBy, partition, chunk, unique, zip, range.
-- **`Num`** — number operations: type checks, parsing, clamp/inRange, rounding, formatting, aggregates, sign.
+- **`Num`** — number operations: type checks, parsing (incl. `parseNumber` returning `BcMath\Number`), clamp/inRange, rounding, formatting, aggregates, sign, arithmetic (`pow`, `sqrt`, `floor`, `ceil`, `mod`). Aggregation and per-element methods accept and propagate `BcMath\Number` alongside `int|float`.
 - **`Rand`** — randomness in one place: int/float/bytes/string, masked patterns, UUID v4 / UUID v7, ULID, nanoid. Alphabet constants: `Rand::NUM`, `Rand::HEX`, `Rand::ALPHA`, `Rand::ALNUM`.
 
 ### Tier 2 — contextual

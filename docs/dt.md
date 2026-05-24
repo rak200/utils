@@ -1,5 +1,7 @@
 # Dt
 
+[← Reference](README.md)
+
 Date/time helpers built on `DateTimeImmutable`. Inputs accept any `DateTimeInterface`; returns are always immutable.
 
 ```php
@@ -19,6 +21,8 @@ use DateTimeZone;
 - [`date` / `time`](#date--time)
 - [`addDays` / `addHours` / `addMinutes` / `addSeconds` / `addMonths` / `addYears`](#adddays--addhours--addminutes--addseconds--addmonths--addyears)
 - [`isBefore` / `isAfter` / `isEqual`](#isbefore--isafter--isequal)
+- [`isWeekend` / `isWeekday`](#isweekend--isweekday)
+- [`dayOfWeek` / `dayOfYear` / `weekOfYear`](#dayofweek--dayofyear--weekofyear)
 - [`min` / `max`](#min--max)
 - [`startOfDay` / `endOfDay`](#startofday--endofday)
 - [`startOfWeek` / `endOfWeek`](#startofweek--endofweek)
@@ -134,12 +138,45 @@ Dt::addYears($dt, -1);       // 2025-05-23 10:00:00
 
 ## `isBefore` / `isAfter` / `isEqual`
 
+`isEqual` compares the absolute UTC instant (microsecond precision) — two times in different timezones that point at the same instant compare equal.
+
 ```php
 $a = Dt::of(2026, 1, 1);
 $b = Dt::of(2026, 6, 1);
 Dt::isBefore($a, $b);    // true
 Dt::isAfter($a, $b);     // false
 Dt::isEqual($a, $a);     // true
+
+Dt::isEqual(
+    new DateTimeImmutable('2026-05-23T12:00:00+00:00'),
+    new DateTimeImmutable('2026-05-23T09:00:00-03:00'),
+);                       // true   (same UTC instant)
+```
+
+---
+
+## `isWeekend` / `isWeekday`
+
+`isWeekend` is true on Saturday and Sunday.
+
+```php
+Dt::isWeekend(Dt::of(2026, 5, 23));    // true   (Saturday)
+Dt::isWeekend(Dt::of(2026, 5, 25));    // false  (Monday)
+Dt::isWeekday(Dt::of(2026, 5, 25));    // true
+```
+
+---
+
+## `dayOfWeek` / `dayOfYear` / `weekOfYear`
+
+ISO-8601 numbering. `dayOfWeek` returns 1 (Monday) through 7 (Sunday); `dayOfYear` is 1-based.
+
+```php
+$dt = Dt::of(2026, 5, 23);     // a Saturday
+Dt::dayOfWeek($dt);            // 6
+Dt::dayOfYear($dt);            // 143
+Dt::weekOfYear($dt);           // 21
+Dt::dayOfYear(Dt::of(2026, 1, 1));    // 1
 ```
 
 ---

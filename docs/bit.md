@@ -1,5 +1,7 @@
 # Bit
 
+[← Reference](README.md)
+
 Bit-manipulation helpers operating on the native PHP `int` (platform-sized — 32 or 64 bits depending on `PHP_INT_SIZE`).
 
 ```php

@@ -128,10 +128,14 @@ final class Arr {
     /**
      * Reduces the array to a single value by repeatedly applying $callback.
      *
-     * @param callable(mixed, mixed): mixed $callback Receives the accumulator and the current value.
+     * @param callable(mixed, mixed, int|string): mixed $callback Receives the accumulator, current value, and key.
      */
     public static function reduce(array $array, callable $callback, mixed $initial = null): mixed {
-        return array_reduce($array, $callback, $initial);
+        $carry = $initial;
+        foreach ($array as $key => $value) {
+            $carry = $callback($carry, $value, $key);
+        }
+        return $carry;
     }
 
     /**
@@ -264,6 +268,111 @@ final class Arr {
             $result[] = $tuple;
         }
         return $result;
+    }
+
+    /**
+     * Returns true when $value is present in $array. Strict comparison by default.
+     */
+    public static function contains(array $array, mixed $value, bool $strict = true): bool {
+        return in_array($value, $array, $strict);
+    }
+
+    /**
+     * Extracts the values at $key from each sub-array of $array as a 0-indexed
+     * list. Items without the key contribute null.
+     *
+     * @return list<mixed>
+     */
+    public static function pluck(array $array, int|string $key): array {
+        $result = [];
+        foreach ($array as $item) {
+            $result[] = is_array($item) && array_key_exists($key, $item) ? $item[$key] : null;
+        }
+        return $result;
+    }
+
+    /**
+     * Re-indexes $array by the value at $key on each item (or by the result of
+     * $key when called with the item). Later collisions overwrite earlier ones.
+     *
+     * @param int|string|callable(mixed): (int|string) $key
+     */
+    public static function keyBy(array $array, int|string|callable $key): array {
+        $result = [];
+        $isCallable = !is_int($key) && !is_string($key) && is_callable($key);
+        foreach ($array as $item) {
+            if ($isCallable) {
+                /** @var callable(mixed): (int|string) $key */
+                $k = $key($item);
+            } else {
+                if (!is_array($item) || !array_key_exists($key, $item)) {
+                    throw new RuntimeException(sprintf('Item missing key "%s".', (string) $key));
+                }
+                $k = $item[$key];
+            }
+            $result[$k] = $item;
+        }
+        return $result;
+    }
+
+    /**
+     * Returns $array sorted with the natural `<=>` comparator (or $comparator
+     * when given). Values are re-indexed as a 0-based list.
+     *
+     * @param null|callable(mixed, mixed): int $comparator
+     * @return list<mixed>
+     */
+    public static function sort(array $array, ?callable $comparator = null): array {
+        $values = array_values($array);
+        if ($comparator === null) {
+            usort($values, static fn(mixed $a, mixed $b): int => $a <=> $b);
+        } else {
+            usort($values, $comparator);
+        }
+        return $values;
+    }
+
+    /**
+     * Returns $array sorted by the value produced by $keyExtractor for each
+     * element (called with value and key). Values are re-indexed as a 0-based
+     * list.
+     *
+     * @param callable(mixed, int|string): mixed $keyExtractor
+     * @return list<mixed>
+     */
+    public static function sortBy(array $array, callable $keyExtractor): array {
+        $annotated = [];
+        foreach ($array as $key => $value) {
+            $annotated[] = [$keyExtractor($value, $key), $value];
+        }
+        usort($annotated, static fn(array $a, array $b): int => $a[0] <=> $b[0]);
+        return array_map(static fn(array $pair): mixed => $pair[1], $annotated);
+    }
+
+    /**
+     * Merges $arrays left-to-right. String keys are overwritten by later arrays;
+     * integer keys are renumbered (matches PHP `array_merge`).
+     */
+    public static function merge(array ...$arrays): array {
+        return $arrays === [] ? [] : array_merge(...$arrays);
+    }
+
+    /**
+     * Returns $array restricted to the given $keys, preserving original order.
+     *
+     * @param list<int|string> $keys
+     */
+    public static function pick(array $array, array $keys): array {
+        return array_intersect_key($array, array_flip($keys));
+    }
+
+    /**
+     * Returns $array with the given $keys removed, preserving original order.
+     *
+     * @param list<int|string> $keys
+     */
+    public static function except(array $array, array $keys): array {
+        return array_diff_key($array, array_flip($keys));
     }
 
     /**

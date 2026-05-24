@@ -1,5 +1,7 @@
 # File
 
+[← Reference](README.md)
+
 Filesystem helpers — every operation throws on failure instead of returning the silent `false` of the underlying PHP functions.
 
 ```php
@@ -10,7 +12,10 @@ use Rak200\Utils\File;
 
 - [`read` / `write` / `append`](#read--write--append)
 - [`exists`](#exists)
+- [`isFile` / `isDirectory`](#isfile--isdirectory)
 - [`delete`](#delete)
+- [`mkdir`](#mkdir)
+- [`list`](#list)
 - [`extension` / `basename` / `dirname`](#extension--basename--dirname)
 - [`mimeType`](#mimetype)
 - [`size`](#size)
@@ -43,6 +48,19 @@ File::exists('/does/not/exist');       // false
 
 ---
 
+## `isFile` / `isDirectory`
+
+Type-discriminating checks.
+
+```php
+File::isFile('/tmp/greeting.txt');     // true
+File::isFile('/tmp');                  // false
+File::isDirectory('/tmp');             // true
+File::isDirectory('/tmp/greeting.txt'); // false
+```
+
+---
+
 ## `delete`
 
 No-op when the file does not exist; only throws when it exists and cannot be deleted.
@@ -50,6 +68,30 @@ No-op when the file does not exist; only throws when it exists and cannot be del
 ```php
 File::delete('/tmp/greeting.txt');     // removes the file
 File::delete('/tmp/already-gone');     // no-op, no exception
+```
+
+---
+
+## `mkdir`
+
+Creates a directory. Recursive by default. No-op when the directory already exists.
+
+```php
+File::mkdir('/tmp/cache/build/2026');           // creates parents as needed
+File::mkdir('/tmp/cache/build/2026');           // no-op (already exists)
+File::mkdir('/tmp/cache/build', recursive: false);
+```
+
+---
+
+## `list`
+
+Returns the entries in `$dir` matching the glob `$pattern` (default `'*'` — everything except dotfiles). Result is a 0-indexed list of absolute paths.
+
+```php
+File::list('/var/log');                // every entry under /var/log
+File::list('/var/log', '*.log');       // only files ending in .log
+File::list('/var/log', 'app-*.log');   // glob with prefix
 ```
 
 ---

@@ -1,5 +1,7 @@
 # Hash
 
+[← Reference](README.md)
+
 Hashing helpers (digests, HMAC, password hashing & verification).
 
 ```php

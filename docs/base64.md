@@ -1,10 +1,17 @@
 # Base64
 
+[← Reference](README.md)
+
 Base64 helpers, including the URL-safe variant (RFC 4648 §5) without padding.
 
 ```php
 use Rak200\Utils\Base64;
 ```
+
+## Contents
+
+- [`encode` / `decode`](#encode--decode)
+- [`encodeUrl` / `decodeUrl`](#encodeurl--decodeurl)
 
 ---
 

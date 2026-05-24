@@ -1,5 +1,7 @@
 # Json
 
+[← Reference](README.md)
+
 JSON helpers — always throw `JsonException` on malformed input/output (`JSON_THROW_ON_ERROR` is forced).
 
 ```php

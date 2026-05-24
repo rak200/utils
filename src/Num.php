@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
+use BcMath\Number;
 use RoundingMode;
 use RuntimeException;
 
 /**
- * Numeric helpers for parsing, formatting, and aggregation.
+ * Numeric helpers for parsing, formatting, arithmetic and aggregation.
+ *
+ * Accepts {@see Number} (PHP 8.4 arbitrary precision) alongside int|float in
+ * aggregation and per-element methods; the return widens to Number when any
+ * input is one (no silent narrowing to float). Parsing helpers stay scalar;
+ * use {@see parseNumber()} / {@see parseNumberOrNull()} for arbitrary-precision
+ * strings.
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
@@ -30,10 +37,14 @@ final class Num {
     }
 
     /**
-     * Returns true if $value is an int, a float, or a numeric string.
+     * Returns true if $value is an int, a float, a numeric string, or a
+     * {@see Number} instance.
      */
     public static function isNumeric(mixed $value): bool {
-        return is_int($value) || is_float($value) || (is_string($value) && is_numeric($value));
+        return is_int($value)
+            || is_float($value)
+            || (is_string($value) && is_numeric($value))
+            || $value instanceof Number;
     }
 
     /**
@@ -114,44 +125,109 @@ final class Num {
     }
 
     /**
+     * Parses $value as an arbitrary-precision {@see Number} (decimal notation,
+     * no scientific exponent).
+     *
+     * @throws RuntimeException When $value cannot be represented as a Number.
+     */
+    public static function parseNumber(string $value): Number {
+        $parsed = self::parseNumberOrNull($value);
+        if ($parsed === null) {
+            throw new RuntimeException(sprintf('Cannot parse "%s" as number.', $value));
+        }
+        return $parsed;
+    }
+
+    /**
+     * Parses $value as an arbitrary-precision {@see Number}; returns null when
+     * $value is not numeric or cannot be represented.
+     */
+    public static function parseNumberOrNull(string $value): ?Number {
+        $value = trim($value);
+        if (!is_numeric($value) || $value === '') {
+            return null;
+        }
+        try {
+            return new Number($value);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
      * Constrains $value to the closed interval [$min, $max].
      *
      * @throws RuntimeException When $min > $max.
      */
-    public static function clamp(int|float $value, int|float $min, int|float $max): int|float {
+    public static function clamp(
+        int|float|Number $value,
+        int|float|Number $min,
+        int|float|Number $max,
+    ): int|float|Number {
         if ($min > $max) {
             throw new RuntimeException('Min cannot be greater than max.');
         }
-        return max($min, min($max, $value));
+        if ($value < $min) {
+            return $min;
+        }
+        if ($value > $max) {
+            return $max;
+        }
+        return $value;
     }
 
     /**
      * Returns true if $value lies within the closed interval [$min, $max].
      */
-    public static function inRange(int|float $value, int|float $min, int|float $max): bool {
+    public static function inRange(
+        int|float|Number $value,
+        int|float|Number $min,
+        int|float|Number $max,
+    ): bool {
         return $value >= $min && $value <= $max;
     }
 
     /**
-     * Rounds $value to $precision decimal places using the given rounding mode.
+     * Rounds $value to $precision decimal places. Returns a {@see Number} when
+     * $value is one (preserves arbitrary precision); a float otherwise.
      */
-    public static function round(float $value, int $precision = 0, RoundingMode $mode = RoundingMode::HalfAwayFromZero): float {
+    public static function round(
+        float|Number $value,
+        int $precision = 0,
+        RoundingMode $mode = RoundingMode::HalfAwayFromZero,
+    ): float|Number {
+        if ($value instanceof Number) {
+            return $value->round($precision, $mode);
+        }
         return round($value, $precision, $mode);
     }
 
     /**
      * Formats $value with the given decimal and thousands separators.
+     *
+     * For {@see Number} input, the value is rounded to $decimals using
+     * {@see RoundingMode::HalfAwayFromZero} and formatted from its canonical
+     * decimal string (no precision loss).
      */
-    public static function format(int|float $value, int $decimals = 2, string $decimalSeparator = '.', string $thousandsSeparator = ','): string {
+    public static function format(
+        int|float|Number $value,
+        int $decimals = 2,
+        string $decimalSeparator = '.',
+        string $thousandsSeparator = ',',
+    ): string {
+        if ($value instanceof Number) {
+            return self::formatNumber($value, $decimals, $decimalSeparator, $thousandsSeparator);
+        }
         return number_format((float) $value, $decimals, $decimalSeparator, $thousandsSeparator);
     }
 
     /**
-     * Returns the sum of $values. Returns 0 (int) for an empty input.
+     * Returns the sum of $values. Widens to {@see Number} when any element is
+     * one. Returns 0 (int) for an empty input.
      *
-     * @param iterable<int|float> $values
+     * @param iterable<int|float|Number> $values
      */
-    public static function sum(iterable $values): int|float {
+    public static function sum(iterable $values): int|float|Number {
         $sum = 0;
         foreach ($values as $value) {
             $sum += $value;
@@ -160,12 +236,13 @@ final class Num {
     }
 
     /**
-     * Returns the arithmetic mean of $values.
+     * Returns the arithmetic mean of $values. Widens to {@see Number} when any
+     * element is one.
      *
-     * @param iterable<int|float> $values
+     * @param iterable<int|float|Number> $values
      * @throws RuntimeException When $values is empty.
      */
-    public static function avg(iterable $values): float {
+    public static function avg(iterable $values): float|Number {
         $sum = 0;
         $count = 0;
         foreach ($values as $value) {
@@ -181,10 +258,10 @@ final class Num {
     /**
      * Returns the smallest of $values.
      *
-     * @param iterable<int|float> $values
+     * @param iterable<int|float|Number> $values
      * @throws RuntimeException When $values is empty.
      */
-    public static function min(iterable $values): int|float {
+    public static function min(iterable $values): int|float|Number {
         $min = null;
         foreach ($values as $value) {
             if ($min === null || $value < $min) {
@@ -200,10 +277,10 @@ final class Num {
     /**
      * Returns the largest of $values.
      *
-     * @param iterable<int|float> $values
+     * @param iterable<int|float|Number> $values
      * @throws RuntimeException When $values is empty.
      */
-    public static function max(iterable $values): int|float {
+    public static function max(iterable $values): int|float|Number {
         $max = null;
         foreach ($values as $value) {
             if ($max === null || $value > $max) {
@@ -219,14 +296,147 @@ final class Num {
     /**
      * Returns the absolute value of $value.
      */
-    public static function abs(int|float $value): int|float {
+    public static function abs(int|float|Number $value): int|float|Number {
+        if ($value instanceof Number) {
+            return $value < new Number('0') ? $value * -1 : $value;
+        }
         return abs($value);
     }
 
     /**
      * Returns -1, 0, or 1 according to the sign of $value.
      */
-    public static function sign(int|float $value): int {
+    public static function sign(int|float|Number $value): int {
+        if ($value instanceof Number) {
+            $zero = new Number('0');
+            return $value <=> $zero;
+        }
         return $value <=> 0;
+    }
+
+    /**
+     * Returns $base raised to $exp. Widens to {@see Number} when either operand
+     * is one.
+     */
+    public static function pow(int|float|Number $base, int|float|Number $exp): int|float|Number {
+        return $base ** $exp;
+    }
+
+    /**
+     * Returns the square root of $value. Returns a {@see Number} when $value is
+     * one (preserves arbitrary precision); a float otherwise.
+     *
+     * @throws RuntimeException When $value is negative.
+     */
+    public static function sqrt(int|float|Number $value): float|Number {
+        if ($value instanceof Number) {
+            if ($value < new Number('0')) {
+                throw new RuntimeException('Cannot take square root of a negative number.');
+            }
+            return $value->sqrt();
+        }
+        if ($value < 0) {
+            throw new RuntimeException('Cannot take square root of a negative number.');
+        }
+        return sqrt((float) $value);
+    }
+
+    /**
+     * Rounds $value down to $precision decimal places.
+     */
+    public static function floor(int|float|Number $value, int $precision = 0): float|Number {
+        if ($value instanceof Number) {
+            return self::numberFloorCeil($value, $precision, false);
+        }
+        if ($precision === 0) {
+            return floor((float) $value);
+        }
+        $factor = 10 ** $precision;
+        return floor((float) $value * $factor) / $factor;
+    }
+
+    /**
+     * Rounds $value up to $precision decimal places.
+     */
+    public static function ceil(int|float|Number $value, int $precision = 0): float|Number {
+        if ($value instanceof Number) {
+            return self::numberFloorCeil($value, $precision, true);
+        }
+        if ($precision === 0) {
+            return ceil((float) $value);
+        }
+        $factor = 10 ** $precision;
+        return ceil((float) $value * $factor) / $factor;
+    }
+
+    /**
+     * Returns the truncated modulo of $a divided by $b (sign of the result
+     * follows the dividend, matching PHP's `%`).
+     *
+     * @throws RuntimeException When $b is zero.
+     */
+    public static function mod(int|float|Number $a, int|float|Number $b): int|float|Number {
+        if ($b instanceof Number) {
+            if ($b == new Number('0')) {
+                throw new RuntimeException('Cannot mod by zero.');
+            }
+        } elseif ($b == 0) {
+            throw new RuntimeException('Cannot mod by zero.');
+        }
+        if ($a instanceof Number || $b instanceof Number) {
+            return $a % $b;
+        }
+        if (is_int($a) && is_int($b)) {
+            return $a % $b;
+        }
+        return fmod((float) $a, (float) $b);
+    }
+
+    private static function numberFloorCeil(Number $value, int $precision, bool $ceil): Number {
+        if ($precision === 0) {
+            return $ceil ? $value->ceil() : $value->floor();
+        }
+        if ($precision < 0) {
+            $factor = new Number(str_pad('1', 1 + abs($precision), '0'));
+            $shifted = $value / $factor;
+            $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
+            return $rounded * $factor;
+        }
+        $factor = new Number('1' . str_repeat('0', $precision));
+        $shifted = $value * $factor;
+        $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
+        return $rounded / $factor;
+    }
+
+    private static function formatNumber(
+        Number $value,
+        int $decimals,
+        string $decimalSeparator,
+        string $thousandsSeparator,
+    ): string {
+        $str = (string) $value->round($decimals, RoundingMode::HalfAwayFromZero);
+        $negative = str_starts_with($str, '-');
+        if ($negative) {
+            $str = substr($str, 1);
+        }
+        if (str_contains($str, '.')) {
+            [$intPart, $decPart] = explode('.', $str, 2);
+        } else {
+            $intPart = $str;
+            $decPart = '';
+        }
+        if ($decimals > 0) {
+            $decPart = str_pad(substr($decPart, 0, $decimals), $decimals, '0');
+        } else {
+            $decPart = '';
+        }
+        $intGrouped = $thousandsSeparator === ''
+            ? $intPart
+            : strrev(implode($thousandsSeparator, str_split(strrev($intPart), 3)));
+        $result = ($negative ? '-' : '') . $intGrouped;
+        if ($decimals > 0) {
+            $result .= $decimalSeparator . $decPart;
+        }
+        return $result;
     }
 }

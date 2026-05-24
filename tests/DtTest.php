@@ -132,6 +132,33 @@ final class DtTest extends TestCase {
         $this->assertSame('2026-12-31 23:59:59', Dt::endOfYear($dt)->format('Y-m-d H:i:s'));
     }
 
+    public function testIsEqualIgnoresTimezone(): void {
+        $a = new DateTimeImmutable('2026-05-23T12:00:00+00:00');
+        $b = new DateTimeImmutable('2026-05-23T09:00:00-03:00');
+        $this->assertTrue(Dt::isEqual($a, $b));
+    }
+
+    public function testWeekendWeekday(): void {
+        $sat = new DateTimeImmutable('2026-05-23');
+        $sun = new DateTimeImmutable('2026-05-24');
+        $mon = new DateTimeImmutable('2026-05-25');
+        $this->assertTrue(Dt::isWeekend($sat));
+        $this->assertTrue(Dt::isWeekend($sun));
+        $this->assertFalse(Dt::isWeekend($mon));
+        $this->assertFalse(Dt::isWeekday($sat));
+        $this->assertTrue(Dt::isWeekday($mon));
+    }
+
+    public function testDayOfWeekDayOfYearWeekOfYear(): void {
+        $dt = new DateTimeImmutable('2026-05-23');
+        $this->assertSame(6, Dt::dayOfWeek($dt));
+        $this->assertSame(143, Dt::dayOfYear($dt));
+        $this->assertSame(21, Dt::weekOfYear($dt));
+
+        $jan1 = new DateTimeImmutable('2026-01-01');
+        $this->assertSame(1, Dt::dayOfYear($jan1));
+    }
+
     public function testDiffInUnits(): void {
         $a = new DateTimeImmutable('2026-05-23 12:00:00');
         $b = new DateTimeImmutable('2026-05-25 14:30:00');

@@ -1,5 +1,7 @@
 # Regex
 
+[← Reference](README.md)
+
 PCRE wrappers that throw on invalid patterns instead of surfacing the silent `false` / `null` returns of the underlying `preg_*` functions.
 
 ```php

@@ -140,4 +140,57 @@ final class StrTest extends TestCase {
         $this->assertSame('hello-world', Str::toKebabCase('helloWorld'));
         $this->assertSame('html_parser', Str::toSnakeCase('HTMLParser'));
     }
+
+    public function testCaseConversionHandlesUnicodeBoundaries(): void {
+        $this->assertSame('ó_água', Str::toSnakeCase('óÁgua'));
+        $this->assertSame('ó-água', Str::toKebabCase('óÁgua'));
+    }
+
+    public function testSubstringMultibyte(): void {
+        $this->assertSame('ell', Str::substring('hello', 1, 3));
+        $this->assertSame('ção', Str::substring('ação', 1));
+        $this->assertSame('', Str::substring('hello', 0, 0));
+    }
+
+    public function testIndexOfAndLastIndexOf(): void {
+        $this->assertSame(6, Str::indexOf('hello world', 'world'));
+        $this->assertSame(-1, Str::indexOf('hello', 'xyz'));
+        $this->assertSame(-1, Str::indexOf('hello', ''));
+        $this->assertSame(5, Str::lastIndexOf('abcabc', 'c'));
+        $this->assertSame(-1, Str::lastIndexOf('abc', 'z'));
+    }
+
+    public function testCountSubstring(): void {
+        $this->assertSame(3, Str::count('abcabcabc', 'a'));
+        $this->assertSame(0, Str::count('abc', 'z'));
+        $this->assertSame(0, Str::count('abc', ''));
+    }
+
+    public function testTruncate(): void {
+        $this->assertSame('hello', Str::truncate('hello', 10));
+        $this->assertSame('hel…', Str::truncate('hello world', 4));
+        $this->assertSame('h…', Str::truncate('hello', 2));
+        $this->assertSame('…', Str::truncate('hello', 1));
+        $this->assertSame('', Str::truncate('hello', 0));
+        $this->assertSame('hello…', Str::truncate('hello world', 6));
+    }
+
+    public function testTruncateRejectsNegativeLength(): void {
+        $this->expectException(RuntimeException::class);
+        Str::truncate('x', -1);
+    }
+
+    public function testReplaceFirstAndLast(): void {
+        $this->assertSame('xyz-foo-foo', Str::replaceFirst('foo-foo-foo', 'foo', 'xyz'));
+        $this->assertSame('foo-foo-xyz', Str::replaceLast('foo-foo-foo', 'foo', 'xyz'));
+        $this->assertSame('hello', Str::replaceFirst('hello', 'x', 'y'));
+        $this->assertSame('hello', Str::replaceFirst('hello', '', 'y'));
+    }
+
+    public function testSlug(): void {
+        $this->assertSame('hello-world', Str::slug('Hello World!'));
+        $this->assertSame('one-two-three', Str::slug('one  two  three'));
+        $this->assertSame('foo_bar', Str::slug('Foo  Bar', '_'));
+        $this->assertSame('', Str::slug('   '));
+    }
 }

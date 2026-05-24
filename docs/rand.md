@@ -1,5 +1,7 @@
 # Rand
 
+[← Reference](README.md)
+
 Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators.
 
 ```php
@@ -11,9 +13,12 @@ use Rak200\Utils\Rand;
 - [Alphabet constants](#alphabet-constants)
 - [`int`](#int)
 - [`float`](#float)
+- [`bool`](#bool)
 - [`bytes`](#bytes)
 - [`string`](#string)
 - [`masked`](#masked)
+- [`choice`](#choice)
+- [`shuffle`](#shuffle)
 - [`uuid`](#uuid)
 - [`uuidV7`](#uuidv7)
 - [`ulid`](#ulid)
@@ -54,6 +59,16 @@ Rand::float(-10.0, 10.0);     // e.g. -3.1842...
 
 ---
 
+## `bool`
+
+CSPRNG boolean.
+
+```php
+Rand::bool();     // true or false
+```
+
+---
+
 ## `bytes`
 
 Raw binary bytes.
@@ -85,6 +100,28 @@ Replaces every `#` in the pattern with a random character from `$alphabet`; ever
 Rand::masked('####-####', Rand::NUM);         // e.g. '4827-0193'
 Rand::masked('ID-######');                     // e.g. 'ID-aB3xK9'
 Rand::masked('LIC ## ##-##', Rand::ALPHA);    // e.g. 'LIC qZ Wm-Tk'
+```
+
+---
+
+## `choice`
+
+CSPRNG element from a non-empty array. Works with list and associative inputs (the value is returned, not the key).
+
+```php
+Rand::choice(['heads', 'tails']);              // e.g. 'tails'
+Rand::choice(['a' => 1, 'b' => 2, 'c' => 3]); // e.g. 2
+```
+
+---
+
+## `shuffle`
+
+Fisher-Yates shuffle using `random_int` for entropy. Returns the values re-indexed as a 0-based list (keys are not preserved).
+
+```php
+Rand::shuffle([1, 2, 3, 4, 5]);     // e.g. [3, 1, 5, 2, 4]
+Rand::shuffle([]);                  // []
 ```
 
 ---

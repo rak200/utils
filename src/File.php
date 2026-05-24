@@ -62,6 +62,20 @@ final class File {
     }
 
     /**
+     * Returns true when $path is an existing regular file.
+     */
+    public static function isFile(string $path): bool {
+        return is_file($path);
+    }
+
+    /**
+     * Returns true when $path is an existing directory.
+     */
+    public static function isDirectory(string $path): bool {
+        return is_dir($path);
+    }
+
+    /**
      * Deletes the file at $path. No-op when it does not exist.
      *
      * @throws RuntimeException When the file exists but cannot be deleted.
@@ -198,5 +212,38 @@ final class File {
         if (!rename($source, $target)) {
             throw new RuntimeException(sprintf('Cannot move %s to %s.', $source, $target));
         }
+    }
+
+    /**
+     * Creates the directory at $path. Recursive by default. No-op when the
+     * directory already exists.
+     *
+     * @throws RuntimeException When the directory cannot be created.
+     */
+    public static function mkdir(string $path, bool $recursive = true, int $mode = 0777): void {
+        if (is_dir($path)) {
+            return;
+        }
+        if (!mkdir($path, $mode, $recursive) && !is_dir($path)) {
+            throw new RuntimeException(sprintf('Cannot create directory: %s', $path));
+        }
+    }
+
+    /**
+     * Returns the entries in $dir matching the glob $pattern (default '*' —
+     * everything except dotfiles), as a 0-indexed list of absolute paths.
+     *
+     * @throws RuntimeException When $dir is not a directory or cannot be listed.
+     * @return list<string>
+     */
+    public static function list(string $dir, string $pattern = '*'): array {
+        if (!is_dir($dir)) {
+            throw new RuntimeException(sprintf('Directory not found: %s', $dir));
+        }
+        $result = glob(rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $pattern);
+        if ($result === false) {
+            throw new RuntimeException(sprintf('Cannot list directory: %s', $dir));
+        }
+        return array_values($result);
     }
 }

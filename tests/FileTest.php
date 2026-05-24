@@ -122,4 +122,51 @@ final class FileTest extends TestCase {
         File::write($path, "hello\n");
         $this->assertStringStartsWith('text/', File::mimeType($path));
     }
+
+    public function testIsFileIsDirectory(): void {
+        $path = $this->makeTempPath('utils_typecheck_' . uniqid() . '.txt');
+        File::write($path, 'x');
+        $this->assertTrue(File::isFile($path));
+        $this->assertFalse(File::isDirectory($path));
+        $this->assertTrue(File::isDirectory($this->tempDir));
+        $this->assertFalse(File::isFile($this->tempDir));
+    }
+
+    public function testMkdirCreatesAndIsIdempotent(): void {
+        $dir = $this->tempDir . DIRECTORY_SEPARATOR . 'utils_mkdir_' . uniqid() . DIRECTORY_SEPARATOR . 'nested';
+        File::mkdir($dir);
+        $this->assertTrue(File::isDirectory($dir));
+        File::mkdir($dir); // second call must not throw
+        @rmdir($dir);
+        @rmdir(dirname($dir));
+    }
+
+    public function testListReturnsMatchingEntries(): void {
+        $base = $this->tempDir . DIRECTORY_SEPARATOR . 'utils_list_' . uniqid();
+        File::mkdir($base);
+        try {
+            File::write($base . DIRECTORY_SEPARATOR . 'a.txt', '');
+            File::write($base . DIRECTORY_SEPARATOR . 'b.txt', '');
+            File::write($base . DIRECTORY_SEPARATOR . 'c.md', '');
+
+            $all = File::list($base);
+            $this->assertCount(3, $all);
+
+            $txt = File::list($base, '*.txt');
+            $this->assertCount(2, $txt);
+            foreach ($txt as $path) {
+                $this->assertStringEndsWith('.txt', $path);
+            }
+        } finally {
+            foreach (glob($base . DIRECTORY_SEPARATOR . '*') ?: [] as $f) {
+                @unlink($f);
+            }
+            @rmdir($base);
+        }
+    }
+
+    public function testListThrowsForMissingDirectory(): void {
+        $this->expectException(RuntimeException::class);
+        File::list($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
+    }
 }

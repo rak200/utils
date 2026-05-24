@@ -80,7 +80,7 @@ final class Str {
      * Returns true if $haystack contains $needle (an empty needle is always contained).
      */
     public static function contains(string $haystack, string $needle): bool {
-        return $needle === '' || str_contains($haystack, $needle);
+        return str_contains($haystack, $needle);
     }
 
     /**
@@ -123,6 +123,115 @@ final class Str {
      */
     public static function replace(string $subject, string $search, string $replacement): string {
         return str_replace($search, $replacement, $subject);
+    }
+
+    /**
+     * Replaces the first occurrence of $search with $replacement in $subject.
+     * Returns $subject unchanged when $search is empty or not found.
+     */
+    public static function replaceFirst(string $subject, string $search, string $replacement): string {
+        if ($search === '') {
+            return $subject;
+        }
+        $pos = strpos($subject, $search);
+        if ($pos === false) {
+            return $subject;
+        }
+        return substr_replace($subject, $replacement, $pos, strlen($search));
+    }
+
+    /**
+     * Replaces the last occurrence of $search with $replacement in $subject.
+     * Returns $subject unchanged when $search is empty or not found.
+     */
+    public static function replaceLast(string $subject, string $search, string $replacement): string {
+        if ($search === '') {
+            return $subject;
+        }
+        $pos = strrpos($subject, $search);
+        if ($pos === false) {
+            return $subject;
+        }
+        return substr_replace($subject, $replacement, $pos, strlen($search));
+    }
+
+    /**
+     * Returns the multibyte-safe substring of $value starting at character
+     * index $start. When $length is null, takes the rest of the string.
+     */
+    public static function substring(string $value, int $start, ?int $length = null): string {
+        return mb_substr($value, $start, $length);
+    }
+
+    /**
+     * Returns the 0-based character index of the first occurrence of $needle
+     * in $haystack starting at $offset, or -1 when not found.
+     */
+    public static function indexOf(string $haystack, string $needle, int $offset = 0): int {
+        if ($needle === '') {
+            return -1;
+        }
+        $pos = mb_strpos($haystack, $needle, $offset);
+        return $pos === false ? -1 : $pos;
+    }
+
+    /**
+     * Returns the 0-based character index of the last occurrence of $needle
+     * in $haystack, or -1 when not found.
+     */
+    public static function lastIndexOf(string $haystack, string $needle): int {
+        if ($needle === '') {
+            return -1;
+        }
+        $pos = mb_strrpos($haystack, $needle);
+        return $pos === false ? -1 : $pos;
+    }
+
+    /**
+     * Returns the number of non-overlapping occurrences of $needle in $haystack
+     * (byte-level count via {@see substr_count}).
+     */
+    public static function count(string $haystack, string $needle): int {
+        return $needle === '' ? 0 : substr_count($haystack, $needle);
+    }
+
+    /**
+     * Truncates $value to at most $length characters, appending $ellipsis when
+     * truncation occurs. When $length is shorter than $ellipsis, returns the
+     * leading $length characters of $ellipsis.
+     *
+     * @throws RuntimeException When $length is negative.
+     */
+    public static function truncate(string $value, int $length, string $ellipsis = '…'): string {
+        if ($length < 0) {
+            throw new RuntimeException('Length must be non-negative.');
+        }
+        if (mb_strlen($value) <= $length) {
+            return $value;
+        }
+        $ellipsisLen = mb_strlen($ellipsis);
+        if ($length <= $ellipsisLen) {
+            return mb_substr($ellipsis, 0, $length);
+        }
+        return mb_substr($value, 0, $length - $ellipsisLen) . $ellipsis;
+    }
+
+    /**
+     * Returns a URL-friendly slug of $value: transliterates to ASCII
+     * (best-effort via iconv), lowercases, and collapses runs of non-alphanumerics
+     * into $separator.
+     */
+    public static function slug(string $value, string $separator = '-'): string {
+        $value = mb_strtolower($value);
+        if (function_exists('iconv')) {
+            $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+            if ($transliterated !== false) {
+                $value = $transliterated;
+            }
+        }
+        $value = strtolower($value);
+        $value = preg_replace('/[^a-z0-9]+/', $separator, $value) ?? '';
+        return trim($value, $separator);
     }
 
     /**
@@ -253,13 +362,14 @@ final class Str {
 
     /**
      * Splits the string into words on whitespace, dashes, underscores, and case
-     * transitions (camelCase / PascalCase boundaries).
+     * transitions (camelCase / PascalCase boundaries). Unicode-aware: handles
+     * non-ASCII lowercase/uppercase via \p{Ll} / \p{Lu}.
      *
      * @return list<string>
      */
     private static function splitWords(string $value): array {
-        $value = preg_replace('/([a-z\d])([A-Z])/u', '$1 $2', $value) ?? $value;
-        $value = preg_replace('/([A-Z]+)([A-Z][a-z])/u', '$1 $2', $value) ?? $value;
+        $value = preg_replace('/(\p{Ll}|\p{Nd})(\p{Lu})/u', '$1 $2', $value) ?? $value;
+        $value = preg_replace('/(\p{Lu}+)(\p{Lu}\p{Ll})/u', '$1 $2', $value) ?? $value;
         $parts = preg_split('/[\s_\-]+/u', $value) ?: [];
         return array_values(array_filter($parts, static fn(string $p): bool => $p !== ''));
     }

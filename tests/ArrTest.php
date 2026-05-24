@@ -72,6 +72,19 @@ final class ArrTest extends TestCase {
         $this->assertSame(10, Arr::reduce([1, 2, 3, 4], fn(int $acc, int $v): int => $acc + $v, 0));
     }
 
+    public function testReduceReceivesKey(): void {
+        $keys = [];
+        Arr::reduce(
+            ['a' => 1, 'b' => 2],
+            function (mixed $acc, int $v, string $k) use (&$keys): int {
+                $keys[] = $k;
+                return $acc + $v;
+            },
+            0,
+        );
+        $this->assertSame(['a', 'b'], $keys);
+    }
+
     public function testFlattenWithDefaultDepth(): void {
         $this->assertSame([1, 2, 3, 4], Arr::flatten([[1, 2], [3, [4]]]));
     }
@@ -145,5 +158,78 @@ final class ArrTest extends TestCase {
     public function testRangeRejectsZeroStep(): void {
         $this->expectException(RuntimeException::class);
         Arr::range(1, 10, 0);
+    }
+
+    public function testContains(): void {
+        $this->assertTrue(Arr::contains([1, 2, 3], 2));
+        $this->assertFalse(Arr::contains([1, 2, 3], 4));
+        $this->assertFalse(Arr::contains([1, 2, 3], '2'));
+        $this->assertTrue(Arr::contains([1, 2, 3], '2', strict: false));
+    }
+
+    public function testPluck(): void {
+        $rows = [
+            ['id' => 1, 'name' => 'a'],
+            ['id' => 2, 'name' => 'b'],
+            ['id' => 3],
+        ];
+        $this->assertSame([1, 2, 3], Arr::pluck($rows, 'id'));
+        $this->assertSame(['a', 'b', null], Arr::pluck($rows, 'name'));
+    }
+
+    public function testKeyByColumn(): void {
+        $rows = [
+            ['id' => 'a', 'v' => 1],
+            ['id' => 'b', 'v' => 2],
+        ];
+        $this->assertSame(
+            ['a' => ['id' => 'a', 'v' => 1], 'b' => ['id' => 'b', 'v' => 2]],
+            Arr::keyBy($rows, 'id'),
+        );
+    }
+
+    public function testKeyByCallable(): void {
+        $result = Arr::keyBy(
+            [1, 2, 3, 4],
+            fn(int $v): string => $v % 2 === 0 ? 'even' : 'odd',
+        );
+        $this->assertSame(['odd' => 3, 'even' => 4], $result);
+    }
+
+    public function testKeyByThrowsWhenColumnMissing(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::keyBy([['x' => 1]], 'missing');
+    }
+
+    public function testSort(): void {
+        $this->assertSame([1, 2, 3], Arr::sort([3, 1, 2]));
+        $this->assertSame(
+            [3, 2, 1],
+            Arr::sort([1, 2, 3], fn(int $a, int $b): int => $b <=> $a),
+        );
+    }
+
+    public function testSortBy(): void {
+        $people = [
+            ['name' => 'c', 'age' => 30],
+            ['name' => 'a', 'age' => 10],
+            ['name' => 'b', 'age' => 20],
+        ];
+        $sorted = Arr::sortBy($people, fn(array $p): int => $p['age']);
+        $this->assertSame(['a', 'b', 'c'], array_column($sorted, 'name'));
+    }
+
+    public function testMerge(): void {
+        $this->assertSame(
+            ['a' => 1, 'b' => 3, 'c' => 4],
+            Arr::merge(['a' => 1, 'b' => 2], ['b' => 3, 'c' => 4]),
+        );
+        $this->assertSame([], Arr::merge());
+    }
+
+    public function testPickExcept(): void {
+        $a = ['a' => 1, 'b' => 2, 'c' => 3];
+        $this->assertSame(['a' => 1, 'c' => 3], Arr::pick($a, ['a', 'c']));
+        $this->assertSame(['b' => 2], Arr::except($a, ['a', 'c']));
     }
 }

@@ -149,6 +149,43 @@ final class Rand {
     }
 
     /**
+     * Returns a cryptographically-secure random boolean.
+     */
+    public static function bool(): bool {
+        return random_int(0, 1) === 1;
+    }
+
+    /**
+     * Returns a cryptographically-secure random element of $items.
+     *
+     * @throws RuntimeException When $items is empty.
+     */
+    public static function choice(array $items): mixed {
+        if ($items === []) {
+            throw new RuntimeException('Cannot pick from an empty array.');
+        }
+        $keys = array_keys($items);
+        return $items[$keys[random_int(0, count($keys) - 1)]];
+    }
+
+    /**
+     * Returns the values of $items in a uniformly-random order (Fisher-Yates
+     * with {@see random_int} as the source of entropy). Keys are not preserved.
+     *
+     * @return list<mixed>
+     */
+    public static function shuffle(array $items): array {
+        $values = array_values($items);
+        for ($i = count($values) - 1; $i > 0; $i--) {
+            $j = random_int(0, $i);
+            if ($i !== $j) {
+                [$values[$i], $values[$j]] = [$values[$j], $values[$i]];
+            }
+        }
+        return $values;
+    }
+
+    /**
      * Generates a NanoID using the standard 64-character URL-safe alphabet.
      *
      * @throws RuntimeException When $length < 1.

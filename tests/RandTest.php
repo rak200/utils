@@ -137,4 +137,41 @@ final class RandTest extends TestCase {
         $this->expectException(RuntimeException::class);
         Rand::nanoid(0);
     }
+
+    public function testBoolReturnsBoolean(): void {
+        for ($i = 0; $i < 20; $i++) {
+            $this->assertIsBool(Rand::bool());
+        }
+    }
+
+    public function testChoicePicksFromArray(): void {
+        $items = [10, 20, 30, 40];
+        for ($i = 0; $i < 50; $i++) {
+            $this->assertContains(Rand::choice($items), $items);
+        }
+    }
+
+    public function testChoicePreservesAssocValues(): void {
+        $items = ['a' => 1, 'b' => 2, 'c' => 3];
+        for ($i = 0; $i < 30; $i++) {
+            $this->assertContains(Rand::choice($items), [1, 2, 3]);
+        }
+    }
+
+    public function testChoiceRejectsEmpty(): void {
+        $this->expectException(RuntimeException::class);
+        Rand::choice([]);
+    }
+
+    public function testShufflePreservesMultisetAndReindexes(): void {
+        $shuffled = Rand::shuffle([1, 2, 3, 4, 5]);
+        $this->assertCount(5, $shuffled);
+        $this->assertSame([0, 1, 2, 3, 4], array_keys($shuffled));
+        sort($shuffled);
+        $this->assertSame([1, 2, 3, 4, 5], $shuffled);
+    }
+
+    public function testShuffleEmptyReturnsEmpty(): void {
+        $this->assertSame([], Rand::shuffle([]));
+    }
 }

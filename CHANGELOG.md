@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-05-24
+
+### Added
+
+- **`Num`** — arithmetic helpers: `pow`, `sqrt`, `floor($v, $precision = 0)`, `ceil($v, $precision = 0)`, `mod` (truncated, follows PHP `%` semantics).
+- **`Num`** — `BcMath\Number` (PHP 8.4) support: `isNumeric` recognises instances; `sum`, `avg`, `min`, `max`, `abs`, `sign`, `clamp`, `inRange`, `pow`, `sqrt`, `floor`, `ceil`, `mod`, `round`, `format` accept and propagate `BcMath\Number` alongside `int|float` (no narrowing to float). New `parseNumber` / `parseNumberOrNull` for arbitrary-precision parsing.
+- **`Str`** — `substring`, `indexOf`, `lastIndexOf`, `count` (substring count), `truncate`, `replaceFirst`, `replaceLast`, `slug`.
+- **`Arr`** — `contains`, `pluck`, `keyBy`, `sort`, `sortBy`, `merge`, `pick`, `except`.
+- **`Rand`** — `bool`, `choice`, `shuffle` (Fisher-Yates with CSPRNG).
+- **`Dt`** — `isWeekend`, `isWeekday`, `dayOfWeek`, `dayOfYear`, `weekOfYear`.
+- **`File`** — `isFile`, `isDirectory`, `mkdir`, `list`.
+- **Docs** — `## Contents` TOC added to `docs/base64.md`; "← Reference" back-link added to the top of every class doc, and a "← rak200/utils" link at the top of `docs/README.md`.
+
+### Changed
+
+- **`Arr::reduce`** *(breaking)* — callback signature changed to `(carry, value, key)` for consistency with `map`/`filter`/`find`/`groupBy`/`partition`. Existing 2-arg callbacks remain compatible (PHP silently drops extra arguments).
+- **`Str::splitWords`** — case-transition regex switched to unicode classes (`\p{Ll}` / `\p{Nd}` / `\p{Lu}`) so case-conversion helpers handle non-ASCII letters (e.g. `Str::toSnakeCase('óÁgua') === 'ó_água'`).
+- **`Dt::isEqual`** — now compares the absolute UTC instant (microsecond precision) rather than relying on `==` structural comparison; two times in different timezones that point at the same instant compare equal.
+- **`Str::contains`** — removed redundant `$needle === ''` branch (PHP 8.0+ `str_contains` already returns `true` for an empty needle).
+- **`composer.json`** — declared `ext-bcmath` and `ext-mbstring` requirements.
+
 ## [0.1.2] - 2026-05-23
 
 ### Added
@@ -33,6 +54,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[0.2.0]: https://github.com/rak200/utils/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/rak200/utils/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/rak200/utils/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/rak200/utils/releases/tag/0.1.0

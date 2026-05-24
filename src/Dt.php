@@ -200,10 +200,12 @@ final class Dt {
     }
 
     /**
-     * Returns true when $a and $b represent the same instant.
+     * Returns true when $a and $b represent the same UTC instant (microsecond
+     * precision). Timezone differences are ignored — two times in different
+     * zones that point at the same instant compare equal.
      */
     public static function isEqual(DateTimeInterface $a, DateTimeInterface $b): bool {
-        return $a == $b;
+        return $a->format('U.u') === $b->format('U.u');
     }
 
     /**
@@ -303,6 +305,42 @@ final class Dt {
         return self::immutable($dt)
             ->setDate((int) $dt->format('Y'), 12, 31)
             ->setTime(23, 59, 59, 999999);
+    }
+
+    /**
+     * Returns true when $dt falls on a Saturday or Sunday.
+     */
+    public static function isWeekend(DateTimeInterface $dt): bool {
+        $dow = (int) $dt->format('N');
+        return $dow === 6 || $dow === 7;
+    }
+
+    /**
+     * Returns true when $dt falls on a Monday through Friday.
+     */
+    public static function isWeekday(DateTimeInterface $dt): bool {
+        return !self::isWeekend($dt);
+    }
+
+    /**
+     * Returns the ISO-8601 day of week of $dt: 1 (Monday) through 7 (Sunday).
+     */
+    public static function dayOfWeek(DateTimeInterface $dt): int {
+        return (int) $dt->format('N');
+    }
+
+    /**
+     * Returns the 1-based day of year of $dt (1 through 365 or 366).
+     */
+    public static function dayOfYear(DateTimeInterface $dt): int {
+        return (int) $dt->format('z') + 1;
+    }
+
+    /**
+     * Returns the ISO-8601 week number of $dt (1 through 53).
+     */
+    public static function weekOfYear(DateTimeInterface $dt): int {
+        return (int) $dt->format('W');
     }
 
     /**

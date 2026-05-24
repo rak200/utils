@@ -8,6 +8,12 @@ Bit-manipulation helpers operating on the native PHP `int` (platform-sized — 3
 use Rak200\Utils\Bit;
 ```
 
+## Contents
+
+- [`set` / `unset` / `toggle` / `has`](#set--unset--toggle--has)
+- [`count`](#count)
+- [`leadingZeros` / `trailingZeros`](#leadingzeros--trailingzeros)
+
 ---
 
 ## `set` / `unset` / `toggle` / `has`

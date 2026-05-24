@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
+use function sprintf;
 
 /**
  * Bit-manipulation helpers operating on the native PHP int (platform-sized,
@@ -102,6 +103,9 @@ final class Bit {
         return self::BITS;
     }
 
+    /**
+     * Throws when $bit is outside the valid range [0, PHP_INT_SIZE*8 - 1].
+     */
     private static function checkBitIndex(int $bit): void {
         if ($bit < 0 || $bit >= self::BITS) {
             throw new RuntimeException(sprintf('Bit index must be between 0 and %d.', self::BITS - 1));

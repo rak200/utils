@@ -34,6 +34,7 @@ Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes 
 
 - Every class is `final` with a `private` constructor and only `public static` methods — pure functions, no instances, no state.
 - `declare(strict_types=1)` at the top of every file.
+- **Documentation is mandatory.** Every class carries a PHPDoc class summary (one short paragraph) plus the `@author rak200 <rak.ricardo@windowslive.com>` tag. Every `public` method carries a PHPDoc that states what it does — `@param`/`@return`/`@throws` tags are added only when they convey information beyond the type signature (units, semantics, edge-case behaviour, exception condition). Private helpers are documented only when the implementation is non-obvious. Each per-class doc under `docs/<class>.md` must list every public method in its `## Contents` TOC and include at least one runnable example per method (`bare` + `*OrNull` variants documented together).
 - String operations default to multibyte-safe (`mb_*` family).
 - "Not found" convention: bare method throws `RuntimeException`; the `*OrNull` variant returns `?T`. Keep the two variants consistent in every class.
 - Cryptographically-secure randomness only in `Rand` (`random_int`, `random_bytes`). Never `rand()` / `mt_rand()`.

@@ -8,6 +8,12 @@ JSON helpers — always throw `JsonException` on malformed input/output (`JSON_T
 use Rak200\Utils\Json;
 ```
 
+## Contents
+
+- [`encode`](#encode)
+- [`decode`](#decode)
+- [`isValid`](#isvalid)
+
 ---
 
 ## `encode`

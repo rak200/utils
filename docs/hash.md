@@ -8,6 +8,14 @@ Hashing helpers (digests, HMAC, password hashing & verification).
 use Rak200\Utils\Hash;
 ```
 
+## Contents
+
+- [`md5` / `sha1` / `sha256` / `sha512`](#md5--sha1--sha256--sha512)
+- [`crc32`](#crc32)
+- [`hmac`](#hmac)
+- [`equals`](#equals)
+- [`password` / `verifyPassword`](#password--verifypassword)
+
 ---
 
 ## `md5` / `sha1` / `sha256` / `sha512`

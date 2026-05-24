@@ -7,6 +7,9 @@ namespace Rak200\Utils;
 use BcMath\Number;
 use RoundingMode;
 use RuntimeException;
+use function abs, ceil, explode, floor, fmod, implode, is_float, is_int, is_numeric, is_string,
+    number_format, ord, round, sprintf, sqrt, str_contains, str_pad, str_repeat, str_split,
+    str_starts_with, strrev, substr, trim;
 
 /**
  * Numeric helpers for parsing, formatting, arithmetic and aggregation.
@@ -392,22 +395,41 @@ final class Num {
         return fmod((float) $a, (float) $b);
     }
 
+    /**
+     * Shared {@see Number} floor/ceil implementation: shifts the value by
+     * 10^precision (negative precision shifts in the other direction), rounds
+     * the shifted integer-scale value, then unshifts.
+     * @return Number|float|int
+     */
     private static function numberFloorCeil(Number $value, int $precision, bool $ceil): Number {
         if ($precision === 0) {
             return $ceil ? $value->ceil() : $value->floor();
         }
         if ($precision < 0) {
             $factor = new Number(str_pad('1', 1 + abs($precision), '0'));
+            /** @var Number $shifted */
             $shifted = $value / $factor;
+            /** @var Number $shifted */
+            $shifted = $value / $factor;
+            /** @var Number $rounded */
             $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
+            // @phpstan-ignore-next-line --- @var Number $rounded
             return $rounded * $factor;
         }
         $factor = new Number('1' . str_repeat('0', $precision));
+        /** @var Number $shifted */
         $shifted = $value * $factor;
+        /** @var Number $rounded */
         $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
+        // @phpstan-ignore-next-line --- @var Number $rounded
         return $rounded / $factor;
     }
 
+    /**
+     * Formats a {@see Number} from its canonical decimal string — manual
+     * thousands-grouping via reverse-chunk-reverse — so arbitrary precision
+     * is preserved instead of being narrowed through {@see number_format}.
+     */
     private static function formatNumber(
         Number $value,
         int $decimals,

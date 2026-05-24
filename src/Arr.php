@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
+use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, is_callable, is_int, is_string, max, sprintf, usort;
 
 /**
  * Array helpers.
@@ -296,6 +297,8 @@ final class Arr {
      * $key when called with the item). Later collisions overwrite earlier ones.
      *
      * @param int|string|callable(mixed): (int|string) $key
+     * @throws RuntimeException When $key is a column name and an item is not
+     *                          an array or lacks that column.
      */
     public static function keyBy(array $array, int|string|callable $key): array {
         $result = [];

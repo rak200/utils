@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
+use function array_filter, array_map, array_pop, array_reverse, array_values, count, explode,
+    function_exists, iconv, implode, ltrim, max, mb_str_pad, mb_str_split, mb_strlen, mb_strpos,
+    mb_strrpos, mb_strtolower, mb_strtoupper, mb_substr, preg_replace, preg_split, rtrim,
+    str_contains, str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos,
+    strrpos, strtolower, substr_count, substr_replace, trim;
 
 /**
  * Multibyte-safe string helpers.

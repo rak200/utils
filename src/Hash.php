@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
+use function crc32, hash, hash_equals, hash_hmac, md5, password_hash, password_verify, sha1;
+
 /**
  * Hashing helpers (digests, HMAC, password hashing & verification).
  *

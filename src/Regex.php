@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
+use function preg_match, preg_match_all, preg_quote, preg_replace, preg_replace_callback,
+    preg_split, sprintf;
 
 /**
  * PCRE regular expression helpers that throw on invalid patterns instead of

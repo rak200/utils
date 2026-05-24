@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use JsonException;
+use function json_decode, json_encode;
 
 /**
  * JSON helpers — always throw {@see JsonException} on malformed input/output

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
+use function base64_decode, base64_encode, rtrim, str_repeat, strlen, strtr;
 
 /**
  * Base64 helpers, including the URL-safe variant (RFC 4648 §5) without padding.

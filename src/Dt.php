@@ -9,6 +9,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Exception;
 use RuntimeException;
+use function intdiv, sprintf;
 
 /**
  * Date/time helpers built on {@see DateTimeImmutable}. Inputs accept any
@@ -372,6 +373,11 @@ final class Dt {
         return intdiv(self::diffInSeconds($a, $b), 3600);
     }
 
+    /**
+     * Normalises any {@see DateTimeInterface} to {@see DateTimeImmutable} —
+     * returns $dt as-is when already immutable, otherwise converts mutable
+     * inputs without mutating them.
+     */
     private static function immutable(DateTimeInterface $dt): DateTimeImmutable {
         return $dt instanceof DateTimeImmutable
             ? $dt

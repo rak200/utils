@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-05-24
+
+### Added
+
+- **`Url`** — URL parsing/building (`parse`/`parseOrNull`/`build`), RFC 3986 percent-encoding (`encode`/`decode`), query-string encode/decode (`encodeQuery`/`decodeQuery`), and `isAbsolute`. `Url::build(Url::parse($u))` round-trips.
+- **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, plus `basename`, `dirname`, `extension`, `filename`. Accepts `/` or `\` on input, always emits `/`. Windows drive prefixes (`C:`) are preserved.
+- **PHPDoc** — added on the few remaining private helpers (`Rand::pickFromAlphabet`, `Rand::formatUuid`, `Bit::checkBitIndex`, `Dt::immutable`).
+
+### Changed
+
+- **`use function` imports** — every `src/` file now imports the native PHP functions it calls via inline `use function` statements (compile-time resolution; enables the same special-function optimisations as global-namespace calls).
+
 ## [0.2.0] - 2026-05-24
 
 ### Added
@@ -54,6 +66,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[0.3.0]: https://github.com/rak200/utils/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/rak200/utils/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/rak200/utils/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/rak200/utils/compare/0.1.0...0.1.1

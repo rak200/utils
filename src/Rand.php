@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
+use function array_keys, array_values, bin2hex, bindec, chr, count, decbin, microtime, ord,
+    random_bytes, random_int, sprintf, str_pad, str_split, strlen, substr;
 
 /**
  * Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators.
@@ -197,6 +199,10 @@ final class Rand {
         return self::pickFromAlphabet($length, self::NANOID_ALPHABET);
     }
 
+    /**
+     * Builds a string of $length characters by drawing each character uniformly
+     * at random from $alphabet with {@see random_int}.
+     */
     private static function pickFromAlphabet(int $length, string $alphabet): string {
         $alphabetLen = strlen($alphabet);
         $result = '';
@@ -206,6 +212,9 @@ final class Rand {
         return $result;
     }
 
+    /**
+     * Renders 16 raw bytes as the canonical 8-4-4-4-12 hex UUID string.
+     */
     private static function formatUuid(string $bytes): string {
         $hex = bin2hex($bytes);
         return sprintf(

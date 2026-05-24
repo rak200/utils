@@ -30,6 +30,8 @@ Bit::has(5, 0);          // true    (0101 has bit 0)
 Bit::has(5, 1);          // false   (0101 lacks bit 1)
 ```
 
+[↑ Back to top](#bit)
+
 ---
 
 ## `count`
@@ -41,6 +43,8 @@ Bit::count(0);       // 0
 Bit::count(7);       // 3      (binary: 111)
 Bit::count(255);     // 8
 ```
+
+[↑ Back to top](#bit)
 
 ---
 
@@ -57,3 +61,5 @@ Bit::trailingZeros(1);         // 0
 Bit::trailingZeros(8);         // 3       (1000 has 3 trailing zeros)
 Bit::trailingZeros(0);         // 64 on a 64-bit build
 ```
+
+[↑ Back to top](#bit)

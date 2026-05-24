@@ -35,6 +35,8 @@ File::append('/tmp/greeting.txt', "World\n");
 File::read('/tmp/greeting.txt');    // "Hello\nWorld\n"
 ```
 
+[↑ Back to top](#file)
+
 ---
 
 ## `exists`
@@ -45,6 +47,8 @@ True for any file, directory, or symlink at `$path`.
 File::exists('/tmp/greeting.txt');     // true
 File::exists('/does/not/exist');       // false
 ```
+
+[↑ Back to top](#file)
 
 ---
 
@@ -59,6 +63,8 @@ File::isDirectory('/tmp');             // true
 File::isDirectory('/tmp/greeting.txt'); // false
 ```
 
+[↑ Back to top](#file)
+
 ---
 
 ## `delete`
@@ -69,6 +75,8 @@ No-op when the file does not exist; only throws when it exists and cannot be del
 File::delete('/tmp/greeting.txt');     // removes the file
 File::delete('/tmp/already-gone');     // no-op, no exception
 ```
+
+[↑ Back to top](#file)
 
 ---
 
@@ -82,6 +90,8 @@ File::mkdir('/tmp/cache/build/2026');           // no-op (already exists)
 File::mkdir('/tmp/cache/build', recursive: false);
 ```
 
+[↑ Back to top](#file)
+
 ---
 
 ## `list`
@@ -93,6 +103,8 @@ File::list('/var/log');                // every entry under /var/log
 File::list('/var/log', '*.log');       // only files ending in .log
 File::list('/var/log', 'app-*.log');   // glob with prefix
 ```
+
+[↑ Back to top](#file)
 
 ---
 
@@ -108,6 +120,8 @@ File::basename('/var/log/app.log', '.log');      // 'app'
 File::dirname('/var/log/app.log');               // '/var/log'
 ```
 
+[↑ Back to top](#file)
+
 ---
 
 ## `mimeType`
@@ -119,6 +133,8 @@ File::mimeType('/path/to/photo.png');     // 'image/png'
 File::mimeType('/path/to/script.sh');     // 'text/x-shellscript'
 ```
 
+[↑ Back to top](#file)
+
 ---
 
 ## `size`
@@ -128,6 +144,8 @@ Size in bytes.
 ```php
 File::size('/path/to/photo.png');     // e.g. 245631
 ```
+
+[↑ Back to top](#file)
 
 ---
 
@@ -143,6 +161,8 @@ foreach (File::lines('/var/log/app.log') as $line) {
 }
 ```
 
+[↑ Back to top](#file)
+
 ---
 
 ## `tempFile`
@@ -154,6 +174,8 @@ File::tempFile();              // e.g. '/tmp/utlAB1cD2'
 File::tempFile('report-');     // e.g. '/tmp/report-XyZ123'
 ```
 
+[↑ Back to top](#file)
+
 ---
 
 ## `copy` / `move`
@@ -164,3 +186,5 @@ File::tempFile('report-');     // e.g. '/tmp/report-XyZ123'
 File::copy('/tmp/source.txt', '/tmp/copy.txt');
 File::move('/tmp/copy.txt',   '/tmp/renamed.txt');
 ```
+
+[↑ Back to top](#file)

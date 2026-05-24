@@ -47,6 +47,8 @@ Str::isEmpty('');         // true
 Str::isEmpty(' ');        // false
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `length`
@@ -57,6 +59,8 @@ Number of Unicode characters (not bytes).
 Str::length('hello');     // 5
 Str::length('ação');      // 4
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -70,6 +74,8 @@ Str::capitalize('ácido');     // 'Ácido'
 Str::uncapitalize('HELLO');   // 'hELLO'
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `upper` / `lower`
@@ -81,6 +87,8 @@ Str::upper('hello');    // 'HELLO'
 Str::upper('ção');      // 'ÇÃO'
 Str::lower('HELLO');    // 'hello'
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -94,6 +102,8 @@ Str::contains('hello world', 'WORLD');   // false
 Str::contains('anything', '');           // true
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `startsWith` / `endsWith`
@@ -104,6 +114,8 @@ Str::startsWith('hello world', 'world');   // false
 Str::endsWith('hello world', 'world');     // true
 Str::endsWith('file.tar.gz', '.gz');       // true
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -119,6 +131,8 @@ Str::lastIndexOf('abcabc', 'c');          // 5
 Str::lastIndexOf('abc', 'z');             // -1
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `count`
@@ -130,6 +144,8 @@ Str::count('abcabcabc', 'a');       // 3
 Str::count('aaaa', 'aa');           // 2   (non-overlapping)
 Str::count('abc', 'z');             // 0
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -144,6 +160,8 @@ Str::trimStart('  hello  ');           // 'hello  '
 Str::trimEnd('  hello  ');             // '  hello'
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `substring`
@@ -156,6 +174,8 @@ Str::substring('ação', 1);            // 'ção'
 Str::substring('hello', -3);          // 'llo'
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `replace`
@@ -166,6 +186,8 @@ Replaces every occurrence of `$search` with `$replacement`.
 Str::replace('hello world', 'world', 'there');   // 'hello there'
 Str::replace('a-b-c', '-', '/');                 // 'a/b/c'
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -178,6 +200,8 @@ Str::replaceFirst('foo-foo-foo', 'foo', 'xyz');   // 'xyz-foo-foo'
 Str::replaceLast('foo-foo-foo', 'foo', 'xyz');    // 'foo-foo-xyz'
 Str::replaceFirst('hello', 'x', 'y');             // 'hello'  (not found)
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -192,6 +216,8 @@ Str::split('abc', '');            // ['a', 'b', 'c']
 Str::split('abcdef', '', 2);      // ['ab', 'cd', 'ef']
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `join`
@@ -205,6 +231,8 @@ Str::join(['a', 'b', 'c'], ', ', '[', ']');          // '[a, b, c]'
 Str::join(['a', 'b', 'c'], ', ', '', '', ' and ');   // 'a, b and c'
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `wrap`
@@ -216,6 +244,8 @@ Str::wrap('hello', '[', ']');     // '[hello]'
 Str::wrap('', '[', ']');          // ''
 Str::wrap('   ', '[', ']');       // ''
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -229,6 +259,8 @@ Str::padEnd('hi', 5, '.');        // 'hi...'
 Str::padStart('já', 5);           // '   já'
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `repeat`
@@ -237,6 +269,8 @@ Str::padStart('já', 5);           // '   já'
 Str::repeat('ab', 3);     // 'ababab'
 Str::repeat('-', 5);      // '-----'
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -248,6 +282,8 @@ Multibyte-aware reverse.
 Str::reverse('hello');    // 'olleh'
 Str::reverse('ação');     // 'oãça'
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -263,6 +299,8 @@ Str::truncate('hello', 2);               // 'h…'
 Str::truncate('hello world', 5, '...');  // 'he...'
 ```
 
+[↑ Back to top](#str)
+
 ---
 
 ## `slug`
@@ -275,6 +313,8 @@ Str::slug('Olá, mundo!');            // 'ola-mundo'
 Str::slug('foo  bar', '_');          // 'foo_bar'
 Str::slug('   ');                    // ''
 ```
+
+[↑ Back to top](#str)
 
 ---
 
@@ -293,3 +333,5 @@ Str::toSnakeCase('HTMLParser');      // 'html_parser'
 Str::toSnakeCase('óÁgua');           // 'ó_água'        (unicode boundary)
 Str::toKebabCase('HelloWorld');      // 'hello-world'
 ```
+
+[↑ Back to top](#str)

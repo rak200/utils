@@ -25,6 +25,8 @@ Base64::encode('A long string');     // 'QSBsb25nIHN0cmluZw=='
 Base64::decode('aGVsbG8=');          // 'hello'
 ```
 
+[↑ Back to top](#base64)
+
 ---
 
 ## `encodeUrl` / `decodeUrl`
@@ -35,3 +37,5 @@ URL-safe variant: `+/` become `-_` and the trailing `=` padding is stripped. Mis
 Base64::encodeUrl('hello?world');         // 'aGVsbG8_d29ybGQ'
 Base64::decodeUrl('aGVsbG8_d29ybGQ');     // 'hello?world'
 ```
+
+[↑ Back to top](#base64)

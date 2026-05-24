@@ -37,6 +37,8 @@ Rand::ALPHA;   // 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 Rand::ALNUM;   // 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 ```
 
+[↑ Back to top](#rand)
+
 ---
 
 ## `int`
@@ -48,6 +50,8 @@ Rand::int(1, 6);          // e.g. 4
 Rand::int(-100, 100);     // e.g. -42
 ```
 
+[↑ Back to top](#rand)
+
 ---
 
 ## `float`
@@ -56,6 +60,8 @@ Rand::int(-100, 100);     // e.g. -42
 Rand::float(0.0, 1.0);        // e.g. 0.4271736...
 Rand::float(-10.0, 10.0);     // e.g. -3.1842...
 ```
+
+[↑ Back to top](#rand)
 
 ---
 
@@ -67,6 +73,8 @@ CSPRNG boolean.
 Rand::bool();     // true or false
 ```
 
+[↑ Back to top](#rand)
+
 ---
 
 ## `bytes`
@@ -77,6 +85,8 @@ Raw binary bytes.
 Rand::bytes(8);                // e.g. "\xa3\x12\xf0\x4b\x9c\x07\xee\x5d"
 bin2hex(Rand::bytes(8));       // e.g. 'a312f04b9c07ee5d'
 ```
+
+[↑ Back to top](#rand)
 
 ---
 
@@ -90,6 +100,8 @@ Rand::string(6, Rand::HEX);       // e.g. 'a3f04b'
 Rand::string(4, Rand::NUM);       // e.g. '0427'
 ```
 
+[↑ Back to top](#rand)
+
 ---
 
 ## `masked`
@@ -102,6 +114,8 @@ Rand::masked('ID-######');                     // e.g. 'ID-aB3xK9'
 Rand::masked('LIC ## ##-##', Rand::ALPHA);    // e.g. 'LIC qZ Wm-Tk'
 ```
 
+[↑ Back to top](#rand)
+
 ---
 
 ## `choice`
@@ -112,6 +126,8 @@ CSPRNG element from a non-empty array. Works with list and associative inputs (t
 Rand::choice(['heads', 'tails']);              // e.g. 'tails'
 Rand::choice(['a' => 1, 'b' => 2, 'c' => 3]); // e.g. 2
 ```
+
+[↑ Back to top](#rand)
 
 ---
 
@@ -124,6 +140,8 @@ Rand::shuffle([1, 2, 3, 4, 5]);     // e.g. [3, 1, 5, 2, 4]
 Rand::shuffle([]);                  // []
 ```
 
+[↑ Back to top](#rand)
+
 ---
 
 ## `uuid`
@@ -133,6 +151,8 @@ UUID v4 (RFC 4122), canonical hex form.
 ```php
 Rand::uuid();    // e.g. '550e8400-e29b-41d4-a716-446655440000'
 ```
+
+[↑ Back to top](#rand)
 
 ---
 
@@ -144,6 +164,8 @@ UUID v7 (RFC 9562) — time-ordered, millisecond-precision prefix. Sequential ge
 Rand::uuidV7();    // e.g. '018f4d2a-bc31-7c84-9b67-1a3d8f0e2c4d'
 ```
 
+[↑ Back to top](#rand)
+
 ---
 
 ## `ulid`
@@ -153,6 +175,8 @@ Rand::uuidV7();    // e.g. '018f4d2a-bc31-7c84-9b67-1a3d8f0e2c4d'
 ```php
 Rand::ulid();    // e.g. '01HXP2K8FJM5E7R3Q6Y2N0V1WB'
 ```
+
+[↑ Back to top](#rand)
 
 ---
 
@@ -164,3 +188,5 @@ URL-safe NanoID using the standard 64-character alphabet (`A-Z a-z 0-9 _ -`). De
 Rand::nanoid();       // e.g. 'V1StGXR8_Z5jdHi6B-myT'
 Rand::nanoid(10);     // e.g. 'aB3xK9mQzL'
 ```
+
+[↑ Back to top](#rand)

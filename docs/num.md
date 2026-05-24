@@ -48,6 +48,8 @@ Num::isNumeric('hello');                  // false
 Num::isNumeric(new Number('1.5'));        // true
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `parseInt` / `parseIntOrNull`
@@ -63,6 +65,8 @@ Num::parseIntOrNull('hello');      // null
 Num::parseIntOrNull('12.5');       // null
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `parseFloat` / `parseFloatOrNull`
@@ -72,6 +76,8 @@ Num::parseFloat('3.14');           // 3.14
 Num::parseFloat('-1.5e3');         // -1500.0
 Num::parseFloatOrNull('hello');    // null
 ```
+
+[↑ Back to top](#num)
 
 ---
 
@@ -88,6 +94,8 @@ Num::parseNumberOrNull('1e10');               // null  (scientific notation reje
 Num::parseNumberOrNull('abc');                // null
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `clamp`
@@ -101,6 +109,8 @@ Num::clamp(5, 0, 10);                                     // 5
 Num::clamp(new Number('15'), new Number('0'), new Number('10'));
 // BcMath\Number('10')
 ```
+
+[↑ Back to top](#num)
 
 ---
 
@@ -116,6 +126,8 @@ Num::inRange(new Number('5.5'), new Number('5'), new Number('6'));
 // true
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `round`
@@ -129,6 +141,8 @@ Num::round(3.14159, 2);                                   // 3.14
 Num::round(2.5, 0, RoundingMode::HalfTowardsZero);        // 2.0
 Num::round(new Number('1.2345'), 2);                      // BcMath\Number('1.23')
 ```
+
+[↑ Back to top](#num)
 
 ---
 
@@ -144,6 +158,8 @@ Num::format(new Number('12345678901234567890.5'), 2);
 Num::format(new Number('1234.567'), 2, ',', '.');         // '1.234,57'
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `sum`
@@ -156,6 +172,8 @@ Num::sum([1.5, 2.5, 3.0]);                                // 7.0
 Num::sum([1, 2, new Number('0.5')]);                      // BcMath\Number('3.5')
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `avg`
@@ -167,6 +185,8 @@ Num::avg([new Number('1'), new Number('2'), new Number('3')]);
 // BcMath\Number('2')
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `min` / `max`
@@ -177,6 +197,8 @@ Num::max([3, 1, 4, 1, 5, 9]);                             // 9
 Num::max([1, new Number('2.5'), 2]);                      // BcMath\Number('2.5')
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `abs`
@@ -186,6 +208,8 @@ Num::abs(-5);                                             // 5
 Num::abs(-3.14);                                          // 3.14
 Num::abs(new Number('-5'));                               // BcMath\Number('5')
 ```
+
+[↑ Back to top](#num)
 
 ---
 
@@ -200,6 +224,8 @@ Num::sign(0);                                             // 0
 Num::sign(new Number('-3.2'));                            // -1
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `pow`
@@ -212,6 +238,8 @@ Num::pow(2, -2);                                          // 0.25
 Num::pow(new Number('2'), 100);                           // BcMath\Number('1267650600228229401496703205376')
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `sqrt`
@@ -223,6 +251,8 @@ Num::sqrt(16);                                            // 4.0
 Num::sqrt(2);                                             // 1.4142135623730951
 Num::sqrt(new Number('2'));                               // BcMath\Number('1.4142135623')
 ```
+
+[↑ Back to top](#num)
 
 ---
 
@@ -238,6 +268,8 @@ Num::ceil(2.41, 1);                                       // 2.5
 Num::floor(new Number('2.49'), 1);                        // BcMath\Number('2.4')
 ```
 
+[↑ Back to top](#num)
+
 ---
 
 ## `mod`
@@ -250,3 +282,5 @@ Num::mod(-7, 3);                                          // -1   (sign follows 
 Num::mod(2.5, 1.0);                                       // 0.5
 Num::mod(new Number('-7'), new Number('3'));              // BcMath\Number('-1')
 ```
+
+[↑ Back to top](#num)

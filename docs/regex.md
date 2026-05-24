@@ -29,6 +29,8 @@ Regex::matches('/^\d+$/', '42');      // true
 Regex::matches('/^\d+$/', '42a');     // false
 ```
 
+[↑ Back to top](#regex)
+
 ---
 
 ## `match` / `matchOrNull`
@@ -45,6 +47,8 @@ Regex::match('/(?<user>\w+)@(?<host>\w+)/', 'rak@example');
 Regex::matchOrNull('/\d+/', 'no digits here');    // null
 ```
 
+[↑ Back to top](#regex)
+
 ---
 
 ## `matchAll`
@@ -58,6 +62,8 @@ Regex::matchAll('/\d+/', 'a1 b22 c333');
 Regex::matchAll('/(\w)(\d+)/', 'a1 b22 c333');
 // [0 => ['a1', 'b22', 'c333'], 1 => ['a', 'b', 'c'], 2 => ['1', '22', '333']]
 ```
+
+[↑ Back to top](#regex)
 
 ---
 
@@ -73,6 +79,8 @@ Regex::replace('/(\w+)@(\w+)/', '$2/$1', 'rak@example');
 // 'example/rak'
 ```
 
+[↑ Back to top](#regex)
+
 ---
 
 ## `replaceCallback`
@@ -85,6 +93,8 @@ Regex::replaceCallback(
 );    // 'a2 b4 c6'
 ```
 
+[↑ Back to top](#regex)
+
 ---
 
 ## `split`
@@ -92,6 +102,8 @@ Regex::replaceCallback(
 ```php
 Regex::split('/\s*,\s*/', 'a, b ,c  ,  d');     // ['a', 'b', 'c', 'd']
 ```
+
+[↑ Back to top](#regex)
 
 ---
 
@@ -104,3 +116,5 @@ Regex::quote('1.5+2.0');               // '1\.5\+2\.0'
 Regex::quote('path/to/file');          // 'path/to/file'   ('/' isn't a meta-char)
 Regex::quote('path/to/file', '/');     // 'path\/to\/file'
 ```
+
+[↑ Back to top](#regex)

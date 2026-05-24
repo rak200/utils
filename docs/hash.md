@@ -36,6 +36,8 @@ Hash::sha512('hello');
 // '9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043'
 ```
 
+[↑ Back to top](#hash)
+
 ---
 
 ## `crc32`
@@ -46,6 +48,8 @@ Unsigned 32-bit integer.
 Hash::crc32('hello');     // 907060870
 ```
 
+[↑ Back to top](#hash)
+
 ---
 
 ## `hmac`
@@ -54,6 +58,8 @@ Hash::crc32('hello');     // 907060870
 Hash::hmac('sha256', 'message', 'secret-key');
 // '287a3bd8a4fc7731a94c722079055323644d8798bd291bf9878abc9b8fd4b1d0'
 ```
+
+[↑ Back to top](#hash)
 
 ---
 
@@ -65,6 +71,8 @@ Constant-time string comparison — use whenever you compare digests, tokens, or
 Hash::equals('abc', 'abc');     // true
 Hash::equals('abc', 'abd');     // false
 ```
+
+[↑ Back to top](#hash)
 
 ---
 
@@ -79,3 +87,5 @@ $hash = Hash::password('correct horse battery staple');
 Hash::verifyPassword('correct horse battery staple', $hash);   // true
 Hash::verifyPassword('wrong password', $hash);                 // false
 ```
+
+[↑ Back to top](#hash)

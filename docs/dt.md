@@ -42,6 +42,8 @@ Dt::now(new DateTimeZone('Europe/Lisbon'));      // DateTimeImmutable @ "now" in
 Dt::today();                                     // DateTimeImmutable @ today 00:00:00
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `of`
@@ -53,6 +55,8 @@ Dt::of(2026, 5, 23);                                              // 2026-05-23 
 Dt::of(2026, 5, 23, 10, 15, 30);                                  // 2026-05-23 10:15:30
 Dt::of(2026, 1, 1, 0, 0, 0, new DateTimeZone('UTC'));             // 2026-01-01 00:00:00 UTC
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -67,6 +71,8 @@ Dt::parse('23/05/2026', 'd/m/Y');         // 2026-05-23 00:00:00
 Dt::parseOrNull('not a date');            // null
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `fromEpoch` / `fromEpochMs`
@@ -79,6 +85,8 @@ Dt::fromEpoch(1700000000, new DateTimeZone('Europe/Lisbon'));
 // 2023-11-14 22:13:20 +00:00 (Lisbon is on WET in November)
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `format`
@@ -88,6 +96,8 @@ $dt = Dt::of(2026, 5, 23, 10, 15, 30);
 Dt::format($dt, 'd/m/Y');           // '23/05/2026'
 Dt::format($dt, 'D, M j Y g:i a');  // 'Sat, May 23 2026 10:15 am'
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -100,6 +110,8 @@ Dt::iso(Dt::of(2026, 5, 23, 10, 15, 30, new DateTimeZone('UTC')));
 // '2026-05-23T10:15:30+00:00'
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `sql`
@@ -107,6 +119,8 @@ Dt::iso(Dt::of(2026, 5, 23, 10, 15, 30, new DateTimeZone('UTC')));
 ```php
 Dt::sql(Dt::of(2026, 5, 23, 10, 15, 30));     // '2026-05-23 10:15:30'
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -117,6 +131,8 @@ $dt = Dt::of(2026, 5, 23, 10, 15, 30);
 Dt::date($dt);     // '2026-05-23'
 Dt::time($dt);     // '10:15:30'
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -133,6 +149,8 @@ Dt::addSeconds($dt, 30);     // 2026-05-23 10:00:30
 Dt::addMonths($dt, 1);       // 2026-06-23 10:00:00
 Dt::addYears($dt, -1);       // 2025-05-23 10:00:00
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -153,6 +171,8 @@ Dt::isEqual(
 );                       // true   (same UTC instant)
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `isWeekend` / `isWeekday`
@@ -164,6 +184,8 @@ Dt::isWeekend(Dt::of(2026, 5, 23));    // true   (Saturday)
 Dt::isWeekend(Dt::of(2026, 5, 25));    // false  (Monday)
 Dt::isWeekday(Dt::of(2026, 5, 25));    // true
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -179,6 +201,8 @@ Dt::weekOfYear($dt);           // 21
 Dt::dayOfYear(Dt::of(2026, 1, 1));    // 1
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `min` / `max`
@@ -191,6 +215,8 @@ Dt::min($a, $b, $c);     // 2026-01-01
 Dt::max($a, $b, $c);     // 2026-06-01
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `startOfDay` / `endOfDay`
@@ -200,6 +226,8 @@ $dt = Dt::of(2026, 5, 23, 10, 15, 30);
 Dt::startOfDay($dt);     // 2026-05-23 00:00:00.000000
 Dt::endOfDay($dt);       // 2026-05-23 23:59:59.999999
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -213,6 +241,8 @@ Dt::startOfWeek($sat);          // 2026-05-18 00:00:00            (Monday)
 Dt::endOfWeek($sat);            // 2026-05-24 23:59:59.999999     (Sunday)
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `startOfMonth` / `endOfMonth`
@@ -223,6 +253,8 @@ Dt::startOfMonth($dt);     // 2026-05-01 00:00:00
 Dt::endOfMonth($dt);       // 2026-05-31 23:59:59.999999
 ```
 
+[↑ Back to top](#dt)
+
 ---
 
 ## `startOfYear` / `endOfYear`
@@ -232,6 +264,8 @@ $dt = Dt::of(2026, 5, 23);
 Dt::startOfYear($dt);      // 2026-01-01 00:00:00
 Dt::endOfYear($dt);        // 2026-12-31 23:59:59.999999
 ```
+
+[↑ Back to top](#dt)
 
 ---
 
@@ -248,3 +282,5 @@ Dt::diffInMinutes($a, $b);     // 10230    (170 × 60 + 30)
 Dt::diffInSeconds($a, $b);     // 613800
 Dt::diffInDays($b, $a);        // -7       (signed)
 ```
+
+[↑ Back to top](#dt)

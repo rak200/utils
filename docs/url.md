@@ -41,6 +41,8 @@ Url::parse('/just/a/path?q=1');
 Url::parseOrNull('http:///bad');    // null
 ```
 
+[↑ Back to top](#url)
+
 ---
 
 ## `build`
@@ -60,6 +62,8 @@ Url::build(Url::parse('https://example.com/a?b=1#c'));
 // 'https://example.com/a?b=1#c'   (round-trips)
 ```
 
+[↑ Back to top](#url)
+
 ---
 
 ## `encode` / `decode`
@@ -71,6 +75,8 @@ Url::encode('hello world');          // 'hello%20world'
 Url::encode('a/b+c');                // 'a%2Fb%2Bc'
 Url::decode('hello%20world');        // 'hello world'
 ```
+
+[↑ Back to top](#url)
 
 ---
 
@@ -86,6 +92,8 @@ Url::decodeQuery('name=John%20Doe&tag%5B0%5D=php&tag%5B1%5D=web');
 // ['name' => 'John Doe', 'tag' => ['php', 'web']]
 ```
 
+[↑ Back to top](#url)
+
 ---
 
 ## `isAbsolute`
@@ -98,3 +106,5 @@ Url::isAbsolute('mailto:a@b.com');          // true
 Url::isAbsolute('/just/a/path');            // false
 Url::isAbsolute('relative/path');           // false
 ```
+
+[↑ Back to top](#url)

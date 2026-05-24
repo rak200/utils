@@ -33,6 +33,8 @@ Path::join('/a', '/x', 'y');             // '/a/x/y'
 Path::join('a\\b', 'c');                 // 'a/b/c'
 ```
 
+[↑ Back to top](#path)
+
 ---
 
 ## `normalize`
@@ -49,6 +51,8 @@ Path::normalize('.');                    // '.'
 Path::normalize('C:\\Users\\me');        // 'C:/Users/me'
 ```
 
+[↑ Back to top](#path)
+
 ---
 
 ## `relative`
@@ -63,6 +67,8 @@ Path::relative('/a/b', '/a/b');          // '.'
 Path::relative('/a/b', '/a/b/c/d');      // 'c/d'
 Path::relative('a/b/c', 'a/b/d');        // '../d'
 ```
+
+[↑ Back to top](#path)
 
 ---
 
@@ -80,6 +86,8 @@ Path::isAbsolute('./foo');               // false
 Path::isAbsolute('');                    // false
 ```
 
+[↑ Back to top](#path)
+
 ---
 
 ## `basename`
@@ -93,6 +101,8 @@ Path::basename('/a/file.txt', '.txt');       // 'file'
 Path::basename('archive.tar.gz', '.gz');     // 'archive.tar'
 Path::basename('/');                          // ''
 ```
+
+[↑ Back to top](#path)
 
 ---
 
@@ -108,6 +118,8 @@ Path::dirname('/file.txt');                  // '/'
 Path::dirname('C:/Users/me');                // 'C:/Users'
 ```
 
+[↑ Back to top](#path)
+
 ---
 
 ## `extension`
@@ -121,6 +133,8 @@ Path::extension('README');                   // ''
 Path::extension('.hidden');                  // ''
 ```
 
+[↑ Back to top](#path)
+
 ---
 
 ## `filename`
@@ -133,3 +147,5 @@ Path::filename('archive.tar.gz');            // 'archive.tar'
 Path::filename('README');                    // 'README'
 Path::filename('.hidden');                   // '.hidden'
 ```
+
+[↑ Back to top](#path)

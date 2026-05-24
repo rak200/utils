@@ -36,6 +36,8 @@ Json::encode(['nested' => [1, 2]], JSON_PRETTY_PRINT);
 // }'
 ```
 
+[↑ Back to top](#json)
+
 ---
 
 ## `decode`
@@ -53,6 +55,8 @@ Json::decode('[1, 2, 3]');
 // [1, 2, 3]
 ```
 
+[↑ Back to top](#json)
+
 ---
 
 ## `isValid`
@@ -62,3 +66,5 @@ Json::isValid('{"ok":true}');           // true
 Json::isValid('not json');              // false
 Json::isValid('{ trailing comma, }');   // false
 ```
+
+[↑ Back to top](#json)

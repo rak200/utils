@@ -68,11 +68,6 @@ When releasing a new version:
 
 Planned additions and corrections. While on the `0.x` line, breaking changes are allowed. Released items live in `CHANGELOG.md`.
 
-### `0.3.0` — new classes
-
-- **`Url`** — URL parsing/building, query-string encode/decode.
-- **`Path`** — *logical* path manipulation (`join`, `normalize`, `relative`, `isAbsolute`). Kept distinct from `File`, which touches the disk.
-
 ### Deferred
 
 - **`Math`** — only worth splitting out if trigonometry, logarithms, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic.

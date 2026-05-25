@@ -55,7 +55,7 @@ Tests assert exact behaviour for the contract — return values, thrown exceptio
 
 ## Versioning
 
-Follows [Semantic Versioning](https://semver.org). The `0.x` line is **unstable** while the API stabilises; the current version lives in `composer.json` and the README.
+Follows [Semantic Versioning](https://semver.org). The public API is stable from `1.0.0` onwards: breaking changes require a major bump. The current version lives in `composer.json` and the README.
 
 When releasing a new version:
 1. Update `"version"` in `composer.json`
@@ -66,7 +66,7 @@ When releasing a new version:
 
 ## Roadmap
 
-Planned additions and corrections. While on the `0.x` line, breaking changes are allowed. Released items live in `CHANGELOG.md`.
+Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
 ### Deferred
 

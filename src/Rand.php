@@ -109,7 +109,7 @@ final class Rand {
     /**
      * Generates a random UUID version 4 (RFC 4122) in canonical 8-4-4-4-12 hex form.
      */
-    public static function uuid(): string {
+    public static function uuidV4(): string {
         $bytes = random_bytes(16);
         $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
         $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);

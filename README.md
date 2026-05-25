@@ -50,7 +50,7 @@ Per-method reference with runnable examples lives in [`docs/`](docs/README.md).
 
 ## Versioning
 
-Follows [Semantic Versioning](https://semver.org). The `0.x` line is unstable while the API stabilises.
+Follows [Semantic Versioning](https://semver.org). The public API is stable from `1.0.0` onwards: breaking changes require a major version bump.
 
 ## Licence
 

@@ -19,7 +19,7 @@ use Rak200\Utils\Rand;
 - [`masked`](#masked)
 - [`choice`](#choice)
 - [`shuffle`](#shuffle)
-- [`uuid`](#uuid)
+- [`uuidV4`](#uuidv4)
 - [`uuidV7`](#uuidv7)
 - [`ulid`](#ulid)
 - [`nanoid`](#nanoid)
@@ -144,12 +144,12 @@ Rand::shuffle([]);                  // []
 
 ---
 
-## `uuid`
+## `uuidV4`
 
-UUID v4 (RFC 4122), canonical hex form.
+UUID v4 (RFC 4122), canonical hex form. Random across all 122 bits — pick this when you specifically need an unordered identifier; otherwise prefer `uuidV7` for time-ordered IDs that index better.
 
 ```php
-Rand::uuid();    // e.g. '550e8400-e29b-41d4-a716-446655440000'
+Rand::uuidV4();    // e.g. '550e8400-e29b-41d4-a716-446655440000'
 ```
 
 [↑ Back to top](#rand)

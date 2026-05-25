@@ -82,7 +82,7 @@ final class RandTest extends TestCase {
     }
 
     public function testUuidV4Format(): void {
-        $uuid = Rand::uuid();
+        $uuid = Rand::uuidV4();
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
             $uuid,
@@ -90,8 +90,8 @@ final class RandTest extends TestCase {
     }
 
     public function testUuidsAreUnique(): void {
-        $a = Rand::uuid();
-        $b = Rand::uuid();
+        $a = Rand::uuidV4();
+        $b = Rand::uuidV4();
         $this->assertNotSame($a, $b);
     }
 

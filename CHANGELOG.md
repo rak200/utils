@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-05-25
+
+First stable release. The public API is now covered by SemVer: breaking changes require a major version bump.
+
+### Changed
+
+- **`Rand::uuid()` renamed to `Rand::uuidV4()`** *(breaking)* — `uuid()` no longer exists; callers must pick `uuidV4()` (random) or `uuidV7()` (time-ordered) explicitly. Reason: a bare `uuid()` name was ambiguous about which variant was being generated, and silently changing what it returned in a later release would have been a foot-gun. `uuidV7()` is generally the better default for new code (sortable, indexes better).
+
 ## [0.3.0] - 2026-05-24
 
 ### Added
@@ -66,6 +74,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.0.0]: https://github.com/rak200/utils/compare/0.3.0...1.0.0
 [0.3.0]: https://github.com/rak200/utils/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/rak200/utils/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/rak200/utils/compare/0.1.1...0.1.2

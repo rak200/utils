@@ -10,7 +10,7 @@ use Rak200\Utils\Str;
 
 ## Contents
 
-- [`isBlank` / `isNotBlank` / `isEmpty`](#isblank--isnotblank--isempty)
+- [`isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`](#isblank--isnotblank--isempty--isnonemptystr)
 - [`length`](#length)
 - [`capitalize` / `uncapitalize`](#capitalize--uncapitalize)
 - [`upper` / `lower`](#upper--lower)
@@ -34,17 +34,28 @@ use Rak200\Utils\Str;
 
 ---
 
-## `isBlank` / `isNotBlank` / `isEmpty`
+## `isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`
 
-`isBlank` treats whitespace-only as empty; `isEmpty` requires literal length zero; `isNotBlank` is the inverse of `isBlank`.
+`isBlank` and `isNotBlank` accept `mixed` so they double as type guards: `isBlank` is true for `null`, empty strings, and whitespace-only strings; `isNotBlank` is true only for strings that have at least one non-whitespace character (non-strings → false). `isEmpty` is string-typed and checks literal length zero. `isNonEmptyStr` accepts `mixed` and is true for any string with at least one character (whitespace counts).
 
 ```php
-Str::isBlank('   ');      // true
-Str::isBlank("\t\n");     // true
-Str::isBlank('a');        // false
-Str::isNotBlank('a');     // true
-Str::isEmpty('');         // true
-Str::isEmpty(' ');        // false
+Str::isBlank('   ');         // true
+Str::isBlank("\t\n");        // true
+Str::isBlank('a');           // false
+Str::isBlank(null);          // true
+Str::isBlank(0);             // false   (non-string, non-null)
+
+Str::isNotBlank('a');        // true
+Str::isNotBlank('  ');       // false
+Str::isNotBlank(null);       // false
+
+Str::isEmpty('');            // true
+Str::isEmpty(' ');           // false
+
+Str::isNonEmptyStr('a');     // true
+Str::isNonEmptyStr(' ');     // true
+Str::isNonEmptyStr('');      // false
+Str::isNonEmptyStr(null);    // false
 ```
 
 [↑ Back to top](#str)

@@ -16,14 +16,31 @@ final class StrTest extends TestCase {
         $this->assertFalse(Str::isBlank(' a '));
     }
 
-    public function testIsNotBlankIsInverseOfBlank(): void {
+    public function testIsBlankAcceptsMixed(): void {
+        $this->assertTrue(Str::isBlank(null));
+        $this->assertFalse(Str::isBlank(0));
+        $this->assertFalse(Str::isBlank([]));
+        $this->assertFalse(Str::isBlank(false));
+    }
+
+    public function testIsNotBlankRejectsBlankAndNonStrings(): void {
         $this->assertFalse(Str::isNotBlank('   '));
         $this->assertTrue(Str::isNotBlank('x'));
+        $this->assertFalse(Str::isNotBlank(null));
+        $this->assertFalse(Str::isNotBlank(42));
     }
 
     public function testIsEmptyChecksStrictEmpty(): void {
         $this->assertTrue(Str::isEmpty(''));
         $this->assertFalse(Str::isEmpty(' '));
+    }
+
+    public function testIsNonEmptyStr(): void {
+        $this->assertTrue(Str::isNonEmptyStr('a'));
+        $this->assertTrue(Str::isNonEmptyStr(' '));
+        $this->assertFalse(Str::isNonEmptyStr(''));
+        $this->assertFalse(Str::isNonEmptyStr(null));
+        $this->assertFalse(Str::isNonEmptyStr(0));
     }
 
     public function testLengthCountsMultibyteCharacters(): void {

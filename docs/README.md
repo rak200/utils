@@ -17,6 +17,7 @@ Per-class API reference with runnable examples. For installation and a package o
 | `Dt`     | [dt.md](dt.md)         | `DateTimeImmutable` helpers |
 | `Url`    | [url.md](url.md)       | URL parse/build, query encode/decode |
 | `Path`   | [path.md](path.md)     | Logical path manipulation (no disk access) |
+| `Type`   | [type.md](type.md)     | Type-checking predicates (`mixed` → `bool`) |
 
 ## Conventions used in these docs
 

@@ -51,6 +51,30 @@ final class Num {
     }
 
     /**
+     * Returns true if $value is an int strictly greater than zero. Floats
+     * and numeric strings are rejected.
+     */
+    public static function isPositiveInt(mixed $value): bool {
+        return is_int($value) && $value > 0;
+    }
+
+    /**
+     * Returns true if $value is an int strictly less than zero. Floats and
+     * numeric strings are rejected.
+     */
+    public static function isNegativeInt(mixed $value): bool {
+        return is_int($value) && $value < 0;
+    }
+
+    /**
+     * Returns true if $value is an int greater than or equal to zero.
+     * Floats and numeric strings are rejected.
+     */
+    public static function isNonNegativeInt(mixed $value): bool {
+        return is_int($value) && $value >= 0;
+    }
+
+    /**
      * Parses $value as an integer in the given $base (2-36).
      *
      * @throws RuntimeException When $value is not a valid integer in $base, or $base is out of range.

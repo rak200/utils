@@ -16,6 +16,32 @@ final class ArrTest extends TestCase {
         $this->assertTrue(Arr::isNotEmpty([1]));
     }
 
+    public function testIsList(): void {
+        $this->assertTrue(Arr::isList([]));
+        $this->assertTrue(Arr::isList([1, 2, 3]));
+        $this->assertTrue(Arr::isList(['a', 'b']));
+        $this->assertFalse(Arr::isList(['a' => 1]));
+        $this->assertFalse(Arr::isList([1 => 'a', 0 => 'b']));
+        $this->assertFalse(Arr::isList('abc'));
+        $this->assertFalse(Arr::isList(null));
+    }
+
+    public function testIsAssoc(): void {
+        $this->assertTrue(Arr::isAssoc(['a' => 1]));
+        $this->assertTrue(Arr::isAssoc([1 => 'a', 0 => 'b']));
+        $this->assertFalse(Arr::isAssoc([]));
+        $this->assertFalse(Arr::isAssoc([1, 2, 3]));
+        $this->assertFalse(Arr::isAssoc(new \stdClass()));
+    }
+
+    public function testIsNonEmptyArray(): void {
+        $this->assertTrue(Arr::isNonEmptyArray([1]));
+        $this->assertTrue(Arr::isNonEmptyArray(['a' => 1]));
+        $this->assertFalse(Arr::isNonEmptyArray([]));
+        $this->assertFalse(Arr::isNonEmptyArray('a'));
+        $this->assertFalse(Arr::isNonEmptyArray(null));
+    }
+
     public function testFirstReturnsFirstElement(): void {
         $this->assertSame(1, Arr::first([1, 2, 3]));
         $this->assertSame('a', Arr::first(['x' => 'a', 'y' => 'b']));

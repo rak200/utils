@@ -15,6 +15,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 ## Contents
 
 - [`isInteger` / `isFloat` / `isNumeric`](#isinteger--isfloat--isnumeric)
+- [`isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`](#ispositiveint--isnegativeint--isnonnegativeint)
 - [`parseInt` / `parseIntOrNull`](#parseint--parseintornull)
 - [`parseFloat` / `parseFloatOrNull`](#parsefloat--parsefloatornull)
 - [`parseNumber` / `parseNumberOrNull`](#parsenumber--parsenumberornull)
@@ -46,6 +47,28 @@ Num::isFloat(42);                         // false
 Num::isNumeric('1.5');                    // true
 Num::isNumeric('hello');                  // false
 Num::isNumeric(new Number('1.5'));        // true
+```
+
+[↑ Back to top](#num)
+
+---
+
+## `isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`
+
+Strict — the value must be a native `int` (floats and numeric strings are rejected). Accept `mixed` so they can be used as guards.
+
+```php
+Num::isPositiveInt(1);          // true
+Num::isPositiveInt(0);          // false
+Num::isPositiveInt('1');        // false
+Num::isPositiveInt(1.5);        // false
+
+Num::isNegativeInt(-1);         // true
+Num::isNegativeInt(0);          // false
+
+Num::isNonNegativeInt(0);       // true
+Num::isNonNegativeInt(7);       // true
+Num::isNonNegativeInt(-1);      // false
 ```
 
 [↑ Back to top](#num)

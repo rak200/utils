@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-05-26
+
+### Added
+
+- **`Type`** — new tier-2 class with type-checking predicates that accept `mixed`, intended as guards on values whose shape is not yet known. Methods: basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class checks (`isInstanceOf`/`isClassName`/`isInterfaceName`/`isA` — the last being a shortcut for `is_a()` with `$allow_string = true`, accepting both objects and class-name strings).
+- **`Str`** — `isNonEmptyStr(mixed)`: true for any string with at least one character (whitespace counts).
+- **`Arr`** — `isList(mixed)`, `isAssoc(mixed)`, `isNonEmptyArray(mixed)`. Topic-typed guards complementing the existing `isEmpty(array)`/`isNotEmpty(array)`.
+- **`Num`** — `isPositiveInt(mixed)`, `isNegativeInt(mixed)`, `isNonNegativeInt(mixed)`. Strict — reject floats and numeric strings.
+
+### Changed
+
+- **`Str::isBlank` / `Str::isNotBlank`** — parameter widened from `string` to `mixed` so the methods double as type guards. Backwards-compatible for existing string callers (same return value for every string input). `isBlank(null)` now returns `true`; non-string, non-null values return `false`. `isNotBlank` returns `true` only for strings with at least one non-whitespace character (non-strings → `false`).
+
 ## [1.0.0] - 2026-05-25
 
 First stable release. The public API is now covered by SemVer: breaking changes require a major version bump.
@@ -74,6 +87,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.1.0]: https://github.com/rak200/utils/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/rak200/utils/compare/0.3.0...1.0.0
 [0.3.0]: https://github.com/rak200/utils/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/rak200/utils/compare/0.1.2...0.2.0

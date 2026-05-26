@@ -11,6 +11,7 @@ use Rak200\Utils\Arr;
 ## Contents
 
 - [`isEmpty` / `isNotEmpty`](#isempty--isnotempty)
+- [`isList` / `isAssoc` / `isNonEmptyArray`](#islist--isassoc--isnonemptyarray)
 - [`first` / `firstOrNull`](#first--firstornull)
 - [`last` / `lastOrNull`](#last--lastornull)
 - [`find` / `findOrNull`](#find--findornull)
@@ -39,10 +40,36 @@ use Rak200\Utils\Arr;
 
 ## `isEmpty` / `isNotEmpty`
 
+Typed `array` input. For a `mixed` guard variant, see [`isNonEmptyArray`](#islist--isassoc--isnonemptyarray).
+
 ```php
 Arr::isEmpty([]);            // true
 Arr::isEmpty([1, 2]);        // false
 Arr::isNotEmpty([1, 2]);     // true
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `isList` / `isAssoc` / `isNonEmptyArray`
+
+`mixed`-typed guards. `isList` mirrors `array_is_list` (sequential `0..n-1` int keys; empty array qualifies). `isAssoc` is the complement on non-empty arrays. `isNonEmptyArray` ignores key shape.
+
+```php
+Arr::isList([1, 2, 3]);              // true
+Arr::isList([]);                     // true
+Arr::isList(['a' => 1]);             // false
+Arr::isList('abc');                  // false
+
+Arr::isAssoc(['a' => 1]);            // true
+Arr::isAssoc([1 => 'a', 0 => 'b']);  // true   (not 0-indexed)
+Arr::isAssoc([1, 2, 3]);             // false
+Arr::isAssoc([]);                    // false  (ambiguous — choose isList for empty)
+
+Arr::isNonEmptyArray([1]);           // true
+Arr::isNonEmptyArray([]);            // false
+Arr::isNonEmptyArray('a');           // false
 ```
 
 [↑ Back to top](#arr)

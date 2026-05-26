@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, is_callable, is_int, is_string, max, sprintf, usort;
+use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_is_list, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, is_callable, is_int, is_string, max, sprintf, usort;
 
 /**
  * Array helpers.
@@ -27,6 +27,31 @@ final class Arr {
      */
     public static function isNotEmpty(array $array): bool {
         return $array !== [];
+    }
+
+    /**
+     * Returns true if $value is an array with sequential integer keys
+     * starting at 0. An empty array qualifies. Accepts `mixed` so it can be
+     * used as a guard on values whose type is not yet known.
+     */
+    public static function isList(mixed $value): bool {
+        return is_array($value) && array_is_list($value);
+    }
+
+    /**
+     * Returns true if $value is a non-empty array whose keys are not the
+     * sequential `0..n-1` integers of a list. Accepts `mixed`.
+     */
+    public static function isAssoc(mixed $value): bool {
+        return is_array($value) && $value !== [] && !array_is_list($value);
+    }
+
+    /**
+     * Returns true if $value is an array with at least one element. Accepts
+     * `mixed` (unlike {@see isNotEmpty()}, which requires an `array`).
+     */
+    public static function isNonEmptyArray(mixed $value): bool {
+        return is_array($value) && $value !== [];
     }
 
     /**

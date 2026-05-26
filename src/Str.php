@@ -6,9 +6,9 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 use function array_filter, array_map, array_pop, array_reverse, array_values, count, explode,
-    function_exists, iconv, implode, ltrim, max, mb_str_pad, mb_str_split, mb_strlen, mb_strpos,
-    mb_strrpos, mb_strtolower, mb_strtoupper, mb_substr, preg_replace, preg_split, rtrim,
-    str_contains, str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos,
+    function_exists, iconv, implode, is_string, ltrim, max, mb_str_pad, mb_str_split, mb_strlen,
+    mb_strpos, mb_strrpos, mb_strtolower, mb_strtoupper, mb_substr, preg_replace, preg_split,
+    rtrim, str_contains, str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos,
     strrpos, strtolower, substr_count, substr_replace, trim;
 
 /**
@@ -20,17 +20,24 @@ final class Str {
     private function __construct() {}
 
     /**
-     * Returns true if the string is empty or contains only whitespace.
+     * Returns true if $value is null, an empty string, or a string containing
+     * only whitespace. Non-string, non-null values return false. Accepts
+     * `mixed` so it can be used as a guard on values whose type is not yet
+     * known.
      */
-    public static function isBlank(string $value): bool {
-        return trim($value) === '';
+    public static function isBlank(mixed $value): bool {
+        if ($value === null) {
+            return true;
+        }
+        return is_string($value) && trim($value) === '';
     }
 
     /**
-     * Returns true if the string contains at least one non-whitespace character.
+     * Returns true if $value is a string with at least one non-whitespace
+     * character. Non-strings always return false.
      */
-    public static function isNotBlank(string $value): bool {
-        return !self::isBlank($value);
+    public static function isNotBlank(mixed $value): bool {
+        return is_string($value) && trim($value) !== '';
     }
 
     /**
@@ -38,6 +45,14 @@ final class Str {
      */
     public static function isEmpty(string $value): bool {
         return $value === '';
+    }
+
+    /**
+     * Returns true if $value is a string with at least one character
+     * (whitespace counts). Non-strings always return false.
+     */
+    public static function isNonEmptyStr(mixed $value): bool {
+        return is_string($value) && $value !== '';
     }
 
     /**

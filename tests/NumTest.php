@@ -23,6 +23,31 @@ final class NumTest extends TestCase {
         $this->assertFalse(Num::isNumeric('abc'));
     }
 
+    public function testIsPositiveInt(): void {
+        $this->assertTrue(Num::isPositiveInt(1));
+        $this->assertTrue(Num::isPositiveInt(PHP_INT_MAX));
+        $this->assertFalse(Num::isPositiveInt(0));
+        $this->assertFalse(Num::isPositiveInt(-1));
+        $this->assertFalse(Num::isPositiveInt(1.5));
+        $this->assertFalse(Num::isPositiveInt('1'));
+    }
+
+    public function testIsNegativeInt(): void {
+        $this->assertTrue(Num::isNegativeInt(-1));
+        $this->assertTrue(Num::isNegativeInt(PHP_INT_MIN));
+        $this->assertFalse(Num::isNegativeInt(0));
+        $this->assertFalse(Num::isNegativeInt(1));
+        $this->assertFalse(Num::isNegativeInt(-1.5));
+    }
+
+    public function testIsNonNegativeInt(): void {
+        $this->assertTrue(Num::isNonNegativeInt(0));
+        $this->assertTrue(Num::isNonNegativeInt(7));
+        $this->assertFalse(Num::isNonNegativeInt(-1));
+        $this->assertFalse(Num::isNonNegativeInt(0.0));
+        $this->assertFalse(Num::isNonNegativeInt('0'));
+    }
+
     public function testParseInt(): void {
         $this->assertSame(42, Num::parseInt('42'));
         $this->assertSame(-42, Num::parseInt('-42'));

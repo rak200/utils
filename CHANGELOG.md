@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-05-27
+
+### Added
+
+- **`Str`** — `toCamel`, `toPascal`, `toSnake`, `toKebab`. Shorter, more idiomatic case-conversion helpers.
+- **`Num`** — `isInt`. Mirrors PHP's native `is_int()` and aligns with the existing `Num::isFloat`.
+- **`File`** — `isDir`. Mirrors PHP's native `is_dir()` and matches `File::isFile` in length.
+
+### Deprecated
+
+- **`Str::toCamelCase`, `Str::toPascalCase`, `Str::toSnakeCase`, `Str::toKebabCase`** — use `Str::toCamel`/`toPascal`/`toSnake`/`toKebab` instead. The old names remain as delegating aliases and will be removed in 2.0.0.
+- **`Num::isInteger`** — use `Num::isInt` instead. Removal in 2.0.0.
+- **`File::isDirectory`** — use `File::isDir` instead. Removal in 2.0.0.
+
 ## [1.1.0] - 2026-05-26
 
 ### Added
@@ -87,6 +101,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.2.0]: https://github.com/rak200/utils/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/rak200/utils/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/rak200/utils/compare/0.3.0...1.0.0
 [0.3.0]: https://github.com/rak200/utils/compare/0.2.0...0.3.0

@@ -74,8 +74,15 @@ final class File {
     /**
      * Returns true when $path is an existing directory.
      */
-    public static function isDirectory(string $path): bool {
+    public static function isDir(string $path): bool {
         return is_dir($path);
+    }
+
+    /**
+     * @deprecated since 1.2.0, use {@see self::isDir()} instead. Will be removed in 2.0.0.
+     */
+    public static function isDirectory(string $path): bool {
+        return self::isDir($path);
     }
 
     /**

@@ -12,7 +12,7 @@ use Rak200\Utils\File;
 
 - [`read` / `write` / `append`](#read--write--append)
 - [`exists`](#exists)
-- [`isFile` / `isDirectory`](#isfile--isdirectory)
+- [`isFile` / `isDir`](#isfile--isdir)
 - [`delete`](#delete)
 - [`mkdir`](#mkdir)
 - [`list`](#list)
@@ -52,16 +52,18 @@ File::exists('/does/not/exist');       // false
 
 ---
 
-## `isFile` / `isDirectory`
+## `isFile` / `isDir`
 
 Type-discriminating checks.
 
 ```php
 File::isFile('/tmp/greeting.txt');     // true
 File::isFile('/tmp');                  // false
-File::isDirectory('/tmp');             // true
-File::isDirectory('/tmp/greeting.txt'); // false
+File::isDir('/tmp');                   // true
+File::isDir('/tmp/greeting.txt');      // false
 ```
+
+> The legacy name `isDirectory` remains available as a `@deprecated` alias since 1.2.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#file)
 

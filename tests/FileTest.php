@@ -123,19 +123,24 @@ final class FileTest extends TestCase {
         $this->assertStringStartsWith('text/', File::mimeType($path));
     }
 
-    public function testIsFileIsDirectory(): void {
+    public function testIsFileIsDir(): void {
         $path = $this->makeTempPath('utils_typecheck_' . uniqid() . '.txt');
         File::write($path, 'x');
         $this->assertTrue(File::isFile($path));
-        $this->assertFalse(File::isDirectory($path));
-        $this->assertTrue(File::isDirectory($this->tempDir));
+        $this->assertFalse(File::isDir($path));
+        $this->assertTrue(File::isDir($this->tempDir));
         $this->assertFalse(File::isFile($this->tempDir));
+    }
+
+    public function testDeprecatedIsDirectoryAliasStillWorks(): void {
+        $this->assertTrue(File::isDirectory($this->tempDir));
+        $this->assertFalse(File::isDirectory($this->makeTempPath('utils_missing_' . uniqid())));
     }
 
     public function testMkdirCreatesAndIsIdempotent(): void {
         $dir = $this->tempDir . DIRECTORY_SEPARATOR . 'utils_mkdir_' . uniqid() . DIRECTORY_SEPARATOR . 'nested';
         File::mkdir($dir);
-        $this->assertTrue(File::isDirectory($dir));
+        $this->assertTrue(File::isDir($dir));
         File::mkdir($dir); // second call must not throw
         @rmdir($dir);
         @rmdir(dirname($dir));

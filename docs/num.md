@@ -14,7 +14,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 
 ## Contents
 
-- [`isInteger` / `isFloat` / `isNumeric`](#isinteger--isfloat--isnumeric)
+- [`isInt` / `isFloat` / `isNumeric`](#isint--isfloat--isnumeric)
 - [`isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`](#ispositiveint--isnegativeint--isnonnegativeint)
 - [`parseInt` / `parseIntOrNull`](#parseint--parseintornull)
 - [`parseFloat` / `parseFloatOrNull`](#parsefloat--parsefloatornull)
@@ -35,19 +35,21 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 
 ---
 
-## `isInteger` / `isFloat` / `isNumeric`
+## `isInt` / `isFloat` / `isNumeric`
 
-`isInteger`/`isFloat` are strict type checks; `isNumeric` also accepts numeric strings and `BcMath\Number` instances.
+`isInt`/`isFloat` are strict type checks; `isNumeric` also accepts numeric strings and `BcMath\Number` instances.
 
 ```php
-Num::isInteger(42);                       // true
-Num::isInteger(42.0);                     // false
+Num::isInt(42);                           // true
+Num::isInt(42.0);                         // false
 Num::isFloat(42.0);                       // true
 Num::isFloat(42);                         // false
 Num::isNumeric('1.5');                    // true
 Num::isNumeric('hello');                  // false
 Num::isNumeric(new Number('1.5'));        // true
 ```
+
+> The legacy name `isInteger` remains available as a `@deprecated` alias since 1.2.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#num)
 

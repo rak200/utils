@@ -254,6 +254,6 @@ final class File {
         if ($result === false) {
             throw new RuntimeException(sprintf('Cannot list directory: %s', $dir));
         }
-        return array_values($result);
+        return $result;
     }
 }

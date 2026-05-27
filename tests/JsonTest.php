@@ -24,6 +24,7 @@ final class JsonTest extends TestCase {
 
     public function testDecodeAsObject(): void {
         $result = Json::decode('{"a":1}', false);
+        $this->assertInstanceOf(\stdClass::class, $result);
         $this->assertSame(1, $result->a);
     }
 

@@ -160,6 +160,9 @@ final class Rand {
     /**
      * Returns a cryptographically-secure random element of $items.
      *
+     * @template T
+     * @param array<array-key, T> $items
+     * @return T
      * @throws RuntimeException When $items is empty.
      */
     public static function choice(array $items): mixed {
@@ -174,7 +177,9 @@ final class Rand {
      * Returns the values of $items in a uniformly-random order (Fisher-Yates
      * with {@see random_int} as the source of entropy). Keys are not preserved.
      *
-     * @return list<mixed>
+     * @template T
+     * @param array<array-key, T> $items
+     * @return list<T>
      */
     public static function shuffle(array $items): array {
         $values = array_values($items);
@@ -184,7 +189,7 @@ final class Rand {
                 [$values[$i], $values[$j]] = [$values[$j], $values[$i]];
             }
         }
-        return $values;
+        return array_values($values);
     }
 
     /**
@@ -239,7 +244,7 @@ final class Rand {
         $bits = '00' . $bits;
         $result = '';
         for ($i = 0; $i < 130; $i += 5) {
-            $result .= self::CROCKFORD_BASE32[bindec(substr($bits, $i, 5))];
+            $result .= self::CROCKFORD_BASE32[(int) bindec(substr($bits, $i, 5))];
         }
         return $result;
     }

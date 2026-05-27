@@ -138,10 +138,12 @@ final class RandTest extends TestCase {
         Rand::nanoid(0);
     }
 
-    public function testBoolReturnsBoolean(): void {
-        for ($i = 0; $i < 20; $i++) {
-            $this->assertIsBool(Rand::bool());
+    public function testBoolEventuallyProducesBothValues(): void {
+        $seen = [];
+        for ($i = 0; $i < 100; $i++) {
+            $seen[Rand::bool() ? 'true' : 'false'] = true;
         }
+        $this->assertCount(2, $seen);
     }
 
     public function testChoicePicksFromArray(): void {

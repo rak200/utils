@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_is_list, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, is_callable, is_int, is_string, max, sprintf, usort;
+use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_is_list, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, is_int, is_string, max, sprintf, usort;
 
 /**
  * Array helpers.
@@ -17,6 +17,8 @@ final class Arr {
 
     /**
      * Returns true if the array has no elements.
+     *
+     * @param array<array-key, mixed> $array
      */
     public static function isEmpty(array $array): bool {
         return $array === [];
@@ -24,6 +26,8 @@ final class Arr {
 
     /**
      * Returns true if the array has at least one element.
+     *
+     * @param array<array-key, mixed> $array
      */
     public static function isNotEmpty(array $array): bool {
         return $array !== [];
@@ -57,6 +61,9 @@ final class Arr {
     /**
      * Returns the first element of the array.
      *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return T
      * @throws RuntimeException When the array is empty.
      */
     public static function first(array $array): mixed {
@@ -68,6 +75,10 @@ final class Arr {
 
     /**
      * Returns the first element of the array, or null if it is empty.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return T|null
      */
     public static function firstOrNull(array $array): mixed {
         if ($array === []) {
@@ -79,6 +90,9 @@ final class Arr {
     /**
      * Returns the last element of the array.
      *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return T
      * @throws RuntimeException When the array is empty.
      */
     public static function last(array $array): mixed {
@@ -90,6 +104,10 @@ final class Arr {
 
     /**
      * Returns the last element of the array, or null if it is empty.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return T|null
      */
     public static function lastOrNull(array $array): mixed {
         if ($array === []) {
@@ -101,7 +119,11 @@ final class Arr {
     /**
      * Returns the first element matching $predicate (called with value and key).
      *
-     * @param callable(mixed, int|string): bool $predicate
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param callable(T, K): bool $predicate
+     * @return T
      * @throws RuntimeException When no element matches.
      */
     public static function find(array $array, callable $predicate): mixed {
@@ -116,7 +138,11 @@ final class Arr {
     /**
      * Returns the first element matching $predicate, or null if none match.
      *
-     * @param callable(mixed, int|string): bool $predicate
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param callable(T, K): bool $predicate
+     * @return T|null
      */
     public static function findOrNull(array $array, callable $predicate): mixed {
         foreach ($array as $key => $value) {
@@ -131,7 +157,11 @@ final class Arr {
      * Returns the elements (with original keys preserved) for which $predicate
      * returns true. $predicate is invoked with both value and key.
      *
-     * @param callable(mixed, int|string): bool $predicate
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param callable(T, K): bool $predicate
+     * @return array<K, T>
      */
     public static function filter(array $array, callable $predicate): array {
         return array_filter($array, $predicate, ARRAY_FILTER_USE_BOTH);
@@ -141,7 +171,12 @@ final class Arr {
      * Returns a new array with $callback applied to each element. Keys are
      * preserved; $callback receives value and key.
      *
-     * @param callable(mixed, int|string): mixed $callback
+     * @template K of array-key
+     * @template T
+     * @template TResult
+     * @param array<K, T> $array
+     * @param callable(T, K): TResult $callback
+     * @return array<K, TResult>
      */
     public static function map(array $array, callable $callback): array {
         $result = [];
@@ -154,7 +189,13 @@ final class Arr {
     /**
      * Reduces the array to a single value by repeatedly applying $callback.
      *
-     * @param callable(mixed, mixed, int|string): mixed $callback Receives the accumulator, current value, and key.
+     * @template K of array-key
+     * @template T
+     * @template TCarry
+     * @param array<K, T> $array
+     * @param callable(TCarry, T, K): TCarry $callback Receives the accumulator, current value, and key.
+     * @param TCarry $initial
+     * @return TCarry
      */
     public static function reduce(array $array, callable $callback, mixed $initial = null): mixed {
         $carry = $initial;
@@ -168,6 +209,7 @@ final class Arr {
      * Flattens nested arrays down to $depth levels. Use PHP_INT_MAX (default)
      * to flatten completely. Keys are not preserved.
      *
+     * @param array<array-key, mixed> $array
      * @throws RuntimeException When $depth is negative.
      * @return list<mixed>
      */
@@ -192,8 +234,11 @@ final class Arr {
      * Groups elements by the value returned by $classifier (called with value
      * and key). Each group is a 0-indexed list.
      *
-     * @param callable(mixed, int|string): (int|string) $classifier
-     * @return array<int|string, list<mixed>>
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param callable(T, K): array-key $classifier
+     * @return array<array-key, non-empty-list<T>>
      */
     public static function groupBy(array $array, callable $classifier): array {
         $result = [];
@@ -208,8 +253,11 @@ final class Arr {
      * Splits the array into [matching, non-matching] based on $predicate.
      * Both halves are 0-indexed lists.
      *
-     * @param callable(mixed, int|string): bool $predicate
-     * @return array{0: list<mixed>, 1: list<mixed>}
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param callable(T, K): bool $predicate
+     * @return array{0: list<T>, 1: list<T>}
      */
     public static function partition(array $array, callable $predicate): array {
         $truthy = [];
@@ -228,8 +276,10 @@ final class Arr {
      * Splits the array into chunks of at most $size elements. The final chunk
      * may be smaller.
      *
+     * @template T
+     * @param array<array-key, T> $array
      * @throws RuntimeException When $size is less than 1.
-     * @return list<list<mixed>>
+     * @return list<non-empty-list<T>>
      */
     public static function chunk(array $array, int $size): array {
         if ($size < 1) {
@@ -242,7 +292,9 @@ final class Arr {
      * Returns the unique values of the array as a 0-indexed list. Uses loose
      * comparison (SORT_REGULAR).
      *
-     * @return list<mixed>
+     * @template T
+     * @param array<array-key, T> $array
+     * @return list<T>
      */
     public static function unique(array $array): array {
         return array_values(array_unique($array, SORT_REGULAR));
@@ -250,6 +302,8 @@ final class Arr {
 
     /**
      * Returns true if $key exists in the array (including null values).
+     *
+     * @param array<array-key, mixed> $array
      */
     public static function has(array $array, int|string $key): bool {
         return array_key_exists($key, $array);
@@ -258,7 +312,9 @@ final class Arr {
     /**
      * Returns the keys of the array, in their original order.
      *
-     * @return list<int|string>
+     * @template K of array-key
+     * @param array<K, mixed> $array
+     * @return list<K>
      */
     public static function keys(array $array): array {
         return array_keys($array);
@@ -267,7 +323,9 @@ final class Arr {
     /**
      * Returns the values of the array re-indexed as a 0-based list.
      *
-     * @return list<mixed>
+     * @template T
+     * @param array<array-key, T> $array
+     * @return list<T>
      */
     public static function values(array $array): array {
         return array_values($array);
@@ -277,6 +335,7 @@ final class Arr {
      * Combines the input arrays element-wise. The result length matches the
      * longest input; shorter inputs are padded with null.
      *
+     * @param array<array-key, mixed> ...$arrays
      * @return list<list<mixed>>
      */
     public static function zip(array ...$arrays): array {
@@ -298,6 +357,8 @@ final class Arr {
 
     /**
      * Returns true when $value is present in $array. Strict comparison by default.
+     *
+     * @param array<array-key, mixed> $array
      */
     public static function contains(array $array, mixed $value, bool $strict = true): bool {
         return in_array($value, $array, $strict);
@@ -307,6 +368,7 @@ final class Arr {
      * Extracts the values at $key from each sub-array of $array as a 0-indexed
      * list. Items without the key contribute null.
      *
+     * @param array<array-key, mixed> $array
      * @return list<mixed>
      */
     public static function pluck(array $array, int|string $key): array {
@@ -321,22 +383,29 @@ final class Arr {
      * Re-indexes $array by the value at $key on each item (or by the result of
      * $key when called with the item). Later collisions overwrite earlier ones.
      *
-     * @param int|string|callable(mixed): (int|string) $key
+     * @template T
+     * @param array<array-key, T> $array
+     * @param int|string|callable(T): (int|string) $key
+     * @return array<int|string, T>
      * @throws RuntimeException When $key is a column name and an item is not
-     *                          an array or lacks that column.
+     *                          an array or lacks that column, or when the
+     *                          resolved key is not an int or string.
      */
     public static function keyBy(array $array, int|string|callable $key): array {
         $result = [];
-        $isCallable = !is_int($key) && !is_string($key) && is_callable($key);
+        $isCallable = !is_int($key) && !is_string($key);
         foreach ($array as $item) {
             if ($isCallable) {
-                /** @var callable(mixed): (int|string) $key */
+                /** @var callable(T): (int|string) $key */
                 $k = $key($item);
             } else {
                 if (!is_array($item) || !array_key_exists($key, $item)) {
                     throw new RuntimeException(sprintf('Item missing key "%s".', (string) $key));
                 }
                 $k = $item[$key];
+            }
+            if (!is_int($k) && !is_string($k)) {
+                throw new RuntimeException('Resolved key must be an int or string.');
             }
             $result[$k] = $item;
         }
@@ -347,8 +416,10 @@ final class Arr {
      * Returns $array sorted with the natural `<=>` comparator (or $comparator
      * when given). Values are re-indexed as a 0-based list.
      *
-     * @param null|callable(mixed, mixed): int $comparator
-     * @return list<mixed>
+     * @template T
+     * @param array<array-key, T> $array
+     * @param null|callable(T, T): int $comparator
+     * @return list<T>
      */
     public static function sort(array $array, ?callable $comparator = null): array {
         $values = array_values($array);
@@ -365,8 +436,11 @@ final class Arr {
      * element (called with value and key). Values are re-indexed as a 0-based
      * list.
      *
-     * @param callable(mixed, int|string): mixed $keyExtractor
-     * @return list<mixed>
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param callable(T, K): mixed $keyExtractor
+     * @return list<T>
      */
     public static function sortBy(array $array, callable $keyExtractor): array {
         $annotated = [];
@@ -380,6 +454,9 @@ final class Arr {
     /**
      * Merges $arrays left-to-right. String keys are overwritten by later arrays;
      * integer keys are renumbered (matches PHP `array_merge`).
+     *
+     * @param array<array-key, mixed> ...$arrays
+     * @return array<array-key, mixed>
      */
     public static function merge(array ...$arrays): array {
         return $arrays === [] ? [] : array_merge(...$arrays);
@@ -388,7 +465,11 @@ final class Arr {
     /**
      * Returns $array restricted to the given $keys, preserving original order.
      *
-     * @param list<int|string> $keys
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param list<K> $keys
+     * @return array<K, T>
      */
     public static function pick(array $array, array $keys): array {
         return array_intersect_key($array, array_flip($keys));
@@ -397,7 +478,11 @@ final class Arr {
     /**
      * Returns $array with the given $keys removed, preserving original order.
      *
-     * @param list<int|string> $keys
+     * @template K of array-key
+     * @template T
+     * @param array<K, T> $array
+     * @param list<K> $keys
+     * @return array<K, T>
      */
     public static function except(array $array, array $keys): array {
         return array_diff_key($array, array_flip($keys));

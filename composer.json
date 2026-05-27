@@ -1,7 +1,7 @@
 {
     "name": "rak200/utils",
     "description": "General-purpose static utility helpers for PHP 8.4+ (Str, Arr, Num, Rand, Regex, Hash, Bit, File, Json, Base64, Dt, Url, Path, Type).",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "type": "library",
     "license": "MIT",
     "keywords": ["utils", "helpers", "string", "array", "uuid", "ulid", "datetime", "php84"],
@@ -28,7 +28,8 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^13.1"
+        "phpunit/phpunit": "^13.1",
+        "phpstan/phpstan": "^2.1"
     },
     "autoload-dev": {
         "psr-4": {
@@ -36,6 +37,7 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit",
+        "phpstan": "phpstan analyse --memory-limit=512M"
     }
 }

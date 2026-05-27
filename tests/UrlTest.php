@@ -10,22 +10,26 @@ use RuntimeException;
 
 final class UrlTest extends TestCase {
     public function testParseReturnsAllComponents(): void {
-        $parsed = Url::parse('https://user:pass@example.com:8080/path/to?x=1&y=2#frag');
-        $this->assertSame('https', $parsed['scheme']);
-        $this->assertSame('user', $parsed['user']);
-        $this->assertSame('pass', $parsed['pass']);
-        $this->assertSame('example.com', $parsed['host']);
-        $this->assertSame(8080, $parsed['port']);
-        $this->assertSame('/path/to', $parsed['path']);
-        $this->assertSame('x=1&y=2', $parsed['query']);
-        $this->assertSame('frag', $parsed['fragment']);
+        $this->assertSame(
+            [
+                'scheme'   => 'https',
+                'host'     => 'example.com',
+                'port'     => 8080,
+                'user'     => 'user',
+                'pass'     => 'pass',
+                'path'     => '/path/to',
+                'query'    => 'x=1&y=2',
+                'fragment' => 'frag',
+            ],
+            Url::parse('https://user:pass@example.com:8080/path/to?x=1&y=2#frag'),
+        );
     }
 
     public function testParseAcceptsRelativeUrl(): void {
-        $parsed = Url::parse('/just/a/path?q=1');
-        $this->assertArrayNotHasKey('scheme', $parsed);
-        $this->assertSame('/just/a/path', $parsed['path']);
-        $this->assertSame('q=1', $parsed['query']);
+        $this->assertSame(
+            ['path' => '/just/a/path', 'query' => 'q=1'],
+            Url::parse('/just/a/path?q=1'),
+        );
     }
 
     public function testParseThrowsOnMalformed(): void {

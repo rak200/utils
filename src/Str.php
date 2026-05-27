@@ -273,7 +273,7 @@ final class Str {
      * When $lastSeparator is provided and there are 2+ parts, it is used between
      * the last two elements (e.g. ", " + " and " for an Oxford-style join).
      *
-     * @param iterable<mixed> $items
+     * @param iterable<int|float|string|bool|\Stringable|null> $items
      */
     public static function join(
         iterable $items,

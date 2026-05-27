@@ -167,6 +167,9 @@ final class Type {
      * string naming a class that is or extends/implements $class.
      */
     public static function isA(mixed $value, string $class): bool {
+        if (!is_object($value) && !is_string($value)) {
+            return false;
+        }
         return is_a($value, $class, true);
     }
 }

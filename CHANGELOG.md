@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-05-27
+
+### Added
+
+- **PHPStan** — added `phpstan/phpstan ^2.1` as a dev dependency, configured at `level: max` with no baseline. `composer phpstan` runs the analysis (with a 512M memory limit). Library and tests are clean at the highest strictness level.
+- **PHPDoc generics** — `Arr` (every higher-order method: `find`, `findOrNull`, `filter`, `map`, `reduce`, `groupBy`, `partition`, `chunk`, `unique`, `sort`, `sortBy`, `keyBy`, `pick`, `except`, `first`, `firstOrNull`, `last`, `lastOrNull`, `keys`, `values`) and `Rand::choice` / `Rand::shuffle` now carry `@template` types, so callers get precise return-type inference (e.g. `Arr::find(array<int>, ...)` returns `int`, not `mixed`).
+
+### Changed
+
+- **`Str::join`** — `@param` narrowed from `iterable<mixed>` to `iterable<int|float|string|bool|\Stringable|null>`. Runtime behaviour is unchanged (the native type is still `iterable`), but static analysis now flags callers that pass arrays or non-stringable objects, which would have failed at the implicit `(string)` cast anyway.
+- **`Url::decodeQuery`** — `@return` widened from `array<string, mixed>` to `array<int|string, mixed>` to reflect that `parse_str` produces integer keys for numeric-only query parameters (e.g. `?123=foo`).
+- **`Arr::keyBy`** — throws when the resolved key value (from a column lookup or a callable) is not an `int` or `string`, instead of triggering an undefined-behaviour array offset. The pre-existing throw for missing columns is retained.
+- **`Num`** — internal refactor of union arithmetic (`sum`, `avg`, `pow`, `mod`, `numberFloorCeil`) so the type system can follow the `int|float|Number` branches explicitly. New private helpers `Num::add()` (centralised widening addition) and `Num::pow10()` (precision-safe powers of ten via digit concatenation). Removed two stale `@phpstan-ignore-next-line` comments. No behaviour change.
+
 ## [1.2.0] - 2026-05-27
 
 ### Added
@@ -101,6 +115,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.3.0]: https://github.com/rak200/utils/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/rak200/utils/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/rak200/utils/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/rak200/utils/compare/0.3.0...1.0.0

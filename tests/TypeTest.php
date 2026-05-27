@@ -112,6 +112,7 @@ final class TypeTest extends TestCase {
 
     public function testIsResource(): void {
         $fp = fopen('php://memory', 'rb');
+        $this->assertNotFalse($fp);
         $this->assertTrue(Type::isResource($fp));
         fclose($fp);
         $this->assertFalse(Type::isResource($fp));

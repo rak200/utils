@@ -111,8 +111,10 @@ final class Url {
     /**
      * Parses a query string back into an associative array. Bracket syntax in
      * the input produces nested arrays (e.g. `tag[]=a&tag[]=b` → `['tag' => ['a', 'b']]`).
+     * Numeric-only keys (e.g. `?123=foo`) appear as ints; everything else as
+     * strings.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public static function decodeQuery(string $query): array {
         $result = [];

@@ -178,7 +178,7 @@ final class Num {
      */
     public static function parseNumberOrNull(string $value): ?Number {
         $value = trim($value);
-        if (!is_numeric($value) || $value === '') {
+        if (!is_numeric($value)) {
             return null;
         }
         try {
@@ -264,7 +264,7 @@ final class Num {
     public static function sum(iterable $values): int|float|Number {
         $sum = 0;
         foreach ($values as $value) {
-            $sum += $value;
+            $sum = self::add($sum, $value);
         }
         return $sum;
     }
@@ -280,11 +280,14 @@ final class Num {
         $sum = 0;
         $count = 0;
         foreach ($values as $value) {
-            $sum += $value;
+            $sum = self::add($sum, $value);
             $count++;
         }
         if ($count === 0) {
             throw new RuntimeException('Cannot compute average of empty input.');
+        }
+        if ($sum instanceof Number) {
+            return $sum / new Number((string) $count);
         }
         return $sum / $count;
     }
@@ -353,6 +356,11 @@ final class Num {
      * is one.
      */
     public static function pow(int|float|Number $base, int|float|Number $exp): int|float|Number {
+        if ($base instanceof Number || $exp instanceof Number) {
+            $baseN = $base instanceof Number ? $base : new Number((string) $base);
+            $expN = $exp instanceof Number ? $exp : new Number((string) $exp);
+            return $baseN ** $expN;
+        }
         return $base ** $exp;
     }
 
@@ -418,7 +426,9 @@ final class Num {
             throw new RuntimeException('Cannot mod by zero.');
         }
         if ($a instanceof Number || $b instanceof Number) {
-            return $a % $b;
+            $aN = $a instanceof Number ? $a : new Number((string) $a);
+            $bN = $b instanceof Number ? $b : new Number((string) $b);
+            return $aN % $bN;
         }
         if (is_int($a) && is_int($b)) {
             return $a % $b;
@@ -427,32 +437,47 @@ final class Num {
     }
 
     /**
+     * Adds two values, widening to {@see Number} when either operand is one.
+     * Centralises the union-arithmetic branching that the type system cannot
+     * express in a single expression.
+     */
+    private static function add(int|float|Number $a, int|float|Number $b): int|float|Number {
+        if ($a instanceof Number || $b instanceof Number) {
+            $aN = $a instanceof Number ? $a : new Number((string) $a);
+            $bN = $b instanceof Number ? $b : new Number((string) $b);
+            return $aN + $bN;
+        }
+        return $a + $b;
+    }
+
+    /**
+     * Returns 10^$exp as a {@see Number}, built by digit concatenation to
+     * preserve precision for large exponents.
+     */
+    private static function pow10(int $exp): Number {
+        $s = '1' . str_repeat('0', $exp);
+        assert(is_numeric($s));
+        return new Number($s);
+    }
+
+    /**
      * Shared {@see Number} floor/ceil implementation: shifts the value by
      * 10^precision (negative precision shifts in the other direction), rounds
      * the shifted integer-scale value, then unshifts.
-     * @return Number|float|int
      */
     private static function numberFloorCeil(Number $value, int $precision, bool $ceil): Number {
         if ($precision === 0) {
             return $ceil ? $value->ceil() : $value->floor();
         }
         if ($precision < 0) {
-            $factor = new Number(str_pad('1', 1 + abs($precision), '0'));
-            /** @var Number $shifted */
+            $factor = self::pow10(abs($precision));
             $shifted = $value / $factor;
-            /** @var Number $shifted */
-            $shifted = $value / $factor;
-            /** @var Number $rounded */
             $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
-            // @phpstan-ignore-next-line --- @var Number $rounded
             return $rounded * $factor;
         }
-        $factor = new Number('1' . str_repeat('0', $precision));
-        /** @var Number $shifted */
+        $factor = self::pow10($precision);
         $shifted = $value * $factor;
-        /** @var Number $rounded */
         $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
-        // @phpstan-ignore-next-line --- @var Number $rounded
         return $rounded / $factor;
     }
 

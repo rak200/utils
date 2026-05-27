@@ -53,7 +53,9 @@ final class ArrTest extends TestCase {
     }
 
     public function testFirstOrNullReturnsNullOnEmpty(): void {
-        $this->assertNull(Arr::firstOrNull([]));
+        /** @var array<int, int> $empty */
+        $empty = [];
+        $this->assertNull(Arr::firstOrNull($empty));
         $this->assertSame(1, Arr::firstOrNull([1, 2]));
     }
 
@@ -67,7 +69,9 @@ final class ArrTest extends TestCase {
     }
 
     public function testLastOrNullReturnsNullOnEmpty(): void {
-        $this->assertNull(Arr::lastOrNull([]));
+        /** @var array<int, int> $empty */
+        $empty = [];
+        $this->assertNull(Arr::lastOrNull($empty));
     }
 
     public function testFindReturnsMatchingValue(): void {
@@ -76,11 +80,15 @@ final class ArrTest extends TestCase {
 
     public function testFindThrowsWhenNoMatch(): void {
         $this->expectException(RuntimeException::class);
-        Arr::find([1, 2, 3], fn(int $v): bool => $v > 99);
+        /** @var array<int, int> $values */
+        $values = [1, 2, 3];
+        Arr::find($values, fn(int $v): bool => $v > 99);
     }
 
     public function testFindOrNullReturnsNullWhenNoMatch(): void {
-        $this->assertNull(Arr::findOrNull([1, 2, 3], fn(int $v): bool => $v > 99));
+        /** @var array<int, int> $values */
+        $values = [1, 2, 3];
+        $this->assertNull(Arr::findOrNull($values, fn(int $v): bool => $v > 99));
         $this->assertSame(2, Arr::findOrNull([1, 2, 3], fn(int $v): bool => $v === 2));
     }
 

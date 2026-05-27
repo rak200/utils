@@ -28,8 +28,15 @@ final class Num {
     /**
      * Returns true if $value is a native PHP int.
      */
-    public static function isInteger(mixed $value): bool {
+    public static function isInt(mixed $value): bool {
         return is_int($value);
+    }
+
+    /**
+     * @deprecated since 1.2.0, use {@see self::isInt()} instead. Will be removed in 2.0.0.
+     */
+    public static function isInteger(mixed $value): bool {
+        return self::isInt($value);
     }
 
     /**

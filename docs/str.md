@@ -30,7 +30,7 @@ use Rak200\Utils\Str;
 - [`reverse`](#reverse)
 - [`truncate`](#truncate)
 - [`slug`](#slug)
-- [`toCamelCase` / `toPascalCase` / `toSnakeCase` / `toKebabCase`](#tocamelcase--topascalcase--tosnakecase--tokebabcase)
+- [`toCamel` / `toPascal` / `toSnake` / `toKebab`](#tocamel--topascal--tosnake--tokebab)
 
 ---
 
@@ -329,20 +329,22 @@ Str::slug('   ');                    // ''
 
 ---
 
-## `toCamelCase` / `toPascalCase` / `toSnakeCase` / `toKebabCase`
+## `toCamel` / `toPascal` / `toSnake` / `toKebab`
 
 Case conversion. Splits the input into words on whitespace, dashes, underscores, and case transitions (camelCase / PascalCase boundaries — unicode-aware via `\p{Ll}` / `\p{Nd}` / `\p{Lu}`).
 
 ```php
-Str::toCamelCase('hello world');     // 'helloWorld'
-Str::toCamelCase('user-id');         // 'userId'
-Str::toPascalCase('hello world');    // 'HelloWorld'
-Str::toPascalCase('hello-world');    // 'HelloWorld'
-Str::toSnakeCase('HelloWorld');      // 'hello_world'
-Str::toSnakeCase('helloWorld');      // 'hello_world'
-Str::toSnakeCase('HTMLParser');      // 'html_parser'
-Str::toSnakeCase('óÁgua');           // 'ó_água'        (unicode boundary)
-Str::toKebabCase('HelloWorld');      // 'hello-world'
+Str::toCamel('hello world');     // 'helloWorld'
+Str::toCamel('user-id');         // 'userId'
+Str::toPascal('hello world');    // 'HelloWorld'
+Str::toPascal('hello-world');    // 'HelloWorld'
+Str::toSnake('HelloWorld');      // 'hello_world'
+Str::toSnake('helloWorld');      // 'hello_world'
+Str::toSnake('HTMLParser');      // 'html_parser'
+Str::toSnake('óÁgua');           // 'ó_água'        (unicode boundary)
+Str::toKebab('HelloWorld');      // 'hello-world'
 ```
+
+> The legacy names `toCamelCase` / `toPascalCase` / `toSnakeCase` / `toKebabCase` remain available as `@deprecated` aliases since 1.2.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#str)

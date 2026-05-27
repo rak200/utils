@@ -148,19 +148,26 @@ final class StrTest extends TestCase {
     }
 
     public function testCaseConversions(): void {
-        $this->assertSame('helloWorld', Str::toCamelCase('hello_world'));
-        $this->assertSame('helloWorld', Str::toCamelCase('hello-world'));
-        $this->assertSame('helloWorld', Str::toCamelCase('Hello World'));
-        $this->assertSame('HelloWorld', Str::toPascalCase('hello world'));
-        $this->assertSame('hello_world', Str::toSnakeCase('helloWorld'));
-        $this->assertSame('hello_world', Str::toSnakeCase('HelloWorld'));
-        $this->assertSame('hello-world', Str::toKebabCase('helloWorld'));
-        $this->assertSame('html_parser', Str::toSnakeCase('HTMLParser'));
+        $this->assertSame('helloWorld', Str::toCamel('hello_world'));
+        $this->assertSame('helloWorld', Str::toCamel('hello-world'));
+        $this->assertSame('helloWorld', Str::toCamel('Hello World'));
+        $this->assertSame('HelloWorld', Str::toPascal('hello world'));
+        $this->assertSame('hello_world', Str::toSnake('helloWorld'));
+        $this->assertSame('hello_world', Str::toSnake('HelloWorld'));
+        $this->assertSame('hello-world', Str::toKebab('helloWorld'));
+        $this->assertSame('html_parser', Str::toSnake('HTMLParser'));
     }
 
     public function testCaseConversionHandlesUnicodeBoundaries(): void {
-        $this->assertSame('ó_água', Str::toSnakeCase('óÁgua'));
-        $this->assertSame('ó-água', Str::toKebabCase('óÁgua'));
+        $this->assertSame('ó_água', Str::toSnake('óÁgua'));
+        $this->assertSame('ó-água', Str::toKebab('óÁgua'));
+    }
+
+    public function testDeprecatedCaseConversionAliasesStillWork(): void {
+        $this->assertSame(Str::toCamel('hello_world'), Str::toCamelCase('hello_world'));
+        $this->assertSame(Str::toPascal('hello world'), Str::toPascalCase('hello world'));
+        $this->assertSame(Str::toSnake('HelloWorld'), Str::toSnakeCase('HelloWorld'));
+        $this->assertSame(Str::toKebab('HelloWorld'), Str::toKebabCase('HelloWorld'));
     }
 
     public function testSubstringMultibyte(): void {

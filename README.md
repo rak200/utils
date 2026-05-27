@@ -20,7 +20,7 @@ composer require rak200/utils
 
 ### Tier 1 — scalars and core structures
 
-- **`Str`** — string operations (multibyte-safe by default): blank checks, case helpers, search, trim, split/join, padding, case conversions (`toCamelCase`/`toSnakeCase`/...).
+- **`Str`** — string operations (multibyte-safe by default): blank checks, case helpers, search, trim, split/join, padding, case conversions (`toCamel`/`toSnake`/...).
 - **`Arr`** — array operations: emptiness, first/last lookup, find, filter/map/reduce, flatten, groupBy, partition, chunk, unique, zip, range.
 - **`Num`** — number operations: type checks, parsing (incl. `parseNumber` returning `BcMath\Number`), clamp/inRange, rounding, formatting, aggregates, sign, arithmetic (`pow`, `sqrt`, `floor`, `ceil`, `mod`). Aggregation and per-element methods accept and propagate `BcMath\Number` alongside `int|float`.
 - **`Rand`** — randomness in one place: int/float/bytes/string, masked patterns, UUID v4 / UUID v7, ULID, nanoid. Alphabet constants: `Rand::NUM`, `Rand::HEX`, `Rand::ALPHA`, `Rand::ALNUM`.

@@ -12,15 +12,21 @@ use RuntimeException;
 
 final class NumTest extends TestCase {
     public function testTypeChecks(): void {
-        $this->assertTrue(Num::isInteger(5));
-        $this->assertFalse(Num::isInteger(5.0));
-        $this->assertFalse(Num::isInteger('5'));
+        $this->assertTrue(Num::isInt(5));
+        $this->assertFalse(Num::isInt(5.0));
+        $this->assertFalse(Num::isInt('5'));
         $this->assertTrue(Num::isFloat(5.0));
         $this->assertFalse(Num::isFloat(5));
         $this->assertTrue(Num::isNumeric(5));
         $this->assertTrue(Num::isNumeric(5.5));
         $this->assertTrue(Num::isNumeric('5.5'));
         $this->assertFalse(Num::isNumeric('abc'));
+    }
+
+    public function testDeprecatedIsIntegerAliasStillWorks(): void {
+        $this->assertTrue(Num::isInteger(5));
+        $this->assertFalse(Num::isInteger(5.0));
+        $this->assertFalse(Num::isInteger('5'));
     }
 
     public function testIsPositiveInt(): void {

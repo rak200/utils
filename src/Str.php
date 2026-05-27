@@ -355,29 +355,57 @@ final class Str {
     /**
      * Converts the string to camelCase (e.g. "hello world" → "helloWorld").
      */
-    public static function toCamelCase(string $value): string {
-        return self::uncapitalize(self::toPascalCase($value));
+    public static function toCamel(string $value): string {
+        return self::uncapitalize(self::toPascal($value));
     }
 
     /**
      * Converts the string to PascalCase (e.g. "hello world" → "HelloWorld").
      */
-    public static function toPascalCase(string $value): string {
+    public static function toPascal(string $value): string {
         return implode('', array_map(self::capitalize(...), self::splitWords($value)));
     }
 
     /**
      * Converts the string to snake_case (e.g. "HelloWorld" → "hello_world").
      */
-    public static function toSnakeCase(string $value): string {
+    public static function toSnake(string $value): string {
         return implode('_', array_map(mb_strtolower(...), self::splitWords($value)));
     }
 
     /**
      * Converts the string to kebab-case (e.g. "HelloWorld" → "hello-world").
      */
-    public static function toKebabCase(string $value): string {
+    public static function toKebab(string $value): string {
         return implode('-', array_map(mb_strtolower(...), self::splitWords($value)));
+    }
+
+    /**
+     * @deprecated since 1.2.0, use {@see self::toCamel()} instead. Will be removed in 2.0.0.
+     */
+    public static function toCamelCase(string $value): string {
+        return self::toCamel($value);
+    }
+
+    /**
+     * @deprecated since 1.2.0, use {@see self::toPascal()} instead. Will be removed in 2.0.0.
+     */
+    public static function toPascalCase(string $value): string {
+        return self::toPascal($value);
+    }
+
+    /**
+     * @deprecated since 1.2.0, use {@see self::toSnake()} instead. Will be removed in 2.0.0.
+     */
+    public static function toSnakeCase(string $value): string {
+        return self::toSnake($value);
+    }
+
+    /**
+     * @deprecated since 1.2.0, use {@see self::toKebab()} instead. Will be removed in 2.0.0.
+     */
+    public static function toKebabCase(string $value): string {
+        return self::toKebab($value);
     }
 
     /**

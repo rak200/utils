@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-05-28
+
+### Fixed
+
+- **`File::mimeType`** — dropped the `finfo_close()` call, which is deprecated as of PHP 8.5 (finfo objects are freed automatically when they go out of scope). No behaviour change; silences the deprecation on PHP 8.5+ and remains correct on 8.4.
+
 ## [1.4.0] - 2026-05-28
 
 ### Added
@@ -123,6 +129,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.4.1]: https://github.com/rak200/utils/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/rak200/utils/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/rak200/utils/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/rak200/utils/compare/1.1.0...1.2.0

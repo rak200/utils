@@ -7,7 +7,7 @@ namespace Rak200\Utils;
 use Generator;
 use RuntimeException;
 use function array_values, basename, copy, dirname, fclose, fgets, file_exists, file_get_contents,
-    file_put_contents, filesize, finfo_close, finfo_file, finfo_open, fopen, glob, is_dir, is_file,
+    file_put_contents, filesize, finfo_file, finfo_open, fopen, glob, is_dir, is_file,
     mkdir, pathinfo, rename, rtrim, sprintf, sys_get_temp_dir, tempnam, unlink;
 
 /**
@@ -135,7 +135,6 @@ final class File {
             throw new RuntimeException('Cannot open fileinfo database.');
         }
         $type = finfo_file($finfo, $path);
-        finfo_close($finfo);
         if ($type === false) {
             throw new RuntimeException(sprintf('Cannot determine mime type: %s', $path));
         }

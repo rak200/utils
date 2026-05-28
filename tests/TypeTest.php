@@ -223,6 +223,22 @@ final class TypeTest extends TestCase {
         $this->assertFalse(Type::isA(42, stdClass::class));
         $this->assertFalse(Type::isA(null, stdClass::class));
     }
+
+    public function testIsSubclassOf(): void {
+        $this->assertTrue(Type::isSubclassOf(new ChildUsesGreet(), UsesGreet::class));
+        $this->assertTrue(Type::isSubclassOf(ChildUsesGreet::class, UsesGreet::class));
+        $this->assertTrue(Type::isSubclassOf(new ArrayIterator([]), Countable::class));
+        $this->assertTrue(Type::isSubclassOf(ArrayIterator::class, Countable::class));
+
+        // A class is not its own subclass — this is what sets it apart from isA().
+        $this->assertFalse(Type::isSubclassOf(new UsesGreet(), UsesGreet::class));
+        $this->assertFalse(Type::isSubclassOf(UsesGreet::class, UsesGreet::class));
+
+        $this->assertFalse(Type::isSubclassOf(new stdClass(), ArrayIterator::class));
+        $this->assertFalse(Type::isSubclassOf('NotAClass_xyz123', UsesGreet::class));
+        $this->assertFalse(Type::isSubclassOf(42, UsesGreet::class));
+        $this->assertFalse(Type::isSubclassOf(null, UsesGreet::class));
+    }
 }
 
 trait GreetTrait {}

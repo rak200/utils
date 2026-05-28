@@ -21,7 +21,7 @@ Topic-specific predicates live with their tier-1 class:
 - [`isEnum`](#isenum)
 - [`isNumeric`](#isnumeric)
 - [`isNumericStr` / `isIntLike`](#isnumericstr--isintlike)
-- [`isInstanceOf` / `isA`](#isinstanceof--isa)
+- [`isInstanceOf` / `isA` / `isSubclassOf`](#isinstanceof--isa--issubclassof)
 - [`isClassName` / `isInterfaceName`](#isclassname--isinterfacename)
 - [`usesTrait`](#usestrait)
 
@@ -149,9 +149,9 @@ Type::isIntLike(' 42 ');       // false
 
 ---
 
-## `isInstanceOf` / `isA`
+## `isInstanceOf` / `isA` / `isSubclassOf`
 
-`isInstanceOf` is strict: $value must be an object. `isA` is a shortcut for [`is_a()`](https://www.php.net/manual/en/function.is-a.php) with `$allow_string = true` — it also accepts a class-name string and checks the class hierarchy (autoload-aware).
+`isInstanceOf` is strict: $value must be an object. `isA` is a shortcut for [`is_a()`](https://www.php.net/manual/en/function.is-a.php) with `$allow_string = true` — it also accepts a class-name string and checks the class hierarchy (autoload-aware). `isSubclassOf` is a shortcut for [`is_subclass_of()`](https://www.php.net/manual/en/function.is-subclass-of.php) (also `$allow_string = true`): like `isA`, but the exact same class returns `false` — only proper subclasses and interface implementations match.
 
 ```php
 Type::isInstanceOf(new ArrayIterator([]), Countable::class);   // true
@@ -161,6 +161,10 @@ Type::isA(new ArrayIterator([]), Countable::class);            // true
 Type::isA(ArrayIterator::class, Countable::class);             // true
 Type::isA('NotAClass_xyz', stdClass::class);                   // false
 Type::isA(42, stdClass::class);                                // false
+
+Type::isSubclassOf(ArrayIterator::class, Countable::class);    // true   (implements it)
+Type::isSubclassOf(ArrayIterator::class, ArrayIterator::class);// false  (same class, not a subclass)
+Type::isA(ArrayIterator::class, ArrayIterator::class);         // true   (isA accepts the same class)
 ```
 
 [↑ Back to top](#type)

@@ -8,7 +8,7 @@ use BcMath\Number;
 use UnitEnum;
 use function class_exists, class_parents, class_uses, get_debug_type, interface_exists,
     is_a, is_array, is_bool, is_callable, is_float, is_int, is_iterable, is_numeric,
-    is_object, is_resource, is_scalar, is_string, preg_match, trait_exists;
+    is_object, is_resource, is_scalar, is_string, is_subclass_of, preg_match, trait_exists;
 
 /**
  * Type-checking predicates. Every method accepts `mixed` so it can be used as
@@ -193,6 +193,20 @@ final class Type {
             return false;
         }
         return is_a($value, $class, true);
+    }
+
+    /**
+     * Returns true if $value is an object or class-name string that is a
+     * proper subclass of $class — it extends $class, or implements it when
+     * $class is an interface. Unlike {@see isA()}, the exact class itself
+     * returns false (a class is not its own subclass). Shortcut for
+     * {@see is_subclass_of()} with `$allow_string = true`.
+     */
+    public static function isSubclassOf(mixed $value, string $class): bool {
+        if (!is_object($value) && !is_string($value)) {
+            return false;
+        }
+        return is_subclass_of($value, $class, true);
     }
 
     /**

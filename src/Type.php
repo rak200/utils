@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use BcMath\Number;
-use function class_exists, interface_exists, is_a, is_array, is_bool, is_callable,
-    is_float, is_int, is_iterable, is_numeric, is_object, is_resource, is_scalar,
-    is_string, preg_match;
+use UnitEnum;
+use function class_exists, class_parents, class_uses, get_debug_type, interface_exists,
+    is_a, is_array, is_bool, is_callable, is_float, is_int, is_iterable, is_numeric,
+    is_object, is_resource, is_scalar, is_string, preg_match, trait_exists;
 
 /**
  * Type-checking predicates. Every method accepts `mixed` so it can be used as
@@ -22,6 +23,17 @@ use function class_exists, interface_exists, is_a, is_array, is_bool, is_callabl
  */
 final class Type {
     private function __construct() {}
+
+    /**
+     * Returns the resolved type name of $value (delegates to
+     * {@see get_debug_type()}): one of `int`, `float`, `string`, `bool`,
+     * `null`, `array`, `resource (closed)`, the leaf `resource (type)`
+     * label for an open resource, or — for objects — the fully-qualified
+     * class name (`Closure` and `stdClass` for anonymous values).
+     */
+    public static function of(mixed $value): string {
+        return get_debug_type($value);
+    }
 
     /**
      * Returns true if $value is a string.
@@ -63,6 +75,16 @@ final class Type {
      */
     public static function isObject(mixed $value): bool {
         return is_object($value);
+    }
+
+    /**
+     * Returns true if $value is an enum case — an instance of
+     * {@see \UnitEnum}, which every pure and backed enum implements.
+     * Enum class-name strings are not accepted — use {@see isA()} with
+     * {@see \UnitEnum} for that.
+     */
+    public static function isEnum(mixed $value): bool {
+        return $value instanceof UnitEnum;
     }
 
     /**
@@ -171,5 +193,53 @@ final class Type {
             return false;
         }
         return is_a($value, $class, true);
+    }
+
+    /**
+     * Returns true if $value (an object or class-name string) uses $trait.
+     * By default only traits applied directly on the class count; pass
+     * $recursive = true to also match traits inherited from parent classes
+     * and traits used by other traits (nested). A string naming no existing
+     * class or trait yields false.
+     */
+    public static function usesTrait(mixed $value, string $trait, bool $recursive = false): bool {
+        if (is_string($value)) {
+            if (!class_exists($value) && !trait_exists($value)) {
+                return false;
+            }
+        } elseif (!is_object($value)) {
+            return false;
+        }
+        $traits = $recursive ? self::allTraits($value) : (class_uses($value) ?: []);
+        return isset($traits[$trait]);
+    }
+
+    /**
+     * Collects every trait reachable from $value: those used by the class
+     * itself, by each of its parent classes, and — transitively — by those
+     * traits.
+     *
+     * @return array<string, string> trait names keyed by themselves
+     */
+    private static function allTraits(object|string $value): array {
+        $name = is_object($value) ? $value::class : $value;
+        $classes = [$name => $name] + (class_parents($value) ?: []);
+        $traits = [];
+        foreach ($classes as $class) {
+            $traits += self::traitUses($class);
+        }
+        return $traits;
+    }
+
+    /**
+     * @return array<string, string> $class's direct traits plus the traits
+     *                               they themselves use, transitively
+     */
+    private static function traitUses(string $class): array {
+        $traits = class_uses($class) ?: [];
+        foreach ($traits as $used) {
+            $traits += self::traitUses($used);
+        }
+        return $traits;
     }
 }

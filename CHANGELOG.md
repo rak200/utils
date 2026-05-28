@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-05-28
+
+### Added
+
+- **`Type::of`** — returns the resolved type name of a value (wraps `get_debug_type()`): `int`/`float`/`string`/`bool`/`null`/`array`, the fully-qualified class name for objects, or a `resource (...)` label.
+- **`Type::isEnum`** — true when the value is an enum case (an instance of `UnitEnum`, which every pure and backed enum implements). Enum class-name strings are not accepted.
+- **`Type::usesTrait`** — true when a value (object or class-name string) uses a given trait. By default only traits applied directly on the class count; `recursive: true` also matches traits inherited from parent classes and traits used by other traits (nested).
+
 ## [1.3.0] - 2026-05-27
 
 ### Added
@@ -115,6 +123,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.4.0]: https://github.com/rak200/utils/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/rak200/utils/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/rak200/utils/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/rak200/utils/compare/1.0.0...1.1.0

@@ -16,11 +16,35 @@ Topic-specific predicates live with their tier-1 class:
 
 ## Contents
 
+- [`of`](#of)
 - [`isStr` / `isBool` / `isInt` / `isFloat` / `isArray` / `isObject` / `isCallable` / `isIterable` / `isNull` / `isScalar` / `isResource`](#basic-type-checks)
+- [`isEnum`](#isenum)
 - [`isNumeric`](#isnumeric)
 - [`isNumericStr` / `isIntLike`](#isnumericstr--isintlike)
 - [`isInstanceOf` / `isA`](#isinstanceof--isa)
 - [`isClassName` / `isInterfaceName`](#isclassname--isinterfacename)
+- [`usesTrait`](#usestrait)
+
+---
+
+## `of`
+
+Returns the resolved type name of a value (wraps [`get_debug_type()`](https://www.php.net/manual/en/function.get-debug-type.php)): scalar/`null`/`array` keywords, the class name for objects, or a `resource (...)` label.
+
+```php
+Type::of(42);                       // 'int'
+Type::of(1.5);                      // 'float'
+Type::of('hello');                  // 'string'
+Type::of(true);                     // 'bool'
+Type::of(null);                     // 'null'
+Type::of([1, 2, 3]);                // 'array'
+Type::of(new stdClass());           // 'stdClass'
+Type::of(new ArrayIterator([]));    // 'ArrayIterator'
+Type::of(static fn() => 1);         // 'Closure'
+Type::of(fopen('php://memory', 'rb'));   // 'resource (stream)'
+```
+
+[↑ Back to top](#type)
 
 ---
 
@@ -61,6 +85,25 @@ Type::isScalar(1.5);                     // true
 Type::isScalar([]);                      // false
 
 Type::isResource(fopen('php://memory', 'rb'));   // true
+```
+
+[↑ Back to top](#type)
+
+---
+
+## `isEnum`
+
+True when the value is an enum case — an instance of [`UnitEnum`](https://www.php.net/manual/en/class.unitenum.php), which every pure and backed enum implements. Enum class-name strings are not accepted.
+
+```php
+enum Suit { case Hearts; case Spades; }
+enum Status: string { case Active = 'active'; }
+
+Type::isEnum(Suit::Hearts);      // true
+Type::isEnum(Status::Active);    // true   (backed enum case)
+Type::isEnum(Suit::class);       // false  (string, not a case)
+Type::isEnum(new stdClass());    // false
+Type::isEnum(42);                // false
 ```
 
 [↑ Back to top](#type)
@@ -136,6 +179,38 @@ Type::isClassName('NotAClass_xyz');          // false
 Type::isInterfaceName(Countable::class);     // true
 Type::isInterfaceName(Stringable::class);    // true
 Type::isInterfaceName(stdClass::class);      // false
+```
+
+[↑ Back to top](#type)
+
+---
+
+## `usesTrait`
+
+True when the value (an object or class-name string) uses `$trait`. By default only traits applied **directly** on the class count; pass `recursive: true` to also match traits inherited from parent classes and traits used by other traits (nested). A string naming no existing class or trait returns `false`.
+
+```php
+trait GreetTrait {}
+trait NestedTrait {}
+trait ComposedTrait { use NestedTrait; }
+
+class UsesGreet { use GreetTrait; }
+class ChildUsesGreet extends UsesGreet {}
+class UsesComposed { use ComposedTrait; }
+
+Type::usesTrait(new UsesGreet(), GreetTrait::class);     // true
+Type::usesTrait(UsesGreet::class, GreetTrait::class);    // true   (class-name string)
+
+// Inherited from a parent — only matched recursively:
+Type::usesTrait(new ChildUsesGreet(), GreetTrait::class);                   // false
+Type::usesTrait(new ChildUsesGreet(), GreetTrait::class, recursive: true);  // true
+
+// Nested (trait used by a trait) — only matched recursively:
+Type::usesTrait(new UsesComposed(), NestedTrait::class);                    // false
+Type::usesTrait(new UsesComposed(), NestedTrait::class, recursive: true);   // true
+
+Type::usesTrait(new stdClass(), GreetTrait::class);      // false
+Type::usesTrait('NotAClass_xyz', GreetTrait::class);     // false
 ```
 
 [↑ Back to top](#type)

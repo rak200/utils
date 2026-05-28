@@ -36,7 +36,7 @@ composer require rak200/utils
 - **`Dt`** — `DateTimeImmutable` helpers: construction, formatting (incl. `Dt::sql()`), arithmetic, comparison, period boundaries, diff in integer units.
 - **`Url`** — URL parsing/building and query-string encode/decode: `parse`/`parseOrNull`/`build`, `encode`/`decode`, `encodeQuery`/`decodeQuery`, `isAbsolute`.
 - **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, `basename`, `dirname`, `extension`, `filename`. Normalises to `/`; preserves Windows drive prefixes.
-- **`Type`** — type-checking predicates accepting `mixed`: basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class checks (`isInstanceOf`/`isA`/`isClassName`/`isInterfaceName`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNonEmptyStr`, `Arr::isList`/`Arr::isAssoc`/`Arr::isNonEmptyArray`, `Num::isPositiveInt`/`Num::isNegativeInt`/`Num::isNonNegativeInt`.
+- **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class/trait checks (`isInstanceOf`/`isA`/`isClassName`/`isInterfaceName`/`usesTrait`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNonEmptyStr`, `Arr::isList`/`Arr::isAssoc`/`Arr::isNonEmptyArray`, `Num::isPositiveInt`/`Num::isNegativeInt`/`Num::isNonNegativeInt`.
 
 ## Documentation
 

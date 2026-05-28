@@ -9,11 +9,30 @@ use BcMath\Number;
 use Countable;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Bit;
 use Rak200\Utils\Type;
 use stdClass;
 use Stringable;
 
 final class TypeTest extends TestCase {
+    public function testOf(): void {
+        $this->assertSame('int', Type::of(42));
+        $this->assertSame('float', Type::of(1.5));
+        $this->assertSame('string', Type::of('hello'));
+        $this->assertSame('bool', Type::of(true));
+        $this->assertSame('null', Type::of(null));
+        $this->assertSame('array', Type::of([1, 2, 3]));
+        $this->assertSame('stdClass', Type::of(new stdClass()));
+        $this->assertSame(ArrayIterator::class, Type::of(new ArrayIterator([])));
+        $this->assertSame('Closure', Type::of(static fn(): int => 1));
+
+        $fp = fopen('php://memory', 'rb');
+        $this->assertNotFalse($fp);
+        $this->assertSame('resource (stream)', Type::of($fp));
+        fclose($fp);
+        $this->assertSame('resource (closed)', Type::of($fp));
+    }
+
     public function testIsStr(): void {
         $this->assertTrue(Type::isStr(''));
         $this->assertTrue(Type::isStr('hello'));
@@ -63,6 +82,35 @@ final class TypeTest extends TestCase {
         $this->assertFalse(Type::isObject('stdClass'));
         $this->assertFalse(Type::isObject([]));
         $this->assertFalse(Type::isObject(null));
+    }
+
+    public function testIsEnum(): void {
+        $this->assertTrue(Type::isEnum(Suit::Hearts));
+        $this->assertTrue(Type::isEnum(Status::Active));
+        $this->assertFalse(Type::isEnum(Suit::class));
+        $this->assertFalse(Type::isEnum('Hearts'));
+        $this->assertFalse(Type::isEnum(new stdClass()));
+        $this->assertFalse(Type::isEnum(42));
+        $this->assertFalse(Type::isEnum(null));
+    }
+
+    public function testUsesTrait(): void {
+        $this->assertTrue(Type::usesTrait(new UsesGreet(), GreetTrait::class));
+        $this->assertTrue(Type::usesTrait(UsesGreet::class, GreetTrait::class));
+        $this->assertTrue(Type::usesTrait(new UsesComposed(), ComposedTrait::class));
+
+        // Inherited from a parent class — only matched recursively.
+        $this->assertFalse(Type::usesTrait(new ChildUsesGreet(), GreetTrait::class));
+        $this->assertTrue(Type::usesTrait(new ChildUsesGreet(), GreetTrait::class, recursive: true));
+
+        // Nested (a trait used by another trait) — only matched recursively.
+        $this->assertFalse(Type::usesTrait(new UsesComposed(), NestedTrait::class));
+        $this->assertTrue(Type::usesTrait(new UsesComposed(), NestedTrait::class, recursive: true));
+
+        $this->assertFalse(Type::usesTrait(new stdClass(), GreetTrait::class));
+        $this->assertFalse(Type::usesTrait('NotAClass_xyz123', GreetTrait::class));
+        $this->assertFalse(Type::usesTrait(42, GreetTrait::class));
+        $this->assertFalse(Type::usesTrait(null, GreetTrait::class));
     }
 
     public function testIsCallable(): void {
@@ -175,4 +223,29 @@ final class TypeTest extends TestCase {
         $this->assertFalse(Type::isA(42, stdClass::class));
         $this->assertFalse(Type::isA(null, stdClass::class));
     }
+}
+
+trait GreetTrait {}
+trait NestedTrait {}
+trait ComposedTrait {
+    use NestedTrait;
+}
+
+class UsesGreet {
+    use GreetTrait;
+}
+
+class ChildUsesGreet extends UsesGreet {}
+
+class UsesComposed {
+    use ComposedTrait;
+}
+
+enum Suit {
+    case Hearts;
+    case Spades;
+}
+
+enum Status: string {
+    case Active = 'active';
 }

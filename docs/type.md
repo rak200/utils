@@ -2,7 +2,7 @@
 
 [← Reference](README.md)
 
-Type-checking predicates. Every method accepts `mixed`, so calls work as guards on values whose shape is not yet known.
+Type-checking predicates. Every method accepts `mixed`, so calls work as guards on values whose shape is not yet known. Each predicate carries `@phpstan-assert` PHPDoc, so PHPStan narrows the value's type inside the guarded branch exactly as it would for the native `is_*` functions.
 
 ```php
 use Rak200\Utils\Type;

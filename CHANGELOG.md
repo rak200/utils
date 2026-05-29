@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-05-29
+
+### Changed
+
+- **`Type` predicates now narrow types** — every predicate carries `@phpstan-assert` PHPDoc, so callers get the same static type-narrowing that native functions provide: `isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isResource` assert both branches; `isNumeric`/`isNumericStr`/`isIntLike`/`isClassName`/`isInterfaceName` assert the truthy branch; and the generic `isInstanceOf`/`isA`/`isSubclassOf` are now `@template`-typed (`class-string<T>` target) so a true result narrows the value to `T`. No runtime behaviour change.
+- **`Num::parseInt*` / `parseFloat*` / `parseNumber*` no longer `trim()` the input.** Parsing is strict: surrounding whitespace is rejected (`parseIntOrNull(' 42 ')` and `parseNumberOrNull(' 42 ')` now return `null`). `parseFloat*` is effectively unchanged, since its `(float)` cast already tolerated whitespace.
+
 ## [1.5.0] - 2026-05-28
 
 ### Added
@@ -135,6 +142,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.6.0]: https://github.com/rak200/utils/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/rak200/utils/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/rak200/utils/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/rak200/utils/compare/1.3.0...1.4.0

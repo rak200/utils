@@ -37,6 +37,9 @@ final class Type {
 
     /**
      * Returns true if $value is a string.
+     *
+     * @phpstan-assert-if-true string $value
+     * @phpstan-assert-if-false !string $value
      */
     public static function isStr(mixed $value): bool {
         return is_string($value);
@@ -44,6 +47,9 @@ final class Type {
 
     /**
      * Returns true if $value is a bool.
+     *
+     * @phpstan-assert-if-true bool $value
+     * @phpstan-assert-if-false !bool $value
      */
     public static function isBool(mixed $value): bool {
         return is_bool($value);
@@ -51,6 +57,9 @@ final class Type {
 
     /**
      * Returns true if $value is an int.
+     *
+     * @phpstan-assert-if-true int $value
+     * @phpstan-assert-if-false !int $value
      */
     public static function isInt(mixed $value): bool {
         return is_int($value);
@@ -58,6 +67,9 @@ final class Type {
 
     /**
      * Returns true if $value is a float.
+     *
+     * @phpstan-assert-if-true float $value
+     * @phpstan-assert-if-false !float $value
      */
     public static function isFloat(mixed $value): bool {
         return is_float($value);
@@ -65,6 +77,9 @@ final class Type {
 
     /**
      * Returns true if $value is an array (list or associative).
+     *
+     * @phpstan-assert-if-true array<mixed> $value
+     * @phpstan-assert-if-false !array<mixed> $value
      */
     public static function isArray(mixed $value): bool {
         return is_array($value);
@@ -72,6 +87,9 @@ final class Type {
 
     /**
      * Returns true if $value is an object.
+     *
+     * @phpstan-assert-if-true object $value
+     * @phpstan-assert-if-false !object $value
      */
     public static function isObject(mixed $value): bool {
         return is_object($value);
@@ -82,6 +100,9 @@ final class Type {
      * {@see \UnitEnum}, which every pure and backed enum implements.
      * Enum class-name strings are not accepted — use {@see isA()} with
      * {@see \UnitEnum} for that.
+     *
+     * @phpstan-assert-if-true UnitEnum $value
+     * @phpstan-assert-if-false !UnitEnum $value
      */
     public static function isEnum(mixed $value): bool {
         return $value instanceof UnitEnum;
@@ -90,6 +111,8 @@ final class Type {
     /**
      * Returns true if $value is callable (closure, function name string,
      * `[$obj, 'method']`, invokable object, etc.).
+     *
+     * @phpstan-assert-if-true callable $value
      */
     public static function isCallable(mixed $value): bool {
         return is_callable($value);
@@ -97,6 +120,9 @@ final class Type {
 
     /**
      * Returns true if $value is iterable (array or {@see \Traversable}).
+     *
+     * @phpstan-assert-if-true iterable<mixed> $value
+     * @phpstan-assert-if-false !iterable<mixed> $value
      */
     public static function isIterable(mixed $value): bool {
         return is_iterable($value);
@@ -104,6 +130,9 @@ final class Type {
 
     /**
      * Returns true if $value is null.
+     *
+     * @phpstan-assert-if-true null $value
+     * @phpstan-assert-if-false !null $value
      */
     public static function isNull(mixed $value): bool {
         return $value === null;
@@ -111,6 +140,9 @@ final class Type {
 
     /**
      * Returns true if $value is a scalar (int, float, string, or bool).
+     *
+     * @phpstan-assert-if-true scalar $value
+     * @phpstan-assert-if-false !scalar $value
      */
     public static function isScalar(mixed $value): bool {
         return is_scalar($value);
@@ -119,6 +151,8 @@ final class Type {
     /**
      * Returns true if $value is an int, a float, a numeric string, or a
      * {@see Number} instance.
+     *
+     * @phpstan-assert-if-true int|float|numeric-string|Number $value
      */
     public static function isNumeric(mixed $value): bool {
         return is_int($value)
@@ -129,6 +163,8 @@ final class Type {
 
     /**
      * Returns true if $value is an open resource.
+     *
+     * @phpstan-assert-if-true resource $value
      */
     public static function isResource(mixed $value): bool {
         return is_resource($value);
@@ -138,6 +174,8 @@ final class Type {
      * Returns true if $value is a string in numeric format (delegates to
      * PHP's {@see is_numeric()}, which accepts decimals, leading sign,
      * exponent notation, and surrounding whitespace).
+     *
+     * @phpstan-assert-if-true numeric-string $value
      */
     public static function isNumericStr(mixed $value): bool {
         return is_string($value) && is_numeric($value);
@@ -147,6 +185,8 @@ final class Type {
      * Returns true if $value is an int, or a string that parses cleanly as
      * an integer (optional leading sign, digits only — no decimal point,
      * exponent, or surrounding whitespace).
+     *
+     * @phpstan-assert-if-true int|numeric-string $value
      */
     public static function isIntLike(mixed $value): bool {
         if (is_int($value)) {
@@ -162,6 +202,10 @@ final class Type {
      * Returns true if $value is an object that is an instance of $class
      * (directly, as a subclass, or implementing it when $class is an
      * interface). Class-name strings are not accepted — use {@see isA()}.
+     *
+     * @template T of object
+     * @param class-string<T> $class
+     * @phpstan-assert-if-true T $value
      */
     public static function isInstanceOf(mixed $value, string $class): bool {
         return $value instanceof $class;
@@ -170,6 +214,8 @@ final class Type {
     /**
      * Returns true if $value is a string naming an existing class
      * (autoload-aware).
+     *
+     * @phpstan-assert-if-true class-string $value
      */
     public static function isClassName(mixed $value): bool {
         return is_string($value) && class_exists($value);
@@ -178,6 +224,8 @@ final class Type {
     /**
      * Returns true if $value is a string naming an existing interface
      * (autoload-aware).
+     *
+     * @phpstan-assert-if-true class-string $value
      */
     public static function isInterfaceName(mixed $value): bool {
         return is_string($value) && interface_exists($value);
@@ -187,6 +235,10 @@ final class Type {
      * Shortcut for {@see is_a()} with `$allow_string = true`: returns true
      * when $value is either an object that is an instance of $class, or a
      * string naming a class that is or extends/implements $class.
+     *
+     * @template T of object
+     * @param class-string<T> $class
+     * @phpstan-assert-if-true T|class-string<T> $value
      */
     public static function isA(mixed $value, string $class): bool {
         if (!is_object($value) && !is_string($value)) {
@@ -201,6 +253,10 @@ final class Type {
      * $class is an interface. Unlike {@see isA()}, the exact class itself
      * returns false (a class is not its own subclass). Shortcut for
      * {@see is_subclass_of()} with `$allow_string = true`.
+     *
+     * @template T of object
+     * @param class-string<T> $class
+     * @phpstan-assert-if-true T|class-string<T> $value
      */
     public static function isSubclassOf(mixed $value, string $class): bool {
         if (!is_object($value) && !is_string($value)) {

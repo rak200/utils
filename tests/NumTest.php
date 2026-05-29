@@ -74,6 +74,12 @@ final class NumTest extends TestCase {
         $this->assertNull(Num::parseIntOrNull('2', 2));
     }
 
+    public function testParseIntOrNullRejectsSurroundingWhitespace(): void {
+        $this->assertNull(Num::parseIntOrNull(' 42 '));
+        $this->assertNull(Num::parseIntOrNull(' 42'));
+        $this->assertNull(Num::parseIntOrNull("42\n"));
+    }
+
     public function testParseIntRejectsInvalidBase(): void {
         $this->expectException(RuntimeException::class);
         Num::parseIntOrNull('1', 37);
@@ -202,6 +208,12 @@ final class NumTest extends TestCase {
         $this->assertNull(Num::parseNumberOrNull('abc'));
         $this->assertNull(Num::parseNumberOrNull(''));
         $this->assertNull(Num::parseNumberOrNull('1e10'));
+    }
+
+    public function testParseNumberOrNullRejectsSurroundingWhitespace(): void {
+        $this->assertNull(Num::parseNumberOrNull(' 42 '));
+        $this->assertNull(Num::parseNumberOrNull(' 1.5'));
+        $this->assertNull(Num::parseNumberOrNull("1.5\t"));
     }
 
     public function testParseNumberThrowsOnInvalid(): void {

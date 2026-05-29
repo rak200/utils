@@ -79,7 +79,7 @@ Num::isNonNegativeInt(-1);      // false
 
 ## `parseInt` / `parseIntOrNull`
 
-Bases 2-36. Strict — rejects any character outside the base alphabet (including a decimal point). Scalar-only — use [`parseNumber`](#parsenumber--parsenumberornull) for big integers that don't fit in `PHP_INT_MAX`.
+Bases 2-36. Strict — rejects any character outside the base alphabet (including a decimal point and surrounding whitespace). Scalar-only — use [`parseNumber`](#parsenumber--parsenumberornull) for big integers that don't fit in `PHP_INT_MAX`.
 
 ```php
 Num::parseInt('42');               // 42
@@ -88,6 +88,7 @@ Num::parseInt('ff', 16);           // 255
 Num::parseInt('1010', 2);          // 10
 Num::parseIntOrNull('hello');      // null
 Num::parseIntOrNull('12.5');       // null
+Num::parseIntOrNull(' 42 ');       // null  (surrounding whitespace rejected)
 ```
 
 [↑ Back to top](#num)
@@ -108,7 +109,7 @@ Num::parseFloatOrNull('hello');    // null
 
 ## `parseNumber` / `parseNumberOrNull`
 
-Arbitrary-precision parse. Decimal notation only — scientific notation (`1e10`) is rejected.
+Arbitrary-precision parse. Decimal notation only — scientific notation (`1e10`) and surrounding whitespace are rejected.
 
 ```php
 Num::parseNumber('123456789012345678901234567890.5');
@@ -116,6 +117,7 @@ Num::parseNumber('123456789012345678901234567890.5');
 
 Num::parseNumber('-0.0001');                  // BcMath\Number('-0.0001')
 Num::parseNumberOrNull('1e10');               // null  (scientific notation rejected)
+Num::parseNumberOrNull(' 42 ');               // null  (surrounding whitespace rejected)
 Num::parseNumberOrNull('abc');                // null
 ```
 

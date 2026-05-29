@@ -4,3 +4,11 @@ parameters:
         - src
         - tests
     tmpDir: .phpstan.cache
+    # Type predicates carry @phpstan-assert PHPDoc, so PHPStan can statically
+    # decide guard calls made with concrete literals. The TypeTest exercises
+    # exactly those concrete cases on purpose, so suppress the resulting
+    # "always true / impossible type" reports for that file only.
+    ignoreErrors:
+        - { identifier: staticMethod.alreadyNarrowedType, path: tests/TypeTest.php }
+        - { identifier: staticMethod.impossibleType,       path: tests/TypeTest.php }
+        - { identifier: method.impossibleType,             path: tests/TypeTest.php }

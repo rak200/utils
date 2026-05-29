@@ -9,7 +9,7 @@ use RoundingMode;
 use RuntimeException;
 use function abs, ceil, explode, floor, fmod, implode, is_float, is_int, is_numeric, is_string,
     number_format, ord, round, sprintf, sqrt, str_contains, str_pad, str_repeat, str_split,
-    str_starts_with, strrev, substr, trim;
+    str_starts_with, strrev, substr;
 
 /**
  * Numeric helpers for parsing, formatting, arithmetic and aggregation.
@@ -103,7 +103,6 @@ final class Num {
         if ($base < 2 || $base > 36) {
             throw new RuntimeException('Base must be between 2 and 36.');
         }
-        $value = trim($value);
         if ($value === '') {
             return null;
         }
@@ -151,7 +150,6 @@ final class Num {
      * Parses $value as a float; returns null when $value is not numeric.
      */
     public static function parseFloatOrNull(string $value): ?float {
-        $value = trim($value);
         if (!is_numeric($value)) {
             return null;
         }
@@ -177,7 +175,6 @@ final class Num {
      * $value is not numeric or cannot be represented.
      */
     public static function parseNumberOrNull(string $value): ?Number {
-        $value = trim($value);
         if (!is_numeric($value)) {
             return null;
         }

@@ -47,13 +47,13 @@ final class Num {
     }
 
     /**
-     * Returns true if $value is an int, a float, a numeric string, or a
-     * {@see Number} instance.
+     * Returns true if $value is an int, a float, a numeric string (with no
+     * surrounding whitespace), or a {@see Number} instance.
      */
     public static function isNumeric(mixed $value): bool {
         return is_int($value)
             || is_float($value)
-            || (is_string($value) && is_numeric($value))
+            || (is_string($value) && self::isStrictNumericString($value))
             || $value instanceof Number;
     }
 
@@ -136,7 +136,7 @@ final class Num {
     /**
      * Parses $value as a float.
      *
-     * @throws RuntimeException When $value is not numeric.
+     * @throws RuntimeException When $value is not numeric or has surrounding whitespace.
      */
     public static function parseFloat(string $value): float {
         $parsed = self::parseFloatOrNull($value);
@@ -147,10 +147,11 @@ final class Num {
     }
 
     /**
-     * Parses $value as a float; returns null when $value is not numeric.
+     * Parses $value as a float; returns null when $value is not numeric or has
+     * surrounding whitespace.
      */
     public static function parseFloatOrNull(string $value): ?float {
-        if (!is_numeric($value)) {
+        if (!self::isStrictNumericString($value)) {
             return null;
         }
         return (float) $value;
@@ -448,6 +449,18 @@ final class Num {
     }
 
     /**
+     * Returns true if $value is a numeric string with no surrounding
+     * whitespace. PHP's {@see is_numeric()} accepts leading/trailing whitespace
+     * since 8.0; this rejects it so the numeric contract stays strict, matching
+     * {@see parseInt()} and {@see parseNumber()}.
+     */
+    private static function isStrictNumericString(string $value): bool {
+        return is_numeric($value)
+            && !Str::isWhitespace($value[0])
+            && !Str::isWhitespace($value[-1]);
+    }
+
+    /**
      * Returns 10^$exp as a {@see Number}, built by digit concatenation to
      * preserve precision for large exponents.
      */
@@ -468,14 +481,20 @@ final class Num {
         }
         if ($precision < 0) {
             $factor = self::pow10(abs($precision));
+            /** @var Number $shifted */
             $shifted = $value / $factor;
+            /** @var Number $rounded */
             $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
             return $rounded * $factor;
         }
         $factor = self::pow10($precision);
+        /** @var Number $shifted */
         $shifted = $value * $factor;
+        /** @var Number $rounded */
         $rounded = $ceil ? $shifted->ceil() : $shifted->floor();
-        return $rounded / $factor;
+        /** @var Number $result */
+        $result = $rounded / $factor;
+        return $result;
     }
 
     /**

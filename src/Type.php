@@ -149,15 +149,16 @@ final class Type {
     }
 
     /**
-     * Returns true if $value is an int, a float, a numeric string, or a
-     * {@see Number} instance.
+     * Returns true if $value is an int, a float, a numeric string (with no
+     * surrounding whitespace), or a {@see Number} instance.
      *
      * @phpstan-assert-if-true int|float|numeric-string|Number $value
      */
     public static function isNumeric(mixed $value): bool {
         return is_int($value)
             || is_float($value)
-            || (is_string($value) && is_numeric($value))
+            || (is_string($value) && is_numeric($value)
+                && !Str::isWhitespace($value[0]) && !Str::isWhitespace($value[-1]))
             || $value instanceof Number;
     }
 
@@ -171,14 +172,14 @@ final class Type {
     }
 
     /**
-     * Returns true if $value is a string in numeric format (delegates to
-     * PHP's {@see is_numeric()}, which accepts decimals, leading sign,
-     * exponent notation, and surrounding whitespace).
+     * Returns true if $value is a string in numeric format (decimals, leading
+     * sign, exponent notation; no surrounding whitespace).
      *
      * @phpstan-assert-if-true numeric-string $value
      */
     public static function isNumericStr(mixed $value): bool {
-        return is_string($value) && is_numeric($value);
+        return is_string($value) && is_numeric($value)
+            && !Str::isWhitespace($value[0]) && !Str::isWhitespace($value[-1]);
     }
 
     /**

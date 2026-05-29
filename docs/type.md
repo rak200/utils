@@ -121,6 +121,7 @@ Type::isNumeric('-1e3');                 // true
 Type::isNumeric(new Number('123.45'));   // true
 Type::isNumeric('hello');                // false
 Type::isNumeric(true);                   // false
+Type::isNumeric(' 42 ');                 // false  (surrounding whitespace rejected)
 ```
 
 [↑ Back to top](#type)
@@ -129,12 +130,13 @@ Type::isNumeric(true);                   // false
 
 ## `isNumericStr` / `isIntLike`
 
-`isNumericStr` is true for strings PHP accepts as numeric (decimals, exponent, leading sign, surrounding whitespace). `isIntLike` is stricter: an int, or a string parseable as one (sign + digits only — no decimal point, exponent, or whitespace).
+`isNumericStr` is true for strings in numeric format — decimals, exponent, leading sign — with no surrounding whitespace. `isIntLike` is stricter still: an int, or a string parseable as one (sign + digits only — no decimal point, exponent, or whitespace).
 
 ```php
 Type::isNumericStr('42');      // true
 Type::isNumericStr('-1.5');    // true
 Type::isNumericStr('1e3');     // true
+Type::isNumericStr(' 42 ');    // false   (surrounding whitespace rejected)
 Type::isNumericStr(42);        // false   (not a string)
 
 Type::isIntLike(42);           // true

@@ -158,6 +158,13 @@ final class TypeTest extends TestCase {
         $this->assertFalse(Type::isNumeric(true));
     }
 
+    public function testIsNumericRejectsSurroundingWhitespace(): void {
+        $this->assertFalse(Type::isNumeric(' 42 '));
+        $this->assertFalse(Type::isNumeric(' 42'));
+        $this->assertFalse(Type::isNumeric("42\n"));
+        $this->assertFalse(Type::isNumeric("1.5\t"));
+    }
+
     public function testIsResource(): void {
         $fp = fopen('php://memory', 'rb');
         $this->assertNotFalse($fp);
@@ -174,6 +181,13 @@ final class TypeTest extends TestCase {
         $this->assertFalse(Type::isNumericStr(42));
         $this->assertFalse(Type::isNumericStr('hello'));
         $this->assertFalse(Type::isNumericStr(''));
+    }
+
+    public function testIsNumericStrRejectsSurroundingWhitespace(): void {
+        $this->assertFalse(Type::isNumericStr(' 42 '));
+        $this->assertFalse(Type::isNumericStr(' 42'));
+        $this->assertFalse(Type::isNumericStr("42\n"));
+        $this->assertFalse(Type::isNumericStr("1.5\t"));
     }
 
     public function testIsIntLike(): void {

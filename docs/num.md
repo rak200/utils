@@ -37,7 +37,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 
 ## `isInt` / `isFloat` / `isNumeric`
 
-`isInt`/`isFloat` are strict type checks; `isNumeric` also accepts numeric strings and `BcMath\Number` instances.
+`isInt`/`isFloat` are strict type checks; `isNumeric` also accepts numeric strings (with no surrounding whitespace) and `BcMath\Number` instances.
 
 ```php
 Num::isInt(42);                           // true
@@ -46,6 +46,7 @@ Num::isFloat(42.0);                       // true
 Num::isFloat(42);                         // false
 Num::isNumeric('1.5');                    // true
 Num::isNumeric('hello');                  // false
+Num::isNumeric(' 1.5 ');                  // false  (surrounding whitespace rejected)
 Num::isNumeric(new Number('1.5'));        // true
 ```
 
@@ -97,10 +98,13 @@ Num::parseIntOrNull(' 42 ');       // null  (surrounding whitespace rejected)
 
 ## `parseFloat` / `parseFloatOrNull`
 
+Strict — rejects non-numeric strings and surrounding whitespace.
+
 ```php
 Num::parseFloat('3.14');           // 3.14
 Num::parseFloat('-1.5e3');         // -1500.0
 Num::parseFloatOrNull('hello');    // null
+Num::parseFloatOrNull(' 3.14 ');   // null  (surrounding whitespace rejected)
 ```
 
 [↑ Back to top](#num)

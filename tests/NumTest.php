@@ -23,6 +23,20 @@ final class NumTest extends TestCase {
         $this->assertFalse(Num::isNumeric('abc'));
     }
 
+    public function testTypeChecksRejectSurroundingWhitespace(): void {
+        $this->assertTrue(is_numeric(' 5 '));
+        $this->assertEquals((int) ' 5 ', 5);
+        $this->assertFalse(Num::isInt(' 5 '));
+        $this->assertFalse(Num::isFloat(' 5.0 '));
+        $this->assertFalse(Num::isNumeric(' 42 '));
+        $this->assertFalse(Num::isNumeric(' 42'));
+        $this->assertFalse(Num::isNumeric("42\n"));
+        $this->assertFalse(Num::isNumeric("1.5\t"));
+        $this->assertFalse(Num::isPositiveInt(' 1 '));
+        $this->assertFalse(Num::isNegativeInt(' -1 '));
+        $this->assertFalse(Num::isNonNegativeInt(' 0 '));
+    }
+
     public function testDeprecatedIsIntegerAliasStillWorks(): void {
         $this->assertTrue(Num::isInteger(5));
         $this->assertFalse(Num::isInteger(5.0));
@@ -99,6 +113,13 @@ final class NumTest extends TestCase {
     public function testParseFloatOrNullReturnsNullOnInvalid(): void {
         $this->assertNull(Num::parseFloatOrNull('abc'));
         $this->assertNull(Num::parseFloatOrNull(''));
+    }
+
+    public function testParseFloatOrNullRejectsSurroundingWhitespace(): void {
+        $this->assertNull(Num::parseFloatOrNull(' 3.14 '));
+        $this->assertNull(Num::parseFloatOrNull(' 3.14'));
+        $this->assertNull(Num::parseFloatOrNull("3.14\n"));
+        $this->assertNull(Num::parseFloatOrNull("1.5e3\t"));
     }
 
     public function testClamp(): void {

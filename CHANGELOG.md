@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-05-29
+
+### Fixed
+
+- **`Num::isNumeric` / `Num::parseFloat*`** — strict whitespace contract. PHP's `is_numeric()` accepts surrounding whitespace (leading always, trailing since PHP 8.0), which was leaking through `Num::isNumeric` and `Num::parseFloat*`. They now reject surrounding whitespace, matching `Num::parseInt*` and `Num::parseNumber*` (already strict since 1.6.0). `Num::isNumeric(' 42 ')` → `false`; `Num::parseFloatOrNull(' 3.14 ')` → `null`.
+- **`Type::isNumeric` / `Type::isNumericStr`** — same fix. `Type::isNumeric` again mirrors `Num::isNumeric` (as the PHPDoc states), and `Type::isNumericStr` matches the strict-numeric-string contract instead of inheriting `is_numeric()`'s whitespace tolerance.
+
+### Added
+
+- **`Str::isWhitespace(string)`** — true when every character of the input is ASCII whitespace (`[ \t\n\r\v\f]`); false for the empty string. Wraps `ctype_space()`. Used internally by the strict whitespace check in `Num` and `Type`, and exposed for callers that need the same predicate.
+
 ## [1.6.0] - 2026-05-29
 
 ### Changed
@@ -142,6 +153,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.6.1]: https://github.com/rak200/utils/compare/1.6.0...1.6.1
 [1.6.0]: https://github.com/rak200/utils/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/rak200/utils/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/rak200/utils/compare/1.4.0...1.4.1

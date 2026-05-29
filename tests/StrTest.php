@@ -43,6 +43,19 @@ final class StrTest extends TestCase {
         $this->assertFalse(Str::isNonEmptyStr(0));
     }
 
+    public function testIsWhitespace(): void {
+        $this->assertTrue(Str::isWhitespace(' '));
+        $this->assertTrue(Str::isWhitespace("\t"));
+        $this->assertTrue(Str::isWhitespace("\n"));
+        $this->assertTrue(Str::isWhitespace("\r"));
+        $this->assertTrue(Str::isWhitespace(" \t\n"));
+        $this->assertFalse(Str::isWhitespace(''));
+        $this->assertFalse(Str::isWhitespace('a'));
+        $this->assertFalse(Str::isWhitespace(' a '));
+        $this->assertFalse(Str::isWhitespace('42'));
+        $this->assertFalse(Str::isWhitespace("\xC2\xA0"));
+    }
+
     public function testLengthCountsMultibyteCharacters(): void {
         $this->assertSame(5, Str::length('hello'));
         $this->assertSame(3, Str::length('açú'));

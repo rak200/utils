@@ -11,6 +11,7 @@ use Rak200\Utils\Str;
 ## Contents
 
 - [`isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`](#isblank--isnotblank--isempty--isnonemptystr)
+- [`isWhitespace`](#iswhitespace)
 - [`length`](#length)
 - [`capitalize` / `uncapitalize`](#capitalize--uncapitalize)
 - [`upper` / `lower`](#upper--lower)
@@ -56,6 +57,22 @@ Str::isNonEmptyStr('a');     // true
 Str::isNonEmptyStr(' ');     // true
 Str::isNonEmptyStr('');      // false
 Str::isNonEmptyStr(null);    // false
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `isWhitespace`
+
+True when every character of `$value` is ASCII whitespace (`[ \t\n\r\v\f]`). False for the empty string. Wraps [`ctype_space()`](https://www.php.net/manual/en/function.ctype-space.php), so the check is byte-level — Unicode-only whitespace like `U+00A0` (non-breaking space) returns `false`.
+
+```php
+Str::isWhitespace(' ');         // true
+Str::isWhitespace("\t\n");      // true
+Str::isWhitespace('');          // false
+Str::isWhitespace(' a ');       // false
+Str::isWhitespace("\xC2\xA0");  // false   (U+00A0 — not ASCII whitespace)
 ```
 
 [↑ Back to top](#str)

@@ -9,6 +9,20 @@ use Rak200\Utils\Url;
 use RuntimeException;
 
 final class UrlTest extends TestCase {
+    public function testIsAcceptsAbsoluteUrls(): void {
+        $this->assertTrue(Url::is('https://example.com'));
+        $this->assertTrue(Url::is('http://user:pass@example.com:8080/path?x=1#f'));
+        $this->assertTrue(Url::is('ftp://files.example.com/x.txt'));
+    }
+
+    public function testIsRejectsInvalidOrRelativeUrls(): void {
+        $this->assertFalse(Url::is('not a url'));
+        $this->assertFalse(Url::is('/path/only'));
+        $this->assertFalse(Url::is('example.com'));
+        $this->assertFalse(Url::is(''));
+        $this->assertFalse(Url::is('http://'));
+    }
+
     public function testParseReturnsAllComponents(): void {
         $this->assertSame(
             [

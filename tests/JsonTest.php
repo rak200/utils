@@ -33,10 +33,26 @@ final class JsonTest extends TestCase {
         Json::decode('{invalid}');
     }
 
-    public function testIsValid(): void {
-        $this->assertTrue(Json::isValid('{"a":1}'));
-        $this->assertTrue(Json::isValid('null'));
-        $this->assertFalse(Json::isValid('{invalid}'));
-        $this->assertFalse(Json::isValid(''));
+    public function testIs(): void {
+        $this->assertTrue(Json::is('{"a":1}'));
+        $this->assertTrue(Json::is('null'));
+        $this->assertTrue(Json::is('42'));
+        $this->assertTrue(Json::is('"hello"'));
+        $this->assertFalse(Json::is('{invalid}'));
+        $this->assertFalse(Json::is(''));
+    }
+
+    public function testIsRejectsNonStrings(): void {
+        $this->assertFalse(Json::is(null));
+        $this->assertFalse(Json::is(42));
+        $this->assertFalse(Json::is(['a' => 1]));
+        $this->assertFalse(Json::is(new \stdClass()));
+    }
+
+    public function testIsValidIsDeprecatedAliasOfIs(): void {
+        $this->assertSame(Json::is('{"a":1}'), Json::isValid('{"a":1}'));
+        $this->assertSame(Json::is('null'), Json::isValid('null'));
+        $this->assertSame(Json::is('{invalid}'), Json::isValid('{invalid}'));
+        $this->assertSame(Json::is(''), Json::isValid(''));
     }
 }

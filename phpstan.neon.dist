@@ -4,15 +4,29 @@ parameters:
         - src
         - tests
     tmpDir: .phpstan.cache
-    # Type predicates carry @phpstan-assert PHPDoc, so PHPStan can statically
-    # decide guard calls made with concrete literals. The TypeTest exercises
-    # exactly those concrete cases on purpose, so suppress the resulting
-    # "always true / impossible type" reports for that file only.
-    # NumTest documents native PHP behaviour (is_numeric of a literal) for
-    # contrast, which PHPStan also constant-folds — same exemption applies.
+    # Domain `is()` predicates and the `Type` aliases carry @phpstan-assert
+    # PHPDoc, so PHPStan can statically decide guard calls made with concrete
+    # literals. The corresponding *Test files exercise exactly those concrete
+    # cases on purpose, so suppress the resulting "always true / impossible
+    # type" reports for those files. NumTest also documents native PHP
+    # behaviour (is_numeric of a literal) which PHPStan constant-folds.
     ignoreErrors:
         - { identifier: staticMethod.alreadyNarrowedType, path: tests/TypeTest.php }
         - { identifier: staticMethod.impossibleType,       path: tests/TypeTest.php }
         - { identifier: method.impossibleType,             path: tests/TypeTest.php }
         - { identifier: function.alreadyNarrowedType,      path: tests/NumTest.php }
         - { identifier: method.alreadyNarrowedType,        path: tests/NumTest.php }
+        - { identifier: staticMethod.alreadyNarrowedType, path: tests/StrTest.php }
+        - { identifier: staticMethod.impossibleType,       path: tests/StrTest.php }
+        - { identifier: staticMethod.alreadyNarrowedType, path: tests/ArrTest.php }
+        - { identifier: staticMethod.impossibleType,       path: tests/ArrTest.php }
+        - { identifier: staticMethod.alreadyNarrowedType, path: tests/NumTest.php }
+        - { identifier: staticMethod.impossibleType,       path: tests/NumTest.php }
+        - { identifier: staticMethod.alreadyNarrowedType, path: tests/EnumTest.php }
+        - { identifier: staticMethod.impossibleType,       path: tests/EnumTest.php }
+        - { identifier: method.impossibleType,             path: tests/EnumTest.php }
+        - { identifier: staticMethod.alreadyNarrowedType, path: tests/DtTest.php }
+        - { identifier: staticMethod.impossibleType,       path: tests/DtTest.php }
+        - { identifier: staticMethod.alreadyNarrowedType, path: tests/JsonTest.php }
+        - { identifier: staticMethod.impossibleType,       path: tests/JsonTest.php }
+        - { identifier: method.impossibleType,             path: tests/JsonTest.php }

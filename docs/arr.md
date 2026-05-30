@@ -10,6 +10,7 @@ use Rak200\Utils\Arr;
 
 ## Contents
 
+- [`is`](#is)
 - [`isEmpty` / `isNotEmpty`](#isempty--isnotempty)
 - [`isList` / `isAssoc` / `isNonEmptyArray`](#islist--isassoc--isnonemptyarray)
 - [`first` / `firstOrNull`](#first--firstornull)
@@ -35,6 +36,22 @@ use Rak200\Utils\Arr;
 - [`pick` / `except`](#pick--except)
 - [`zip`](#zip)
 - [`range`](#range)
+
+---
+
+## `is`
+
+Domain predicate — true when `$value` is an array (list or associative). Accepts `mixed` so it can be used as a guard. [`Type::isArray`](type.md#basic-type-checks) is an alias.
+
+```php
+Arr::is([]);             // true
+Arr::is([1, 2, 3]);      // true
+Arr::is(['a' => 1]);     // true
+Arr::is('abc');          // false
+Arr::is(null);           // false
+```
+
+[↑ Back to top](#arr)
 
 ---
 

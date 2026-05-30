@@ -14,7 +14,8 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 
 ## Contents
 
-- [`isInt` / `isFloat` / `isNumeric`](#isint--isfloat--isnumeric)
+- [`is`](#is)
+- [`isInt` / `isFloat`](#isint--isfloat)
 - [`isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`](#ispositiveint--isnegativeint--isnonnegativeint)
 - [`parseInt` / `parseIntOrNull`](#parseint--parseintornull)
 - [`parseFloat` / `parseFloatOrNull`](#parsefloat--parsefloatornull)
@@ -35,19 +36,37 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 
 ---
 
-## `isInt` / `isFloat` / `isNumeric`
+## `is`
 
-`isInt`/`isFloat` are strict type checks; `isNumeric` also accepts numeric strings (with no surrounding whitespace) and `BcMath\Number` instances.
+Domain predicate — true when `$value` is any flavour of number: native `int`, native `float`, a strict numeric string (no surrounding whitespace), or a `BcMath\Number` instance. Accepts `mixed`. [`Type::isNumeric`](type.md#isnumeric) is an alias.
+
+```php
+Num::is(42);                       // true
+Num::is(1.5);                      // true
+Num::is('1.5');                    // true
+Num::is('-1e3');                   // true
+Num::is(new Number('1.5'));        // true
+Num::is(' 42 ');                   // false  (surrounding whitespace rejected)
+Num::is('hello');                  // false
+Num::is(null);                     // false
+```
+
+> The legacy name `isNumeric` remains available as a `@deprecated` alias since 1.8.0 and will be removed in 2.0.0.
+
+[↑ Back to top](#num)
+
+---
+
+## `isInt` / `isFloat`
+
+Strict native-type checks. For the umbrella "is a number" predicate (int/float/numeric-string/Number), see [`is`](#is).
 
 ```php
 Num::isInt(42);                           // true
 Num::isInt(42.0);                         // false
+Num::isInt('42');                         // false
 Num::isFloat(42.0);                       // true
 Num::isFloat(42);                         // false
-Num::isNumeric('1.5');                    // true
-Num::isNumeric('hello');                  // false
-Num::isNumeric(' 1.5 ');                  // false  (surrounding whitespace rejected)
-Num::isNumeric(new Number('1.5'));        // true
 ```
 
 > The legacy name `isInteger` remains available as a `@deprecated` alias since 1.2.0 and will be removed in 2.0.0.

@@ -9,6 +9,16 @@ use Rak200\Utils\Enum;
 use RuntimeException;
 
 final class EnumTest extends TestCase {
+    public function testIs(): void {
+        $this->assertTrue(Enum::is(EnumSuit::Hearts));
+        $this->assertTrue(Enum::is(EnumStatus::Active));
+        $this->assertFalse(Enum::is(EnumSuit::class));
+        $this->assertFalse(Enum::is('Hearts'));
+        $this->assertFalse(Enum::is(null));
+        $this->assertFalse(Enum::is(0));
+        $this->assertFalse(Enum::is(new \stdClass()));
+    }
+
     public function testNames(): void {
         $this->assertSame(['Hearts', 'Spades'], Enum::names(EnumSuit::class));
         $this->assertSame(['Active', 'Inactive'], Enum::names(EnumStatus::class));
@@ -59,6 +69,35 @@ final class EnumTest extends TestCase {
             Enum::toArray(EnumSuit::class),
         );
     }
+
+    public function testScalarReturnsNameForPureCase(): void {
+        $this->assertSame('Hearts', Enum::scalar(EnumSuit::Hearts));
+        $this->assertSame('Spades', Enum::scalar(EnumSuit::Spades));
+    }
+
+    public function testScalarReturnsValueForStringBackedCase(): void {
+        $this->assertSame('active', Enum::scalar(EnumStatus::Active));
+        $this->assertSame('inactive', Enum::scalar(EnumStatus::Inactive));
+    }
+
+    public function testScalarReturnsValueForIntBackedCase(): void {
+        $this->assertSame(1, Enum::scalar(EnumPriority::Low));
+        $this->assertSame(10, Enum::scalar(EnumPriority::High));
+    }
+
+    public function testIsBackedInt(): void {
+        $this->assertTrue(Enum::isBackedInt(EnumPriority::Low));
+        $this->assertTrue(Enum::isBackedInt(EnumPriority::High));
+        $this->assertFalse(Enum::isBackedInt(EnumStatus::Active));
+        $this->assertFalse(Enum::isBackedInt(EnumSuit::Hearts));
+    }
+
+    public function testIsBackedStr(): void {
+        $this->assertTrue(Enum::isBackedStr(EnumStatus::Active));
+        $this->assertTrue(Enum::isBackedStr(EnumStatus::Inactive));
+        $this->assertFalse(Enum::isBackedStr(EnumPriority::Low));
+        $this->assertFalse(Enum::isBackedStr(EnumSuit::Hearts));
+    }
 }
 
 enum EnumSuit {
@@ -69,4 +108,9 @@ enum EnumSuit {
 enum EnumStatus: string {
     case Active = 'active';
     case Inactive = 'inactive';
+}
+
+enum EnumPriority: int {
+    case Low = 1;
+    case High = 10;
 }

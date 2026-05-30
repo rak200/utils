@@ -9,6 +9,16 @@ use Rak200\Utils\Arr;
 use RuntimeException;
 
 final class ArrTest extends TestCase {
+    public function testIs(): void {
+        $this->assertTrue(Arr::is([]));
+        $this->assertTrue(Arr::is([1, 2, 3]));
+        $this->assertTrue(Arr::is(['a' => 1]));
+        $this->assertFalse(Arr::is(null));
+        $this->assertFalse(Arr::is('abc'));
+        $this->assertFalse(Arr::is(42));
+        $this->assertFalse(Arr::is(new \stdClass()));
+    }
+
     public function testIsEmptyIsNotEmpty(): void {
         $this->assertTrue(Arr::isEmpty([]));
         $this->assertFalse(Arr::isEmpty([1]));

@@ -9,6 +9,20 @@ use Rak200\Utils\Regex;
 use RuntimeException;
 
 final class RegexTest extends TestCase {
+    public function testIsAcceptsValidPatterns(): void {
+        $this->assertTrue(Regex::is('/foo/'));
+        $this->assertTrue(Regex::is('/^\d+$/u'));
+        $this->assertTrue(Regex::is('#https?://\S+#i'));
+        $this->assertTrue(Regex::is('/(?<name>\w+)/'));
+    }
+
+    public function testIsRejectsInvalidPatterns(): void {
+        $this->assertFalse(Regex::is('not-a-pattern'));
+        $this->assertFalse(Regex::is('/['));
+        $this->assertFalse(Regex::is('/foo'));
+        $this->assertFalse(Regex::is(''));
+    }
+
     public function testMatches(): void {
         $this->assertTrue(Regex::matches('/foo/', 'foobar'));
         $this->assertFalse(Regex::matches('/baz/', 'foobar'));

@@ -11,6 +11,15 @@ use Rak200\Utils\Dt;
 use RuntimeException;
 
 final class DtTest extends TestCase {
+    public function testIs(): void {
+        $this->assertTrue(Dt::is(new DateTimeImmutable()));
+        $this->assertTrue(Dt::is(new \DateTime()));
+        $this->assertFalse(Dt::is('2026-05-23'));
+        $this->assertFalse(Dt::is(null));
+        $this->assertFalse(Dt::is(0));
+        $this->assertFalse(Dt::is(new \stdClass()));
+    }
+
     public function testNowReturnsCurrentInstant(): void {
         $before = time();
         $now = Dt::now();

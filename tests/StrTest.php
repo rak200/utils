@@ -9,6 +9,18 @@ use Rak200\Utils\Str;
 use RuntimeException;
 
 final class StrTest extends TestCase {
+    public function testIs(): void {
+        $this->assertTrue(Str::is(''));
+        $this->assertTrue(Str::is('hello'));
+        $this->assertTrue(Str::is(' '));
+        $this->assertFalse(Str::is(null));
+        $this->assertFalse(Str::is(42));
+        $this->assertFalse(Str::is(3.14));
+        $this->assertFalse(Str::is(true));
+        $this->assertFalse(Str::is([]));
+        $this->assertFalse(Str::is(new \stdClass()));
+    }
+
     public function testIsBlankDetectsWhitespaceOnly(): void {
         $this->assertTrue(Str::isBlank(''));
         $this->assertTrue(Str::isBlank('   '));

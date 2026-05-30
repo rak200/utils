@@ -48,13 +48,23 @@ final class Num {
 
     /**
      * Returns true if $value is an int, a float, a numeric string (with no
-     * surrounding whitespace), or a {@see Number} instance.
+     * surrounding whitespace), or a {@see Number} instance. Domain predicate
+     * for {@see Num}; {@see Type::isNumeric()} is an alias.
+     *
+     * @phpstan-assert-if-true int|float|numeric-string|Number $value
      */
-    public static function isNumeric(mixed $value): bool {
+    public static function is(mixed $value): bool {
         return is_int($value)
             || is_float($value)
             || (is_string($value) && self::isStrictNumericString($value))
             || $value instanceof Number;
+    }
+
+    /**
+     * @deprecated since 1.8.0, use {@see self::is()} instead. Will be removed in 2.0.0.
+     */
+    public static function isNumeric(mixed $value): bool {
+        return self::is($value);
     }
 
     /**

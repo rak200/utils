@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-05-30
+
+### Added
+
+- **Domain-level `is()` predicates.** Each domain class now owns its canonical "is a member of this domain?" predicate, removing the discoverability friction of having to remember whether a check lived on `Type` or on the domain class. New methods (all accept `mixed` and carry `@phpstan-assert` PHPDoc):
+  - `Str::is` — true for strings (= `Type::isStr`).
+  - `Arr::is` — true for arrays (= `Type::isArray`).
+  - `Enum::is` — true for enum cases (`UnitEnum` instances; = `Type::isEnum`).
+  - `Dt::is` — true for `DateTimeInterface` instances.
+  - `Json::is` — true for strings that parse as JSON. Replaces `Json::isValid` (kept as `@deprecated` alias) and now accepts `mixed`.
+  - `Num::is` — true for ints, floats, strict numeric strings, and `BcMath\Number` instances. Replaces `Num::isNumeric` (kept as `@deprecated` alias).
+  - `Base64::is` — true for strings decodable by `decode` or `decodeUrl`.
+  - `Regex::is` — true for syntactically valid PCRE patterns. (Never throws — unique among `Regex` methods.)
+  - `Url::is` — true when the input passes `FILTER_VALIDATE_URL`.
+
+### Changed
+
+- **`Type::isStr` / `isInt` / `isFloat` / `isArray` / `isEnum` / `isNumeric` are now thin aliases** of the corresponding domain method (`Str::is`, `Num::isInt`, `Num::isFloat`, `Arr::is`, `Enum::is`, `Num::is`). No behaviour change at the call site — narrowing assertions and return values are identical.
+
+### Deprecated
+
+- **`Num::isNumeric`** — use `Num::is` instead. Alias kept until 2.0.0.
+- **`Json::isValid`** — use `Json::is` instead. Alias kept until 2.0.0.
+
 ## [1.7.0] - 2026-05-29
 
 ### Added
@@ -159,6 +183,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.8.0]: https://github.com/rak200/utils/compare/1.7.0...1.8.0
 [1.7.0]: https://github.com/rak200/utils/compare/1.6.1...1.7.0
 [1.6.1]: https://github.com/rak200/utils/compare/1.6.0...1.6.1
 [1.6.0]: https://github.com/rak200/utils/compare/1.5.0...1.6.0

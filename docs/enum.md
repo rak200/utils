@@ -2,7 +2,7 @@
 
 [← Reference](README.md)
 
-Class-level operations on enums. PHP ships `cases()`, `from()`, `tryFrom()` directly on the enum; this class fills the gaps — listing names/values, looking up cases by **name** (no native `fromName()`), random pick, and form-friendly `[name => value]` maps. The instance-side predicate (*is this value an enum case?*) lives at [`Type::isEnum`](type.md#isenum).
+Class-level operations on enums. PHP ships `cases()`, `from()`, `tryFrom()` directly on the enum; this class fills the gaps — listing names/values, looking up cases by **name** (no native `fromName()`), random pick, and form-friendly `[name => value]` maps. The instance-side predicate (*is this value an enum case?*) is [`Enum::is`](#is); [`Type::isEnum`](type.md#isenum) is its alias.
 
 ```php
 use Rak200\Utils\Enum;
@@ -10,11 +10,33 @@ use Rak200\Utils\Enum;
 
 ## Contents
 
+- [`is`](#is)
 - [`names`](#names)
 - [`values`](#values)
 - [`fromName` / `tryFromName`](#fromname--tryfromname)
 - [`random`](#random)
 - [`toArray`](#toarray)
+- [`scalar`](#scalar)
+- [`isBackedInt` / `isBackedStr`](#isbackedint--isbackedstr)
+
+---
+
+## `is`
+
+Domain predicate — true when `$value` is an enum case (instance of `UnitEnum`, which every pure and backed enum implements). Accepts `mixed`. Enum class-name strings are not accepted — use [`Type::isA`](type.md#isinstanceof--isa--issubclassof) with `UnitEnum` for that. [`Type::isEnum`](type.md#isenum) is an alias.
+
+```php
+enum Suit { case Hearts; case Spades; }
+enum Status: string { case Active = 'active'; }
+
+Enum::is(Suit::Hearts);     // true
+Enum::is(Status::Active);   // true
+Enum::is(Suit::class);      // false   (class-name string, not an instance)
+Enum::is('Hearts');         // false
+Enum::is(null);             // false
+```
+
+[↑ Back to top](#enum)
 
 ---
 
@@ -86,6 +108,42 @@ Enum::toArray(Status::class);
 
 Enum::toArray(Suit::class);
 // ['Hearts' => 'Hearts', 'Spades' => 'Spades']
+```
+
+[↑ Back to top](#enum)
+
+---
+
+## `scalar`
+
+Returns a single scalar representation of an enum case — the backed value for a backed enum case, or the name for a pure enum case. Useful when you need one canonical scalar for any kind of enum (logging, serialisation, cache keys) without branching on whether the enum is backed.
+
+```php
+enum Suit { case Hearts; case Spades; }
+enum Status: string { case Active = 'active'; case Inactive = 'inactive'; }
+enum Priority: int { case Low = 1; case High = 10; }
+
+Enum::scalar(Suit::Hearts);    // 'Hearts'
+Enum::scalar(Status::Active);  // 'active'
+Enum::scalar(Priority::High);  // 10
+```
+
+[↑ Back to top](#enum)
+
+---
+
+## `isBackedInt` / `isBackedStr`
+
+Predicates for the *kind* of backing on an enum case: `isBackedInt` is true for int-backed cases, `isBackedStr` is true for string-backed cases, both are false for pure (unbacked) cases. The `@phpstan-assert-if-true BackedEnum` PHPDoc narrows the case to `BackedEnum` inside the guarded branch.
+
+```php
+Enum::isBackedInt(Priority::Low);    // true
+Enum::isBackedInt(Status::Active);   // false (string-backed)
+Enum::isBackedInt(Suit::Hearts);     // false (pure)
+
+Enum::isBackedStr(Status::Active);   // true
+Enum::isBackedStr(Priority::Low);    // false (int-backed)
+Enum::isBackedStr(Suit::Hearts);     // false (pure)
 ```
 
 [↑ Back to top](#enum)

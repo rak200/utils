@@ -10,8 +10,25 @@ use Rak200\Utils\Base64;
 
 ## Contents
 
+- [`is`](#is)
 - [`encode` / `decode`](#encode--decode)
 - [`encodeUrl` / `decodeUrl`](#encodeurl--decodeurl)
+
+---
+
+## `is`
+
+Domain predicate — true when `$value` is decodable by either [`decode`](#encode--decode) (standard alphabet, strict) or [`decodeUrl`](#encodeurl--decodeurl) (URL-safe alphabet, missing padding restored). The empty string is a valid encoding (decodes to ``).
+
+```php
+Base64::is('aGVsbG8=');           // true   (standard)
+Base64::is('aGVsbG8_d29ybGQ');    // true   (URL-safe, unpadded)
+Base64::is('');                   // true
+Base64::is('!!!');                // false
+Base64::is('Zm9v#');              // false
+```
+
+[↑ Back to top](#base64)
 
 ---
 

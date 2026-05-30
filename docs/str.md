@@ -10,6 +10,7 @@ use Rak200\Utils\Str;
 
 ## Contents
 
+- [`is`](#is)
 - [`isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`](#isblank--isnotblank--isempty--isnonemptystr)
 - [`isWhitespace`](#iswhitespace)
 - [`length`](#length)
@@ -32,6 +33,22 @@ use Rak200\Utils\Str;
 - [`truncate`](#truncate)
 - [`slug`](#slug)
 - [`toCamel` / `toPascal` / `toSnake` / `toKebab`](#tocamel--topascal--tosnake--tokebab)
+
+---
+
+## `is`
+
+Domain predicate — true when `$value` is a string. Accepts `mixed` so it can be used as a guard on values whose type is not yet known. [`Type::isStr`](type.md#basic-type-checks) is an alias.
+
+```php
+Str::is('hello');   // true
+Str::is('');        // true
+Str::is(42);        // false
+Str::is(null);      // false
+Str::is([]);        // false
+```
+
+[↑ Back to top](#str)
 
 ---
 

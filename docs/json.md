@@ -12,7 +12,7 @@ use Rak200\Utils\Json;
 
 - [`encode`](#encode)
 - [`decode`](#decode)
-- [`isValid`](#isvalid)
+- [`is`](#is)
 
 ---
 
@@ -59,12 +59,20 @@ Json::decode('[1, 2, 3]');
 
 ---
 
-## `isValid`
+## `is`
+
+Domain predicate — true when `$value` is a string that parses successfully as JSON. Accepts `mixed` so it can be used as a guard (non-strings short-circuit to false without calling `decode`).
 
 ```php
-Json::isValid('{"ok":true}');           // true
-Json::isValid('not json');              // false
-Json::isValid('{ trailing comma, }');   // false
+Json::is('{"ok":true}');           // true
+Json::is('null');                  // true
+Json::is('42');                    // true
+Json::is('not json');              // false
+Json::is('{ trailing comma, }');   // false
+Json::is(['ok' => true]);          // false  (an array is not a JSON string)
+Json::is(null);                    // false
 ```
+
+> The legacy name `isValid` remains available as a `@deprecated` alias since 1.8.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#json)

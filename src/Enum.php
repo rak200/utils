@@ -23,6 +23,17 @@ final class Enum {
     private function __construct() {}
 
     /**
+     * Returns true if $value is an enum case (instance of {@see UnitEnum}).
+     * Domain predicate for {@see Enum}; {@see Type::isEnum()} is an alias.
+     *
+     * @phpstan-assert-if-true UnitEnum $value
+     * @phpstan-assert-if-false !UnitEnum $value
+     */
+    public static function is(mixed $value): bool {
+        return $value instanceof UnitEnum;
+    }
+
+    /**
      * Returns the names of every case in $enumClass, in declaration order.
      *
      * @param class-string<UnitEnum> $enumClass
@@ -113,8 +124,34 @@ final class Enum {
     public static function toArray(string $enumClass): array {
         $map = [];
         foreach ($enumClass::cases() as $case) {
-            $map[$case->name] = $case instanceof BackedEnum ? $case->value : $case->name;
+            $map[$case->name] = static::scalar($case);
         }
         return $map;
+    }
+
+    /**
+     * Returns a single scalar representation of $case — the backed value for a
+     * backed enum case, or the name for a pure enum case.
+     */
+    public static function scalar(UnitEnum $case): int|string {
+        return $case instanceof BackedEnum ? $case->value : $case->name;
+    }
+
+    /**
+     * Returns true when $case is an int-backed enum case.
+     *
+     * @phpstan-assert-if-true BackedEnum $case
+     */
+    public static function isBackedInt(UnitEnum $case): bool {
+        return $case instanceof BackedEnum && Num::isInt($case->value);
+    }
+
+    /**
+     * Returns true when $case is a string-backed enum case.
+     *
+     * @phpstan-assert-if-true BackedEnum $case
+     */
+    public static function isBackedStr(UnitEnum $case): bool {
+        return $case instanceof BackedEnum && Type::isStr($case->value);
     }
 }

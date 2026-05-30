@@ -16,6 +16,20 @@ final class Base64 {
     private function __construct() {}
 
     /**
+     * Returns true when $value is decodable by either {@see decode()} (standard
+     * alphabet, strict) or {@see decodeUrl()} (URL-safe alphabet, missing
+     * padding restored). The empty string is a valid encoding.
+     */
+    public static function is(string $value): bool {
+        if (base64_decode($value, true) !== false) {
+            return true;
+        }
+        $encoded = strtr($value, '-_', '+/');
+        $padded = $encoded . str_repeat('=', (4 - strlen($encoded) % 4) % 4);
+        return base64_decode($padded, true) !== false;
+    }
+
+    /**
      * Encodes $value as standard Base64.
      */
     public static function encode(string $value): string {

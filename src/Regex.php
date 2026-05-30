@@ -18,6 +18,15 @@ final class Regex {
     private function __construct() {}
 
     /**
+     * Returns true when $pattern is a syntactically valid PCRE pattern (delimited
+     * and compilable). Unlike the other {@see Regex} helpers, this never throws
+     * on a bad pattern — that is exactly what it tests for.
+     */
+    public static function is(string $pattern): bool {
+        return @preg_match($pattern, '') !== false;
+    }
+
+    /**
      * Returns true if $pattern matches anywhere in $subject.
      *
      * @throws RuntimeException When $pattern is invalid.

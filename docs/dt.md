@@ -11,6 +11,7 @@ use DateTimeZone;
 
 ## Contents
 
+- [`is`](#is)
 - [`now` / `today`](#now--today)
 - [`of`](#of)
 - [`parse` / `parseOrNull`](#parse--parseornull)
@@ -29,6 +30,21 @@ use DateTimeZone;
 - [`startOfMonth` / `endOfMonth`](#startofmonth--endofmonth)
 - [`startOfYear` / `endOfYear`](#startofyear--endofyear)
 - [`diffInDays` / `diffInSeconds` / `diffInMinutes` / `diffInHours`](#diffindays--diffinseconds--diffinminutes--diffinhours)
+
+---
+
+## `is`
+
+Domain predicate — true when `$value` is a `DateTimeInterface` instance (either `DateTimeImmutable` or the mutable `DateTime`). Accepts `mixed`.
+
+```php
+Dt::is(new DateTimeImmutable());   // true
+Dt::is(new DateTime());            // true
+Dt::is('2026-05-23');              // false   (a date string, not a date object)
+Dt::is(null);                      // false
+```
+
+[↑ Back to top](#dt)
 
 ---
 

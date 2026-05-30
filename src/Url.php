@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function http_build_query, parse_str, parse_url, rawurldecode, rawurlencode, sprintf;
+use function filter_var, http_build_query, parse_str, parse_url, rawurldecode, rawurlencode, sprintf;
 
 /**
  * URL parsing, building, and query-string encode/decode.
@@ -20,6 +20,16 @@ use function http_build_query, parse_str, parse_url, rawurldecode, rawurlencode,
  */
 final class Url {
     private function __construct() {}
+
+    /**
+     * Returns true when $url passes PHP's {@see FILTER_VALIDATE_URL} check — an
+     * absolute URL with a scheme and a host (e.g. `https://example.com/x`).
+     * Relative paths and scheme-less inputs return false. For the looser
+     * "has a scheme" check, see {@see isAbsolute()}.
+     */
+    public static function is(string $url): bool {
+        return filter_var($url, FILTER_VALIDATE_URL) !== false;
+    }
 
     /**
      * Parses $url into its components.

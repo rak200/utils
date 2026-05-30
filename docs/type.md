@@ -8,11 +8,14 @@ Type-checking predicates. Every method accepts `mixed`, so calls work as guards 
 use Rak200\Utils\Type;
 ```
 
-Topic-specific predicates live with their tier-1 class:
+Every domain class also exposes a bare **`is`** as its canonical "is a member of this domain?" predicate; the predicates on `Type` that mirror a domain (`isStr`, `isInt`, `isFloat`, `isArray`, `isEnum`, `isNumeric`) are aliases. Use whichever location reads better at the call site.
 
-- **String shape** — [`Str::isBlank`](str.md#isblank--isnotblank--isempty--isnonemptystr), [`Str::isNonEmptyStr`](str.md#isblank--isnotblank--isempty--isnonemptystr).
-- **Array shape** — [`Arr::isList`](arr.md#islist--isassoc--isnonemptyarray), [`Arr::isAssoc`](arr.md#islist--isassoc--isnonemptyarray), [`Arr::isNonEmptyArray`](arr.md#islist--isassoc--isnonemptyarray).
-- **Integer sign** — [`Num::isPositiveInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint), [`Num::isNegativeInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint), [`Num::isNonNegativeInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint).
+- **String** — [`Str::is`](str.md#is) (=`Type::isStr`), plus shape predicates [`Str::isBlank`](str.md#isblank--isnotblank--isempty--isnonemptystr), [`Str::isNonEmptyStr`](str.md#isblank--isnotblank--isempty--isnonemptystr).
+- **Array** — [`Arr::is`](arr.md#is) (=`Type::isArray`), plus shape predicates [`Arr::isList`](arr.md#islist--isassoc--isnonemptyarray), [`Arr::isAssoc`](arr.md#islist--isassoc--isnonemptyarray), [`Arr::isNonEmptyArray`](arr.md#islist--isassoc--isnonemptyarray).
+- **Number** — [`Num::is`](num.md#is) (=`Type::isNumeric`), [`Num::isInt`](num.md#isint--isfloat) (=`Type::isInt`), [`Num::isFloat`](num.md#isint--isfloat) (=`Type::isFloat`), plus sign predicates [`Num::isPositiveInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint), [`Num::isNegativeInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint), [`Num::isNonNegativeInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint).
+- **Enum** — [`Enum::is`](enum.md#is) (=`Type::isEnum`).
+- **Date/time** — [`Dt::is`](dt.md#is).
+- **JSON / Base64 / Regex / URL** — [`Json::is`](json.md#is), [`Base64::is`](base64.md#is), [`Regex::is`](regex.md#is), [`Url::is`](url.md#is).
 
 ## Contents
 
@@ -50,7 +53,7 @@ Type::of(fopen('php://memory', 'rb'));   // 'resource (stream)'
 
 ## Basic type checks
 
-Thin, uniform wrappers around PHP's `is_*()` family.
+Thin, uniform wrappers around PHP's `is_*()` family. The domain-mirroring predicates (`isStr`, `isInt`, `isFloat`, `isArray`) are aliases of the canonical method on each domain class: [`Str::is`](str.md#is), [`Num::isInt`](num.md#isint--isfloat), [`Num::isFloat`](num.md#isint--isfloat), [`Arr::is`](arr.md#is). Behaviour and narrowing are identical — pick whichever location matches the call site's intent.
 
 ```php
 Type::isStr('hi');                       // true
@@ -93,7 +96,7 @@ Type::isResource(fopen('php://memory', 'rb'));   // true
 
 ## `isEnum`
 
-True when the value is an enum case — an instance of [`UnitEnum`](https://www.php.net/manual/en/class.unitenum.php), which every pure and backed enum implements. Enum class-name strings are not accepted.
+Alias of [`Enum::is`](enum.md#is). True when the value is an enum case — an instance of [`UnitEnum`](https://www.php.net/manual/en/class.unitenum.php), which every pure and backed enum implements. Enum class-name strings are not accepted.
 
 ```php
 enum Suit { case Hearts; case Spades; }
@@ -112,7 +115,7 @@ Type::isEnum(42);                // false
 
 ## `isNumeric`
 
-True for ints, floats, numeric strings, and `BcMath\Number` instances (mirrors `Num::isNumeric`).
+Alias of [`Num::is`](num.md#is). True for ints, floats, strict numeric strings (no surrounding whitespace), and `BcMath\Number` instances.
 
 ```php
 Type::isNumeric(42);                     // true

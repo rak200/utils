@@ -16,6 +16,17 @@ final class Arr {
     private function __construct() {}
 
     /**
+     * Returns true if $value is an array. Domain predicate for {@see Arr};
+     * {@see Type::isArray()} is an alias.
+     *
+     * @phpstan-assert-if-true array<mixed> $value
+     * @phpstan-assert-if-false !array<mixed> $value
+     */
+    public static function is(mixed $value): bool {
+        return is_array($value);
+    }
+
+    /**
      * Returns true if the array has no elements.
      *
      * @param array<array-key, mixed> $array

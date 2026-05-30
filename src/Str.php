@@ -20,6 +20,17 @@ final class Str {
     private function __construct() {}
 
     /**
+     * Returns true if $value is a string. Domain predicate for {@see Str};
+     * {@see Type::isStr()} is an alias.
+     *
+     * @phpstan-assert-if-true string $value
+     * @phpstan-assert-if-false !string $value
+     */
+    public static function is(mixed $value): bool {
+        return is_string($value);
+    }
+
+    /**
      * Returns true if $value is null, an empty string, or a string containing
      * only whitespace. Non-string, non-null values return false. Accepts
      * `mixed` so it can be used as a guard on values whose type is not yet

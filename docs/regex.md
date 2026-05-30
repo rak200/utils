@@ -10,6 +10,7 @@ use Rak200\Utils\Regex;
 
 ## Contents
 
+- [`is`](#is)
 - [`matches`](#matches)
 - [`match` / `matchOrNull`](#match--matchornull)
 - [`matchAll`](#matchall)
@@ -17,6 +18,23 @@ use Rak200\Utils\Regex;
 - [`replaceCallback`](#replacecallback)
 - [`split`](#split)
 - [`quote`](#quote)
+
+---
+
+## `is`
+
+Domain predicate — true when `$pattern` is a syntactically valid PCRE pattern (correctly delimited and compilable). Unlike every other method in this class, `is` never throws — testing whether the pattern is valid is exactly what it does.
+
+```php
+Regex::is('/foo/');                  // true
+Regex::is('/^\d+$/u');               // true
+Regex::is('#https?://\S+#i');        // true
+Regex::is('not-a-pattern');          // false  (no delimiters)
+Regex::is('/[');                     // false  (unterminated character class)
+Regex::is('/foo');                   // false  (missing closing delimiter)
+```
+
+[↑ Back to top](#regex)
 
 ---
 

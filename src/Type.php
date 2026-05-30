@@ -36,13 +36,13 @@ final class Type {
     }
 
     /**
-     * Returns true if $value is a string.
+     * Alias of {@see Str::is()}.
      *
      * @phpstan-assert-if-true string $value
      * @phpstan-assert-if-false !string $value
      */
     public static function isStr(mixed $value): bool {
-        return is_string($value);
+        return Str::is($value);
     }
 
     /**
@@ -56,33 +56,33 @@ final class Type {
     }
 
     /**
-     * Returns true if $value is an int.
+     * Alias of {@see Num::isInt()}.
      *
      * @phpstan-assert-if-true int $value
      * @phpstan-assert-if-false !int $value
      */
     public static function isInt(mixed $value): bool {
-        return is_int($value);
+        return Num::isInt($value);
     }
 
     /**
-     * Returns true if $value is a float.
+     * Alias of {@see Num::isFloat()}.
      *
      * @phpstan-assert-if-true float $value
      * @phpstan-assert-if-false !float $value
      */
     public static function isFloat(mixed $value): bool {
-        return is_float($value);
+        return Num::isFloat($value);
     }
 
     /**
-     * Returns true if $value is an array (list or associative).
+     * Alias of {@see Arr::is()}.
      *
      * @phpstan-assert-if-true array<mixed> $value
      * @phpstan-assert-if-false !array<mixed> $value
      */
     public static function isArray(mixed $value): bool {
-        return is_array($value);
+        return Arr::is($value);
     }
 
     /**
@@ -96,16 +96,14 @@ final class Type {
     }
 
     /**
-     * Returns true if $value is an enum case — an instance of
-     * {@see \UnitEnum}, which every pure and backed enum implements.
-     * Enum class-name strings are not accepted — use {@see isA()} with
-     * {@see \UnitEnum} for that.
+     * Alias of {@see Enum::is()}. Enum class-name strings are not accepted —
+     * use {@see isA()} with {@see \UnitEnum} for that.
      *
      * @phpstan-assert-if-true UnitEnum $value
      * @phpstan-assert-if-false !UnitEnum $value
      */
     public static function isEnum(mixed $value): bool {
-        return $value instanceof UnitEnum;
+        return Enum::is($value);
     }
 
     /**
@@ -149,17 +147,12 @@ final class Type {
     }
 
     /**
-     * Returns true if $value is an int, a float, a numeric string (with no
-     * surrounding whitespace), or a {@see Number} instance.
+     * Alias of {@see Num::is()}.
      *
      * @phpstan-assert-if-true int|float|numeric-string|Number $value
      */
     public static function isNumeric(mixed $value): bool {
-        return is_int($value)
-            || is_float($value)
-            || (is_string($value) && is_numeric($value)
-                && !Str::isWhitespace($value[0]) && !Str::isWhitespace($value[-1]))
-            || $value instanceof Number;
+        return Num::is($value);
     }
 
     /**

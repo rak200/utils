@@ -9,6 +9,20 @@ use Rak200\Utils\Base64;
 use RuntimeException;
 
 final class Base64Test extends TestCase {
+    public function testIsAcceptsStandardAndUrlSafe(): void {
+        $this->assertTrue(Base64::is(''));
+        $this->assertTrue(Base64::is(Base64::encode('hello')));
+        $this->assertTrue(Base64::is(Base64::encode("Hello, World!\x00\x01\x02")));
+        $this->assertTrue(Base64::is(Base64::encodeUrl('hello??')));
+        $this->assertTrue(Base64::is(Base64::encodeUrl(">>>?>>>")));
+    }
+
+    public function testIsRejectsBadInput(): void {
+        $this->assertFalse(Base64::is('!!!'));
+        $this->assertFalse(Base64::is('Zm9v#'));
+        $this->assertFalse(Base64::is('Zm9v=invalid'));
+    }
+
     public function testEncodeDecodeRoundTrip(): void {
         $value = "Hello, World!\x00\x01\x02";
         $this->assertSame($value, Base64::decode(Base64::encode($value)));

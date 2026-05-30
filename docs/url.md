@@ -10,11 +10,30 @@ use Rak200\Utils\Url;
 
 ## Contents
 
+- [`is`](#is)
 - [`parse` / `parseOrNull`](#parse--parseornull)
 - [`build`](#build)
 - [`encode` / `decode`](#encode--decode)
 - [`encodeQuery` / `decodeQuery`](#encodequery--decodequery)
 - [`isAbsolute`](#isabsolute)
+
+---
+
+## `is`
+
+Domain predicate — true when `$url` passes PHP's `FILTER_VALIDATE_URL` check: a syntactically valid absolute URL with at least a scheme. Relative paths and scheme-less inputs return false.
+
+```php
+Url::is('https://example.com');               // true
+Url::is('ftp://files.example.com/x.txt');     // true
+Url::is('mailto:a@b.com');                    // true
+Url::is('/path/only');                        // false  (no scheme)
+Url::is('example.com');                       // false
+Url::is('');                                  // false
+Url::is('http://');                           // false  (incomplete)
+```
+
+[↑ Back to top](#url)
 
 ---
 

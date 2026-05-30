@@ -21,6 +21,18 @@ final class Dt {
     private function __construct() {}
 
     /**
+     * Returns true if $value is a {@see DateTimeInterface} instance (either
+     * {@see DateTimeImmutable} or the mutable {@see \DateTime}). Domain
+     * predicate for {@see Dt}.
+     *
+     * @phpstan-assert-if-true DateTimeInterface $value
+     * @phpstan-assert-if-false !DateTimeInterface $value
+     */
+    public static function is(mixed $value): bool {
+        return $value instanceof DateTimeInterface;
+    }
+
+    /**
      * Returns the current instant, in $tz or the default timezone.
      */
     public static function now(?DateTimeZone $tz = null): DateTimeImmutable {

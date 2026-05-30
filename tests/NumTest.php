@@ -11,6 +11,25 @@ use RoundingMode;
 use RuntimeException;
 
 final class NumTest extends TestCase {
+    public function testIs(): void {
+        $this->assertTrue(Num::is(5));
+        $this->assertTrue(Num::is(5.5));
+        $this->assertTrue(Num::is('5.5'));
+        $this->assertTrue(Num::is('-1e3'));
+        $this->assertTrue(Num::is(new Number('123.456')));
+        $this->assertFalse(Num::is('abc'));
+        $this->assertFalse(Num::is(null));
+        $this->assertFalse(Num::is(true));
+        $this->assertFalse(Num::is([]));
+    }
+
+    public function testIsNumericIsDeprecatedAliasOfIs(): void {
+        $this->assertSame(Num::is(5), Num::isNumeric(5));
+        $this->assertSame(Num::is('5.5'), Num::isNumeric('5.5'));
+        $this->assertSame(Num::is('abc'), Num::isNumeric('abc'));
+        $this->assertSame(Num::is(' 42 '), Num::isNumeric(' 42 '));
+    }
+
     public function testTypeChecks(): void {
         $this->assertTrue(Num::isInt(5));
         $this->assertFalse(Num::isInt(5.0));

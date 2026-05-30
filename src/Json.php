@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use JsonException;
-use function json_decode, json_encode;
+use function is_string, json_decode, json_encode;
 
 /**
  * JSON helpers — always throw {@see JsonException} on malformed input/output
@@ -36,14 +36,28 @@ final class Json {
     }
 
     /**
-     * Returns true when $json parses successfully as JSON.
+     * Returns true when $value is a string that parses successfully as JSON.
+     * Domain predicate for {@see Json}; accepts `mixed` so it can be used as a
+     * guard.
+     *
+     * @phpstan-assert-if-true string $value
      */
-    public static function isValid(string $json): bool {
+    public static function is(mixed $value): bool {
+        if (!is_string($value)) {
+            return false;
+        }
         try {
-            self::decode($json);
+            self::decode($value);
             return true;
         } catch (JsonException) {
             return false;
         }
+    }
+
+    /**
+     * @deprecated since 1.8.0, use {@see self::is()} instead. Will be removed in 2.0.0.
+     */
+    public static function isValid(mixed $json): bool {
+        return self::is($json);
     }
 }

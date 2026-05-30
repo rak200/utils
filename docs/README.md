@@ -18,6 +18,7 @@ Per-class API reference with runnable examples. For installation and a package o
 | `Url`    | [url.md](url.md)       | URL parse/build, query encode/decode |
 | `Path`   | [path.md](path.md)     | Logical path manipulation (no disk access) |
 | `Type`   | [type.md](type.md)     | Type-checking predicates (`mixed` → `bool`) |
+| `Enum`   | [enum.md](enum.md)     | Class-level operations on enums (names, values, name lookup, random, `[name => value]` maps) |
 
 ## Conventions used in these docs
 

@@ -8,7 +8,11 @@ parameters:
     # decide guard calls made with concrete literals. The TypeTest exercises
     # exactly those concrete cases on purpose, so suppress the resulting
     # "always true / impossible type" reports for that file only.
+    # NumTest documents native PHP behaviour (is_numeric of a literal) for
+    # contrast, which PHPStan also constant-folds — same exemption applies.
     ignoreErrors:
         - { identifier: staticMethod.alreadyNarrowedType, path: tests/TypeTest.php }
         - { identifier: staticMethod.impossibleType,       path: tests/TypeTest.php }
         - { identifier: method.impossibleType,             path: tests/TypeTest.php }
+        - { identifier: function.alreadyNarrowedType,      path: tests/NumTest.php }
+        - { identifier: method.alreadyNarrowedType,        path: tests/NumTest.php }

@@ -37,6 +37,7 @@ composer require rak200/utils
 - **`Url`** — URL parsing/building and query-string encode/decode: `parse`/`parseOrNull`/`build`, `encode`/`decode`, `encodeQuery`/`decodeQuery`, `isAbsolute`.
 - **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, `basename`, `dirname`, `extension`, `filename`. Normalises to `/`; preserves Windows drive prefixes.
 - **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class/trait checks (`isInstanceOf`/`isA`/`isSubclassOf`/`isClassName`/`isInterfaceName`/`usesTrait`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNonEmptyStr`, `Arr::isList`/`Arr::isAssoc`/`Arr::isNonEmptyArray`, `Num::isPositiveInt`/`Num::isNegativeInt`/`Num::isNonNegativeInt`.
+- **`Enum`** — class-level operations on enums: `names`/`values`, name lookup (`fromName`/`tryFromName` — the gap PHP leaves open), `random`, and `[name => value]` map via `toArray`. The instance-side predicate stays at `Type::isEnum`.
 
 ## Documentation
 

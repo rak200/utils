@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-05-29
+
+### Added
+
+- **`Enum`** — new tier-2 class for class-level enum operations. PHP ships `cases()`, `from()`, `tryFrom()` on the enum itself; this class fills the gaps: `names`/`values` (list cases in declaration order), `fromName`/`tryFromName` (name lookup — the gap PHP leaves open, since the native `from()`/`tryFrom()` look up by *value* and only work on backed enums), `random` (cryptographically-secure pick via `Rand::choice`), and `toArray` (form-friendly `[name => value]` map for backed enums, `[name => name]` for pure). `fromName`/`tryFromName`/`random` are `@template`-typed so PHPStan narrows the return to the concrete enum class. The instance-side predicate stays at `Type::isEnum`.
+
 ## [1.6.1] - 2026-05-29
 
 ### Fixed
@@ -153,6 +159,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.7.0]: https://github.com/rak200/utils/compare/1.6.1...1.7.0
 [1.6.1]: https://github.com/rak200/utils/compare/1.6.0...1.6.1
 [1.6.0]: https://github.com/rak200/utils/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/rak200/utils/compare/1.4.1...1.5.0

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-05-30
+
+### Added
+
+- **`Enum::isBacked(mixed): bool`** — domain predicate, true when the value is a backed enum case (a `BackedEnum` instance, i.e. an enum declared with a `: int` or `: string` backing type). Pure cases and non-enum values return false. Carries `@phpstan-assert` PHPDoc; complements the existing `Enum::isBackedInt` / `Enum::isBackedStr`.
+
+### Changed
+
+- **Test suites use PHPUnit `#[DataProvider]` for the `is*` predicates.** Feeding cases through a `mixed`-typed provider parameter (instead of inline literal calls) stops PHPStan from constant-folding the guard calls, so the `ignoreErrors` block in `phpstan.neon.dist` could be removed entirely — the analysis now passes at level max with no suppressions. No production behaviour change.
+
 ## [1.8.0] - 2026-05-30
 
 ### Added
@@ -183,6 +193,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.9.0]: https://github.com/rak200/utils/compare/1.8.0...1.9.0
 [1.8.0]: https://github.com/rak200/utils/compare/1.7.0...1.8.0
 [1.7.0]: https://github.com/rak200/utils/compare/1.6.1...1.7.0
 [1.6.1]: https://github.com/rak200/utils/compare/1.6.0...1.6.1

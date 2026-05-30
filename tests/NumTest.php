@@ -5,29 +5,37 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests;
 
 use BcMath\Number;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Num;
 use RoundingMode;
 use RuntimeException;
 
 final class NumTest extends TestCase {
-    public function testIs(): void {
-        $this->assertTrue(Num::is(5));
-        $this->assertTrue(Num::is(5.5));
-        $this->assertTrue(Num::is('5.5'));
-        $this->assertTrue(Num::is('-1e3'));
-        $this->assertTrue(Num::is(new Number('123.456')));
-        $this->assertFalse(Num::is('abc'));
-        $this->assertFalse(Num::is(null));
-        $this->assertFalse(Num::is(true));
-        $this->assertFalse(Num::is([]));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isProvider(): iterable {
+        yield 'int'                 => [5, true];
+        yield 'float'               => [5.5, true];
+        yield 'numeric string'      => ['5.5', true];
+        yield 'exponent string'     => ['-1e3', true];
+        yield 'Number'              => [new Number('123.456'), true];
+        yield 'non-numeric string'  => ['abc', false];
+        yield 'surrounding spaces'  => [' 42 ', false];
+        yield 'null'                => [null, false];
+        yield 'bool'                => [true, false];
+        yield 'array'               => [[], false];
     }
 
-    public function testIsNumericIsDeprecatedAliasOfIs(): void {
-        $this->assertSame(Num::is(5), Num::isNumeric(5));
-        $this->assertSame(Num::is('5.5'), Num::isNumeric('5.5'));
-        $this->assertSame(Num::is('abc'), Num::isNumeric('abc'));
-        $this->assertSame(Num::is(' 42 '), Num::isNumeric(' 42 '));
+    #[DataProvider('isProvider')]
+    public function testIs(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Num::is($value));
+    }
+
+    #[DataProvider('isProvider')]
+    public function testIsNumericIsDeprecatedAliasOfIs(mixed $value, bool $expected): void {
+        $this->assertSame(Num::is($value), Num::isNumeric($value));
     }
 
     public function testTypeChecks(): void {
@@ -43,8 +51,8 @@ final class NumTest extends TestCase {
     }
 
     public function testTypeChecksRejectSurroundingWhitespace(): void {
-        $this->assertTrue(is_numeric(' 5 '));
-        $this->assertEquals((int) ' 5 ', 5);
+        // Native is_numeric()/(int) tolerate surrounding whitespace; the Num
+        // predicates are strict and reject it (covered case-by-case below).
         $this->assertFalse(Num::isInt(' 5 '));
         $this->assertFalse(Num::isFloat(' 5.0 '));
         $this->assertFalse(Num::isNumeric(' 42 '));

@@ -8,6 +8,7 @@ use ArrayIterator;
 use BcMath\Number;
 use Countable;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Bit;
 use Rak200\Utils\Type;
@@ -33,65 +34,121 @@ final class TypeTest extends TestCase {
         $this->assertSame('resource (closed)', Type::of($fp));
     }
 
-    public function testIsStr(): void {
-        $this->assertTrue(Type::isStr(''));
-        $this->assertTrue(Type::isStr('hello'));
-        $this->assertFalse(Type::isStr(42));
-        $this->assertFalse(Type::isStr(null));
-        $this->assertFalse(Type::isStr(['a']));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isStrProvider(): iterable {
+        yield 'empty'  => ['', true];
+        yield 'word'   => ['hello', true];
+        yield 'int'    => [42, false];
+        yield 'null'   => [null, false];
+        yield 'array'  => [['a'], false];
     }
 
-    public function testIsBool(): void {
-        $this->assertTrue(Type::isBool(true));
-        $this->assertTrue(Type::isBool(false));
-        $this->assertFalse(Type::isBool(0));
-        $this->assertFalse(Type::isBool(1));
-        $this->assertFalse(Type::isBool('true'));
-        $this->assertFalse(Type::isBool(null));
+    #[DataProvider('isStrProvider')]
+    public function testIsStr(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isStr($value));
     }
 
-    public function testIsInt(): void {
-        $this->assertTrue(Type::isInt(0));
-        $this->assertTrue(Type::isInt(-7));
-        $this->assertTrue(Type::isInt(PHP_INT_MAX));
-        $this->assertFalse(Type::isInt(1.5));
-        $this->assertFalse(Type::isInt('42'));
-        $this->assertFalse(Type::isInt(true));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isBoolProvider(): iterable {
+        yield 'true'      => [true, true];
+        yield 'false'     => [false, true];
+        yield 'int 0'     => [0, false];
+        yield 'int 1'     => [1, false];
+        yield 'string'    => ['true', false];
+        yield 'null'      => [null, false];
     }
 
-    public function testIsFloat(): void {
-        $this->assertTrue(Type::isFloat(1.5));
-        $this->assertTrue(Type::isFloat(0.0));
-        $this->assertTrue(Type::isFloat(INF));
-        $this->assertTrue(Type::isFloat(NAN));
-        $this->assertFalse(Type::isFloat(1));
-        $this->assertFalse(Type::isFloat('1.5'));
+    #[DataProvider('isBoolProvider')]
+    public function testIsBool(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isBool($value));
     }
 
-    public function testIsArray(): void {
-        $this->assertTrue(Type::isArray([]));
-        $this->assertTrue(Type::isArray([1, 2, 3]));
-        $this->assertTrue(Type::isArray(['a' => 1]));
-        $this->assertFalse(Type::isArray(new ArrayIterator([1, 2])));
-        $this->assertFalse(Type::isArray('a,b,c'));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isIntProvider(): iterable {
+        yield 'zero'      => [0, true];
+        yield 'negative'  => [-7, true];
+        yield 'max'       => [PHP_INT_MAX, true];
+        yield 'float'     => [1.5, false];
+        yield 'string'    => ['42', false];
+        yield 'bool'      => [true, false];
     }
 
-    public function testIsObject(): void {
-        $this->assertTrue(Type::isObject(new stdClass()));
-        $this->assertTrue(Type::isObject(static fn(): int => 1));
-        $this->assertFalse(Type::isObject('stdClass'));
-        $this->assertFalse(Type::isObject([]));
-        $this->assertFalse(Type::isObject(null));
+    #[DataProvider('isIntProvider')]
+    public function testIsInt(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isInt($value));
     }
 
-    public function testIsEnum(): void {
-        $this->assertTrue(Type::isEnum(Suit::Hearts));
-        $this->assertTrue(Type::isEnum(Status::Active));
-        $this->assertFalse(Type::isEnum(Suit::class));
-        $this->assertFalse(Type::isEnum('Hearts'));
-        $this->assertFalse(Type::isEnum(new stdClass()));
-        $this->assertFalse(Type::isEnum(42));
-        $this->assertFalse(Type::isEnum(null));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isFloatProvider(): iterable {
+        yield '1.5'    => [1.5, true];
+        yield 'zero'   => [0.0, true];
+        yield 'inf'    => [INF, true];
+        yield 'nan'    => [NAN, true];
+        yield 'int'    => [1, false];
+        yield 'string' => ['1.5', false];
+    }
+
+    #[DataProvider('isFloatProvider')]
+    public function testIsFloat(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isFloat($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isArrayProvider(): iterable {
+        yield 'empty'    => [[], true];
+        yield 'list'     => [[1, 2, 3], true];
+        yield 'assoc'    => [['a' => 1], true];
+        yield 'iterator' => [new ArrayIterator([1, 2]), false];
+        yield 'string'   => ['a,b,c', false];
+    }
+
+    #[DataProvider('isArrayProvider')]
+    public function testIsArray(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isArray($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isObjectProvider(): iterable {
+        yield 'stdClass' => [new stdClass(), true];
+        yield 'closure'  => [static fn(): int => 1, true];
+        yield 'string'   => ['stdClass', false];
+        yield 'array'    => [[], false];
+        yield 'null'     => [null, false];
+    }
+
+    #[DataProvider('isObjectProvider')]
+    public function testIsObject(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isObject($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isEnumProvider(): iterable {
+        yield 'pure case'    => [Suit::Hearts, true];
+        yield 'backed case'  => [Status::Active, true];
+        yield 'class-string' => [Suit::class, false];
+        yield 'string'       => ['Hearts', false];
+        yield 'object'       => [new stdClass(), false];
+        yield 'int'          => [42, false];
+        yield 'null'         => [null, false];
+    }
+
+    #[DataProvider('isEnumProvider')]
+    public function testIsEnum(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isEnum($value));
     }
 
     public function testUsesTrait(): void {
@@ -113,145 +170,260 @@ final class TypeTest extends TestCase {
         $this->assertFalse(Type::usesTrait(null, GreetTrait::class));
     }
 
-    public function testIsCallable(): void {
-        $this->assertTrue(Type::isCallable(static fn(): int => 1));
-        $this->assertTrue(Type::isCallable('strlen'));
-        $this->assertTrue(Type::isCallable([DateTimeImmutable::class, 'createFromFormat']));
-        $this->assertFalse(Type::isCallable('this_function_does_not_exist_xyz'));
-        $this->assertFalse(Type::isCallable(42));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isCallableProvider(): iterable {
+        yield 'closure'      => [static fn(): int => 1, true];
+        yield 'function'     => ['strlen', true];
+        yield 'method array' => [[DateTimeImmutable::class, 'createFromFormat'], true];
+        yield 'missing'      => ['this_function_does_not_exist_xyz', false];
+        yield 'int'          => [42, false];
     }
 
-    public function testIsIterable(): void {
-        $this->assertTrue(Type::isIterable([]));
-        $this->assertTrue(Type::isIterable([1, 2]));
-        $this->assertTrue(Type::isIterable(new ArrayIterator([1])));
-        $this->assertFalse(Type::isIterable(new stdClass()));
-        $this->assertFalse(Type::isIterable('abc'));
+    #[DataProvider('isCallableProvider')]
+    public function testIsCallable(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isCallable($value));
     }
 
-    public function testIsNull(): void {
-        $this->assertTrue(Type::isNull(null));
-        $this->assertFalse(Type::isNull(false));
-        $this->assertFalse(Type::isNull(0));
-        $this->assertFalse(Type::isNull(''));
-        $this->assertFalse(Type::isNull([]));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isIterableProvider(): iterable {
+        yield 'empty array' => [[], true];
+        yield 'list'        => [[1, 2], true];
+        yield 'iterator'    => [new ArrayIterator([1]), true];
+        yield 'object'      => [new stdClass(), false];
+        yield 'string'      => ['abc', false];
     }
 
-    public function testIsScalar(): void {
-        $this->assertTrue(Type::isScalar(1));
-        $this->assertTrue(Type::isScalar(1.5));
-        $this->assertTrue(Type::isScalar('hello'));
-        $this->assertTrue(Type::isScalar(true));
-        $this->assertFalse(Type::isScalar(null));
-        $this->assertFalse(Type::isScalar([]));
-        $this->assertFalse(Type::isScalar(new stdClass()));
+    #[DataProvider('isIterableProvider')]
+    public function testIsIterable(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isIterable($value));
     }
 
-    public function testIsNumeric(): void {
-        $this->assertTrue(Type::isNumeric(42));
-        $this->assertTrue(Type::isNumeric(1.5));
-        $this->assertTrue(Type::isNumeric('1.5'));
-        $this->assertTrue(Type::isNumeric('-1e3'));
-        $this->assertTrue(Type::isNumeric(new Number('123.45')));
-        $this->assertFalse(Type::isNumeric('hello'));
-        $this->assertFalse(Type::isNumeric(null));
-        $this->assertFalse(Type::isNumeric(true));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isNullProvider(): iterable {
+        yield 'null'      => [null, true];
+        yield 'false'     => [false, false];
+        yield 'int 0'     => [0, false];
+        yield 'empty str' => ['', false];
+        yield 'array'     => [[], false];
     }
 
-    public function testIsNumericRejectsSurroundingWhitespace(): void {
-        $this->assertFalse(Type::isNumeric(' 42 '));
-        $this->assertFalse(Type::isNumeric(' 42'));
-        $this->assertFalse(Type::isNumeric("42\n"));
-        $this->assertFalse(Type::isNumeric("1.5\t"));
+    #[DataProvider('isNullProvider')]
+    public function testIsNull(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isNull($value));
     }
 
-    public function testIsResource(): void {
-        $fp = fopen('php://memory', 'rb');
-        $this->assertNotFalse($fp);
-        $this->assertTrue(Type::isResource($fp));
-        fclose($fp);
-        $this->assertFalse(Type::isResource($fp));
-        $this->assertFalse(Type::isResource('php://memory'));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isScalarProvider(): iterable {
+        yield 'int'    => [1, true];
+        yield 'float'  => [1.5, true];
+        yield 'string' => ['hello', true];
+        yield 'bool'   => [true, true];
+        yield 'null'   => [null, false];
+        yield 'array'  => [[], false];
+        yield 'object' => [new stdClass(), false];
     }
 
-    public function testIsNumericStr(): void {
-        $this->assertTrue(Type::isNumericStr('42'));
-        $this->assertTrue(Type::isNumericStr('-1.5'));
-        $this->assertTrue(Type::isNumericStr('1e3'));
-        $this->assertFalse(Type::isNumericStr(42));
-        $this->assertFalse(Type::isNumericStr('hello'));
-        $this->assertFalse(Type::isNumericStr(''));
+    #[DataProvider('isScalarProvider')]
+    public function testIsScalar(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isScalar($value));
     }
 
-    public function testIsNumericStrRejectsSurroundingWhitespace(): void {
-        $this->assertFalse(Type::isNumericStr(' 42 '));
-        $this->assertFalse(Type::isNumericStr(' 42'));
-        $this->assertFalse(Type::isNumericStr("42\n"));
-        $this->assertFalse(Type::isNumericStr("1.5\t"));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isNumericProvider(): iterable {
+        yield 'int'                 => [42, true];
+        yield 'float'               => [1.5, true];
+        yield 'numeric string'      => ['1.5', true];
+        yield 'exponent string'     => ['-1e3', true];
+        yield 'Number'              => [new Number('123.45'), true];
+        yield 'non-numeric string'  => ['hello', false];
+        yield 'null'                => [null, false];
+        yield 'bool'                => [true, false];
+        yield 'leading+trailing ws' => [' 42 ', false];
+        yield 'leading ws'          => [' 42', false];
+        yield 'trailing newline'    => ["42\n", false];
+        yield 'trailing tab'        => ["1.5\t", false];
     }
 
-    public function testIsIntLike(): void {
-        $this->assertTrue(Type::isIntLike(42));
-        $this->assertTrue(Type::isIntLike(-7));
-        $this->assertTrue(Type::isIntLike('42'));
-        $this->assertTrue(Type::isIntLike('-7'));
-        $this->assertTrue(Type::isIntLike('+0'));
-        $this->assertFalse(Type::isIntLike('1.0'));
-        $this->assertFalse(Type::isIntLike('1e3'));
-        $this->assertFalse(Type::isIntLike(' 42 '));
-        $this->assertFalse(Type::isIntLike(''));
-        $this->assertFalse(Type::isIntLike(1.5));
-        $this->assertFalse(Type::isIntLike(true));
+    #[DataProvider('isNumericProvider')]
+    public function testIsNumeric(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isNumeric($value));
     }
 
-    public function testIsInstanceOf(): void {
-        $this->assertTrue(Type::isInstanceOf(new stdClass(), stdClass::class));
-        $this->assertTrue(Type::isInstanceOf(new ArrayIterator([]), Countable::class));
-        $this->assertFalse(Type::isInstanceOf(stdClass::class, stdClass::class));
-        $this->assertFalse(Type::isInstanceOf(new stdClass(), ArrayIterator::class));
-        $this->assertFalse(Type::isInstanceOf(null, stdClass::class));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isResourceProvider(): iterable {
+        $open = fopen('php://memory', 'rb');
+        $closed = fopen('php://memory', 'rb');
+        if ($closed !== false) {
+            fclose($closed);
+        }
+        yield 'open stream'   => [$open, true];
+        yield 'closed stream' => [$closed, false];
+        yield 'string'        => ['php://memory', false];
+        yield 'int'           => [42, false];
     }
 
-    public function testIsClassName(): void {
-        $this->assertTrue(Type::isClassName(stdClass::class));
-        $this->assertTrue(Type::isClassName(ArrayIterator::class));
-        $this->assertFalse(Type::isClassName(Countable::class));
-        $this->assertFalse(Type::isClassName('NotAClass_xyz123'));
-        $this->assertFalse(Type::isClassName(new stdClass()));
+    #[DataProvider('isResourceProvider')]
+    public function testIsResource(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isResource($value));
     }
 
-    public function testIsInterfaceName(): void {
-        $this->assertTrue(Type::isInterfaceName(Countable::class));
-        $this->assertTrue(Type::isInterfaceName(Stringable::class));
-        $this->assertFalse(Type::isInterfaceName(stdClass::class));
-        $this->assertFalse(Type::isInterfaceName('NotAnInterface_xyz123'));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isNumericStrProvider(): iterable {
+        yield 'int string'          => ['42', true];
+        yield 'negative decimal'    => ['-1.5', true];
+        yield 'exponent'            => ['1e3', true];
+        yield 'native int'          => [42, false];
+        yield 'non-numeric'         => ['hello', false];
+        yield 'empty'               => ['', false];
+        yield 'leading+trailing ws' => [' 42 ', false];
+        yield 'leading ws'          => [' 42', false];
+        yield 'trailing newline'    => ["42\n", false];
+        yield 'trailing tab'        => ["1.5\t", false];
     }
 
-    public function testIsA(): void {
-        $this->assertTrue(Type::isA(new stdClass(), stdClass::class));
-        $this->assertTrue(Type::isA(new ArrayIterator([]), Countable::class));
-        $this->assertTrue(Type::isA(stdClass::class, stdClass::class));
-        $this->assertTrue(Type::isA(ArrayIterator::class, Countable::class));
-        $this->assertFalse(Type::isA(new stdClass(), ArrayIterator::class));
-        $this->assertFalse(Type::isA('NotAClass_xyz123', stdClass::class));
-        $this->assertFalse(Type::isA(42, stdClass::class));
-        $this->assertFalse(Type::isA(null, stdClass::class));
+    #[DataProvider('isNumericStrProvider')]
+    public function testIsNumericStr(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isNumericStr($value));
     }
 
-    public function testIsSubclassOf(): void {
-        $this->assertTrue(Type::isSubclassOf(new ChildUsesGreet(), UsesGreet::class));
-        $this->assertTrue(Type::isSubclassOf(ChildUsesGreet::class, UsesGreet::class));
-        $this->assertTrue(Type::isSubclassOf(new ArrayIterator([]), Countable::class));
-        $this->assertTrue(Type::isSubclassOf(ArrayIterator::class, Countable::class));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isIntLikeProvider(): iterable {
+        yield 'native int'        => [42, true];
+        yield 'negative int'      => [-7, true];
+        yield 'int string'        => ['42', true];
+        yield 'negative string'   => ['-7', true];
+        yield 'leading plus zero' => ['+0', true];
+        yield 'decimal string'    => ['1.0', false];
+        yield 'exponent string'   => ['1e3', false];
+        yield 'surrounding ws'    => [' 42 ', false];
+        yield 'empty'             => ['', false];
+        yield 'float'             => [1.5, false];
+        yield 'bool'              => [true, false];
+    }
 
+    #[DataProvider('isIntLikeProvider')]
+    public function testIsIntLike(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isIntLike($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, class-string, bool}>
+     */
+    public static function isInstanceOfProvider(): iterable {
+        yield 'stdClass matches'  => [new stdClass(), stdClass::class, true];
+        yield 'interface matches' => [new ArrayIterator([]), Countable::class, true];
+        yield 'class-string arg'  => [stdClass::class, stdClass::class, false];
+        yield 'wrong class'       => [new stdClass(), ArrayIterator::class, false];
+        yield 'null'              => [null, stdClass::class, false];
+    }
+
+    /**
+     * @param class-string $class
+     */
+    #[DataProvider('isInstanceOfProvider')]
+    public function testIsInstanceOf(mixed $value, string $class, bool $expected): void {
+        $this->assertSame($expected, Type::isInstanceOf($value, $class));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isClassNameProvider(): iterable {
+        yield 'stdClass'      => [stdClass::class, true];
+        yield 'ArrayIterator' => [ArrayIterator::class, true];
+        yield 'interface'     => [Countable::class, false];
+        yield 'missing'       => ['NotAClass_xyz123', false];
+        yield 'int'           => [42, false];
+        yield 'null'          => [null, false];
+        yield 'array'         => [[], false];
+        yield 'object'        => [new stdClass(), false];
+    }
+
+    #[DataProvider('isClassNameProvider')]
+    public function testIsClassName(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isClassName($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isInterfaceNameProvider(): iterable {
+        yield 'Countable'   => [Countable::class, true];
+        yield 'Stringable'  => [Stringable::class, true];
+        yield 'class'       => [stdClass::class, false];
+        yield 'missing'     => ['NotAnInterface_xyz123', false];
+        yield 'int'         => [42, false];
+        yield 'null'        => [null, false];
+        yield 'array'       => [[], false];
+        yield 'object'      => [new stdClass(), false];
+    }
+
+    #[DataProvider('isInterfaceNameProvider')]
+    public function testIsInterfaceName(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Type::isInterfaceName($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, class-string, bool}>
+     */
+    public static function isAProvider(): iterable {
+        yield 'instance same'     => [new stdClass(), stdClass::class, true];
+        yield 'instance iface'    => [new ArrayIterator([]), Countable::class, true];
+        yield 'class-string same' => [stdClass::class, stdClass::class, true];
+        yield 'class-string iface'=> [ArrayIterator::class, Countable::class, true];
+        yield 'wrong class'       => [new stdClass(), ArrayIterator::class, false];
+        yield 'missing class str' => ['NotAClass_xyz123', stdClass::class, false];
+        yield 'int'               => [42, stdClass::class, false];
+        yield 'null'              => [null, stdClass::class, false];
+    }
+
+    /**
+     * @param class-string $class
+     */
+    #[DataProvider('isAProvider')]
+    public function testIsA(mixed $value, string $class, bool $expected): void {
+        $this->assertSame($expected, Type::isA($value, $class));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, class-string, bool}>
+     */
+    public static function isSubclassOfProvider(): iterable {
+        yield 'child instance'      => [new ChildUsesGreet(), UsesGreet::class, true];
+        yield 'child class-string'  => [ChildUsesGreet::class, UsesGreet::class, true];
+        yield 'iface instance'      => [new ArrayIterator([]), Countable::class, true];
+        yield 'iface class-string'  => [ArrayIterator::class, Countable::class, true];
         // A class is not its own subclass — this is what sets it apart from isA().
-        $this->assertFalse(Type::isSubclassOf(new UsesGreet(), UsesGreet::class));
-        $this->assertFalse(Type::isSubclassOf(UsesGreet::class, UsesGreet::class));
+        yield 'same instance'       => [new UsesGreet(), UsesGreet::class, false];
+        yield 'same class-string'   => [UsesGreet::class, UsesGreet::class, false];
+        yield 'unrelated'           => [new stdClass(), ArrayIterator::class, false];
+        yield 'missing class str'   => ['NotAClass_xyz123', UsesGreet::class, false];
+        yield 'int'                 => [42, UsesGreet::class, false];
+        yield 'null'                => [null, UsesGreet::class, false];
+    }
 
-        $this->assertFalse(Type::isSubclassOf(new stdClass(), ArrayIterator::class));
-        $this->assertFalse(Type::isSubclassOf('NotAClass_xyz123', UsesGreet::class));
-        $this->assertFalse(Type::isSubclassOf(42, UsesGreet::class));
-        $this->assertFalse(Type::isSubclassOf(null, UsesGreet::class));
+    /**
+     * @param class-string $class
+     */
+    #[DataProvider('isSubclassOfProvider')]
+    public function testIsSubclassOf(mixed $value, string $class, bool $expected): void {
+        $this->assertSame($expected, Type::isSubclassOf($value, $class));
     }
 }
 

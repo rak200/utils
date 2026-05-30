@@ -4,19 +4,45 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Enum;
 use RuntimeException;
+use UnitEnum;
 
 final class EnumTest extends TestCase {
-    public function testIs(): void {
-        $this->assertTrue(Enum::is(EnumSuit::Hearts));
-        $this->assertTrue(Enum::is(EnumStatus::Active));
-        $this->assertFalse(Enum::is(EnumSuit::class));
-        $this->assertFalse(Enum::is('Hearts'));
-        $this->assertFalse(Enum::is(null));
-        $this->assertFalse(Enum::is(0));
-        $this->assertFalse(Enum::is(new \stdClass()));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isProvider(): iterable {
+        yield 'pure case'    => [EnumSuit::Hearts, true];
+        yield 'backed case'  => [EnumStatus::Active, true];
+        yield 'class-string' => [EnumSuit::class, false];
+        yield 'string'       => ['Hearts', false];
+        yield 'null'         => [null, false];
+        yield 'int'          => [0, false];
+        yield 'object'       => [new \stdClass(), false];
+    }
+
+    #[DataProvider('isProvider')]
+    public function testIs(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Enum::is($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isBackedProvider(): iterable {
+        yield 'int-backed'    => [EnumPriority::Low, true];
+        yield 'string-backed' => [EnumStatus::Active, true];
+        yield 'pure case'     => [EnumSuit::Hearts, false];
+        yield 'class-string'  => [EnumStatus::class, false];
+        yield 'null'          => [null, false];
+    }
+
+    #[DataProvider('isBackedProvider')]
+    public function testIsBacked(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Enum::isBacked($value));
     }
 
     public function testNames(): void {
@@ -85,18 +111,34 @@ final class EnumTest extends TestCase {
         $this->assertSame(10, Enum::scalar(EnumPriority::High));
     }
 
-    public function testIsBackedInt(): void {
-        $this->assertTrue(Enum::isBackedInt(EnumPriority::Low));
-        $this->assertTrue(Enum::isBackedInt(EnumPriority::High));
-        $this->assertFalse(Enum::isBackedInt(EnumStatus::Active));
-        $this->assertFalse(Enum::isBackedInt(EnumSuit::Hearts));
+    /**
+     * @return iterable<string, array{UnitEnum, bool}>
+     */
+    public static function isBackedIntProvider(): iterable {
+        yield 'int Low'       => [EnumPriority::Low, true];
+        yield 'int High'      => [EnumPriority::High, true];
+        yield 'string-backed' => [EnumStatus::Active, false];
+        yield 'pure'          => [EnumSuit::Hearts, false];
     }
 
-    public function testIsBackedStr(): void {
-        $this->assertTrue(Enum::isBackedStr(EnumStatus::Active));
-        $this->assertTrue(Enum::isBackedStr(EnumStatus::Inactive));
-        $this->assertFalse(Enum::isBackedStr(EnumPriority::Low));
-        $this->assertFalse(Enum::isBackedStr(EnumSuit::Hearts));
+    #[DataProvider('isBackedIntProvider')]
+    public function testIsBackedInt(UnitEnum $case, bool $expected): void {
+        $this->assertSame($expected, Enum::isBackedInt($case));
+    }
+
+    /**
+     * @return iterable<string, array{UnitEnum, bool}>
+     */
+    public static function isBackedStrProvider(): iterable {
+        yield 'string Active'   => [EnumStatus::Active, true];
+        yield 'string Inactive' => [EnumStatus::Inactive, true];
+        yield 'int-backed'      => [EnumPriority::Low, false];
+        yield 'pure'            => [EnumSuit::Hearts, false];
+    }
+
+    #[DataProvider('isBackedStrProvider')]
+    public function testIsBackedStr(UnitEnum $case, bool $expected): void {
+        $this->assertSame($expected, Enum::isBackedStr($case));
     }
 }
 

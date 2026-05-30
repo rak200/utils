@@ -3,4 +3,5 @@
 .phpunit.result.cache
 .phpunit.cache/
 .phpstan.cache/
+.claude/
 /phpstan.neon

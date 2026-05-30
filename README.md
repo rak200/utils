@@ -37,7 +37,7 @@ composer require rak200/utils
 - **`Url`** — URL parsing/building and query-string encode/decode: `parse`/`parseOrNull`/`build`, `encode`/`decode`, `encodeQuery`/`decodeQuery`, `is`/`isAbsolute`.
 - **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, `basename`, `dirname`, `extension`, `filename`. Normalises to `/`; preserves Windows drive prefixes.
 - **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class/trait checks (`isInstanceOf`/`isA`/`isSubclassOf`/`isClassName`/`isInterfaceName`/`usesTrait`). Domain-mirroring predicates (`isStr`/`isInt`/`isFloat`/`isArray`/`isEnum`/`isNumeric`) are aliases of the canonical `is` on each domain class (`Str::is`, `Num::isInt`/`Num::isFloat`/`Num::is`, `Arr::is`, `Enum::is`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNonEmptyStr`, `Arr::isList`/`Arr::isAssoc`/`Arr::isNonEmptyArray`, `Num::isPositiveInt`/`Num::isNegativeInt`/`Num::isNonNegativeInt`.
-- **`Enum`** — class-level operations on enums: `names`/`values`, name lookup (`fromName`/`tryFromName` — the gap PHP leaves open), `random`, `[name => value]` map via `toArray`, plus the `is` predicate.
+- **`Enum`** — class-level operations on enums: `names`/`values`, name lookup (`fromName`/`tryFromName` — the gap PHP leaves open), `random`, `[name => value]` map via `toArray`, plus the `is`/`isBacked` predicates.
 
 ## Documentation
 

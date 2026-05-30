@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests;
 
 use JsonException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Json;
 
@@ -33,26 +34,29 @@ final class JsonTest extends TestCase {
         Json::decode('{invalid}');
     }
 
-    public function testIs(): void {
-        $this->assertTrue(Json::is('{"a":1}'));
-        $this->assertTrue(Json::is('null'));
-        $this->assertTrue(Json::is('42'));
-        $this->assertTrue(Json::is('"hello"'));
-        $this->assertFalse(Json::is('{invalid}'));
-        $this->assertFalse(Json::is(''));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isProvider(): iterable {
+        yield 'object'       => ['{"a":1}', true];
+        yield 'null literal' => ['null', true];
+        yield 'number'       => ['42', true];
+        yield 'string'       => ['"hello"', true];
+        yield 'malformed'    => ['{invalid}', false];
+        yield 'empty'        => ['', false];
+        yield 'php null'     => [null, false];
+        yield 'php int'      => [42, false];
+        yield 'php array'    => [['a' => 1], false];
+        yield 'php object'   => [new \stdClass(), false];
     }
 
-    public function testIsRejectsNonStrings(): void {
-        $this->assertFalse(Json::is(null));
-        $this->assertFalse(Json::is(42));
-        $this->assertFalse(Json::is(['a' => 1]));
-        $this->assertFalse(Json::is(new \stdClass()));
+    #[DataProvider('isProvider')]
+    public function testIs(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Json::is($value));
     }
 
-    public function testIsValidIsDeprecatedAliasOfIs(): void {
-        $this->assertSame(Json::is('{"a":1}'), Json::isValid('{"a":1}'));
-        $this->assertSame(Json::is('null'), Json::isValid('null'));
-        $this->assertSame(Json::is('{invalid}'), Json::isValid('{invalid}'));
-        $this->assertSame(Json::is(''), Json::isValid(''));
+    #[DataProvider('isProvider')]
+    public function testIsValidIsDeprecatedAliasOfIs(mixed $value, bool $expected): void {
+        $this->assertSame(Json::is($value), Json::isValid($value));
     }
 }

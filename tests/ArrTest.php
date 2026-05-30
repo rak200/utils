@@ -4,19 +4,28 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Arr;
 use RuntimeException;
 
 final class ArrTest extends TestCase {
-    public function testIs(): void {
-        $this->assertTrue(Arr::is([]));
-        $this->assertTrue(Arr::is([1, 2, 3]));
-        $this->assertTrue(Arr::is(['a' => 1]));
-        $this->assertFalse(Arr::is(null));
-        $this->assertFalse(Arr::is('abc'));
-        $this->assertFalse(Arr::is(42));
-        $this->assertFalse(Arr::is(new \stdClass()));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isProvider(): iterable {
+        yield 'empty array' => [[], true];
+        yield 'list'        => [[1, 2, 3], true];
+        yield 'assoc'       => [['a' => 1], true];
+        yield 'null'        => [null, false];
+        yield 'string'      => ['abc', false];
+        yield 'int'         => [42, false];
+        yield 'object'      => [new \stdClass(), false];
+    }
+
+    #[DataProvider('isProvider')]
+    public function testIs(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Arr::is($value));
     }
 
     public function testIsEmptyIsNotEmpty(): void {

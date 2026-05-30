@@ -4,21 +4,30 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Str;
 use RuntimeException;
 
 final class StrTest extends TestCase {
-    public function testIs(): void {
-        $this->assertTrue(Str::is(''));
-        $this->assertTrue(Str::is('hello'));
-        $this->assertTrue(Str::is(' '));
-        $this->assertFalse(Str::is(null));
-        $this->assertFalse(Str::is(42));
-        $this->assertFalse(Str::is(3.14));
-        $this->assertFalse(Str::is(true));
-        $this->assertFalse(Str::is([]));
-        $this->assertFalse(Str::is(new \stdClass()));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isProvider(): iterable {
+        yield 'empty string' => ['', true];
+        yield 'word'         => ['hello', true];
+        yield 'whitespace'   => [' ', true];
+        yield 'null'         => [null, false];
+        yield 'int'          => [42, false];
+        yield 'float'        => [3.14, false];
+        yield 'bool'         => [true, false];
+        yield 'array'        => [[], false];
+        yield 'object'       => [new \stdClass(), false];
+    }
+
+    #[DataProvider('isProvider')]
+    public function testIs(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Str::is($value));
     }
 
     public function testIsBlankDetectsWhitespaceOnly(): void {

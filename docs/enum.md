@@ -11,6 +11,7 @@ use Rak200\Utils\Enum;
 ## Contents
 
 - [`is`](#is)
+- [`isBacked`](#isbacked)
 - [`names`](#names)
 - [`values`](#values)
 - [`fromName` / `tryFromName`](#fromname--tryfromname)
@@ -34,6 +35,26 @@ Enum::is(Status::Active);   // true
 Enum::is(Suit::class);      // false   (class-name string, not an instance)
 Enum::is('Hearts');         // false
 Enum::is(null);             // false
+```
+
+[↑ Back to top](#enum)
+
+---
+
+## `isBacked`
+
+Domain predicate — true when `$value` is a *backed* enum case (instance of `BackedEnum`), i.e. an enum declared with a `: int` or `: string` backing type. Pure (unbacked) cases and non-enum values return false. Accepts `mixed`. For the specific kind of backing, see [`isBackedInt` / `isBackedStr`](#isbackedint--isbackedstr).
+
+```php
+enum Suit { case Hearts; }
+enum Status: string { case Active = 'active'; }
+enum Priority: int { case Low = 1; }
+
+Enum::isBacked(Status::Active);   // true   (string-backed)
+Enum::isBacked(Priority::Low);    // true   (int-backed)
+Enum::isBacked(Suit::Hearts);     // false  (pure enum)
+Enum::isBacked(Status::class);    // false  (class-name string)
+Enum::isBacked(null);             // false
 ```
 
 [↑ Back to top](#enum)

@@ -6,18 +6,27 @@ namespace Rak200\Utils\Tests;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Dt;
 use RuntimeException;
 
 final class DtTest extends TestCase {
-    public function testIs(): void {
-        $this->assertTrue(Dt::is(new DateTimeImmutable()));
-        $this->assertTrue(Dt::is(new \DateTime()));
-        $this->assertFalse(Dt::is('2026-05-23'));
-        $this->assertFalse(Dt::is(null));
-        $this->assertFalse(Dt::is(0));
-        $this->assertFalse(Dt::is(new \stdClass()));
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isProvider(): iterable {
+        yield 'immutable' => [new DateTimeImmutable(), true];
+        yield 'mutable'   => [new \DateTime(), true];
+        yield 'string'    => ['2026-05-23', false];
+        yield 'null'      => [null, false];
+        yield 'int'       => [0, false];
+        yield 'object'    => [new \stdClass(), false];
+    }
+
+    #[DataProvider('isProvider')]
+    public function testIs(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Dt::is($value));
     }
 
     public function testNowReturnsCurrentInstant(): void {

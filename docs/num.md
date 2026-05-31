@@ -132,16 +132,18 @@ Num::parseFloatOrNull(' 3.14 ');   // null  (surrounding whitespace rejected)
 
 ## `parseNumber` / `parseNumberOrNull`
 
-Arbitrary-precision parse. Decimal notation only — scientific notation (`1e10`) and surrounding whitespace are rejected.
+Arbitrary-precision parse. Accepts exactly the strings [`is`](#is) reports as numeric: decimal and scientific notation. Scientific input is expanded to its exact decimal form (no precision lost). Surrounding whitespace is rejected.
 
 ```php
 Num::parseNumber('123456789012345678901234567890.5');
 // BcMath\Number('123456789012345678901234567890.5')
 
 Num::parseNumber('-0.0001');                  // BcMath\Number('-0.0001')
-Num::parseNumberOrNull('1e10');               // null  (scientific notation rejected)
+Num::parseNumber('1.5e3');                    // BcMath\Number('1500')
+Num::parseNumber('1.5e-3');                   // BcMath\Number('0.0015')
 Num::parseNumberOrNull(' 42 ');               // null  (surrounding whitespace rejected)
 Num::parseNumberOrNull('abc');                // null
+Num::parseNumberOrNull('1e999999999');        // null  (decimal form impractical)
 ```
 
 [↑ Back to top](#num)

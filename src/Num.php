@@ -8,8 +8,8 @@ use BcMath\Number;
 use RoundingMode;
 use RuntimeException;
 use function abs, ceil, explode, floor, fmod, implode, is_float, is_int, is_numeric, is_string,
-    number_format, ord, round, sprintf, sqrt, str_contains, str_pad, str_repeat, str_split,
-    str_starts_with, strrev, substr;
+    number_format, ord, round, sprintf, sqrt, str_contains, str_pad, str_split,
+    str_starts_with, stripos, strrev, substr;
 
 /**
  * Numeric helpers for parsing, formatting, arithmetic and aggregation.
@@ -23,6 +23,13 @@ use function abs, ceil, explode, floor, fmod, implode, is_float, is_int, is_nume
  * @author rak200 <rak.ricardo@windowslive.com>
  */
 final class Num {
+    /**
+     * Upper bound on the digit count of an expanded scientific-notation number,
+     * guarding {@see expandScientific()} against pathological exponents in
+     * untrusted input (e.g. `1e999999999`).
+     */
+    private const MAX_NUMBER_DIGITS = 65536;
+
     private function __construct() {}
 
     /**
@@ -168,10 +175,14 @@ final class Num {
     }
 
     /**
-     * Parses $value as an arbitrary-precision {@see Number} (decimal notation,
-     * no scientific exponent).
+     * Parses $value as an arbitrary-precision {@see Number}. Accepts decimal and
+     * scientific notation (e.g. `1.5e3`, `2e-10`); scientific input is expanded
+     * to its exact decimal form, so no precision is lost. Accepts exactly the
+     * strings {@see is()} reports as numeric.
      *
-     * @throws RuntimeException When $value cannot be represented as a Number.
+     * @throws RuntimeException When $value cannot be represented as a Number —
+     *                          non-numeric, surrounding whitespace, or an
+     *                          exponent so large the decimal form is impractical.
      */
     public static function parseNumber(string $value): Number {
         $parsed = self::parseNumberOrNull($value);
@@ -183,17 +194,19 @@ final class Num {
 
     /**
      * Parses $value as an arbitrary-precision {@see Number}; returns null when
-     * $value is not numeric or cannot be represented.
+     * $value is not a strict numeric string (surrounding whitespace is rejected,
+     * matching {@see is()}) or cannot be represented. Scientific notation is
+     * accepted and expanded to its exact decimal form. See {@see parseNumber()}.
      */
     public static function parseNumberOrNull(string $value): ?Number {
-        if (!is_numeric($value)) {
+        if (!self::isStrictNumericString($value)) {
             return null;
         }
-        try {
-            return new Number($value);
-        } catch (\Throwable) {
+        $decimal = self::expandScientific($value);
+        if ($decimal === null || !is_numeric($decimal)) {
             return null;
         }
+        return new Number($decimal);
     }
 
     /**
@@ -471,11 +484,59 @@ final class Num {
     }
 
     /**
+     * Expands a strict-numeric string into a plain decimal string with no
+     * exponent — `1.5e3` → `1500`, `1.5e-3` → `0.0015` — keeping every digit so
+     * {@see Number} arbitrary precision is preserved. Strings without an
+     * exponent are returned unchanged. Returns null when the expanded form would
+     * exceed {@see MAX_NUMBER_DIGITS} digits.
+     */
+    private static function expandScientific(string $value): ?string {
+        $ePos = stripos($value, 'e');
+        if ($ePos === false) {
+            return $value;
+        }
+
+        $mantissa = Str::substring($value, 0, $ePos);
+        $exp = (int) Str::substring($value, $ePos + 1);
+
+        $sign = '';
+        if ($mantissa !== '' && ($mantissa[0] === '+' || $mantissa[0] === '-')) {
+            if ($mantissa[0] === '-') {
+                $sign = '-';
+            }
+            $mantissa = Str::substring($mantissa, 1);
+        }
+
+        if (Str::contains($mantissa, '.')) {
+            [$intPart, $fracPart] = Str::split($mantissa, '.', 2);
+        } else {
+            $intPart = $mantissa;
+            $fracPart = '';
+        }
+
+        $digits = $intPart . $fracPart;
+        if (Str::length($digits) + abs($exp) > self::MAX_NUMBER_DIGITS) {
+            return null;
+        }
+
+        $pointPos = Str::length($intPart) + $exp;
+        if ($pointPos <= 0) {
+            $result = '0.' . Str::repeat('0', -$pointPos) . $digits;
+        } elseif ($pointPos >= Str::length($digits)) {
+            $result = $digits . Str::repeat('0', $pointPos - Str::length($digits));
+        } else {
+            $result = Str::substring($digits, 0, $pointPos) . '.' . Str::substring($digits, $pointPos);
+        }
+
+        return $sign . $result;
+    }
+
+    /**
      * Returns 10^$exp as a {@see Number}, built by digit concatenation to
      * preserve precision for large exponents.
      */
     private static function pow10(int $exp): Number {
-        $s = '1' . str_repeat('0', $exp);
+        $s = '1' . Str::repeat('0', $exp);
         assert(is_numeric($s));
         return new Number($s);
     }

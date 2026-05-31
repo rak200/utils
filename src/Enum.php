@@ -152,7 +152,7 @@ final class Enum {
     /**
      * Returns true when $case is an int-backed enum case.
      *
-     * @phpstan-assert-if-true BackedEnum $case
+     * @phpstan-assert-if-true BackedEnum $case && int $case->value
      */
     public static function isBackedInt(UnitEnum $case): bool {
         return static::isBacked($case) && Num::isInt($case->value);
@@ -161,7 +161,7 @@ final class Enum {
     /**
      * Returns true when $case is a string-backed enum case.
      *
-     * @phpstan-assert-if-true BackedEnum $case
+     * @phpstan-assert-if-true BackedEnum $case && string $case->value
      */
     public static function isBackedStr(UnitEnum $case): bool {
         return static::isBacked($case) && Type::isStr($case->value);

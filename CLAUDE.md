@@ -24,7 +24,12 @@ utils/
 │   ├── File.php      # filesystem (Tier 2)
 │   ├── Json.php      # JSON (Tier 2)
 │   ├── Base64.php    # Base64 encode/decode (Tier 2)
-│   └── Dt.php        # DateTimeImmutable helpers (Tier 2)
+│   ├── Dt.php        # DateTimeImmutable helpers (Tier 2)
+│   ├── Url.php       # URL parse/build, query encode/decode (Tier 2)
+│   ├── Path.php      # logical path manipulation, no disk access (Tier 2)
+│   ├── Type.php      # type-checking predicates accepting mixed (Tier 2)
+│   ├── Enum.php      # class-level enum operations (Tier 2)
+│   └── Filter.php    # input sanitisation + mixed-to-typed coercion (Tier 2)
 └── tests/            # mirrors src/ layout (one *Test.php per class)
 ```
 
@@ -40,6 +45,8 @@ Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes 
 - Cryptographically-secure randomness only in `Rand` (`random_int`, `random_bytes`). Never `rand()` / `mt_rand()`.
 - `Dt` works strictly with `DateTimeImmutable` — no mutable `DateTime`.
 - Public API takes/returns native PHP types where possible; no custom wrapper objects.
+- **Prefer the library's own helpers over native PHP functions** when a clean semantic equivalent exists (`Str::repeat` over `str_repeat`, `Str::trim` over `trim`, `Str::lower` over `mb_strtolower`, `Str::contains`/`substring`/`split`/`length`, `Arr::has` over `array_key_exists`, `Arr::is` over `is_array`, …) — many helpers exist precisely to fix native shortcomings. Keep the native only when there is no equivalent (`ord`, `fmod`, `iconv`, `htmlspecialchars`, case-insensitive `stripos`) **or** when the wrapper would break the method's contract — e.g. `Filter` sanitizers keep `preg_replace(...) ?? ''` rather than `Regex::replace`, because `Regex::replace` throws on the `null` that invalid UTF-8 yields under the `/u` modifier, which would violate `Filter`'s "never throws" guarantee.
+- **Member order within a class:** constants → properties → constructor → non-magic methods → magic methods. Don't drop a constant beside its first use mid-class.
 
 ## Testing
 
@@ -67,6 +74,10 @@ When releasing a new version:
 ## Roadmap
 
 Planned additions and corrections. Released items live in `CHANGELOG.md`.
+
+### Next release
+
+- **Prefer-lib-over-native sweep** — apply the "prefer the library's own helpers over native functions" convention (see *Conventions*) to the **pre-existing** code, where the semantics match exactly: e.g. `Num::formatNumber` / `Num::parseIntOrNull` (`substr`, `explode`, `str_contains`, `str_split`) and the other classes. New code already follows the convention; this is the migration of older code. Mind the caveats — multibyte vs. byte semantics, `Str::indexOf` returning `-1` (not `false`), `Str::join` filtering blanks (≠ `implode`), and natives with no equivalent. Apply per file and re-run `composer test` + `composer phpstan` after each.
 
 ### Deferred
 

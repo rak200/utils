@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-05-30
+
+### Added
+
+- **`Filter`** — new tier-2 class for input sanitisation and lenient coercion of untrusted values. Every method is total (none throws). Two groups:
+  - **Sanitisers** (`string → string`): `escapeHtml`/`unescapeHtml` (`htmlspecialchars` with `ENT_QUOTES | ENT_SUBSTITUTE`, UTF-8), `stripTags`, character whitelists `digits`/`alpha`/`alnum` (Unicode-aware), `collapseWhitespace`, `removeControlChars` (`\p{Cc}`), `ascii` (best-effort `iconv` transliteration), and `email`/`url` (`FILTER_SANITIZE_*`).
+  - **Coercers** (`mixed → typed`, with a caller-supplied default): `toString`, `toInt`, `toFloat`, `toBool` (HTML-form semantics — `"on"`/`"yes"`/`"1"` → true). Built for request data, where every value arrives as an untrusted string and a fallback is wanted rather than an exception. Distinct from the strict `Num::parse*` string parsers: `Filter::to*` accept `mixed`, trim, and reuse `Num::parseIntOrNull`/`parseFloatOrNull` internally.
+
+### Changed
+
+- **`Num::parseNumber` / `parseNumberOrNull` now accept scientific notation** (e.g. `1.5e3`, `2e-10`), matching the strings `Num::is()` already reports as numeric — previously `Num::is('1e3')` was `true` but `parseNumberOrNull('1e3')` returned `null`, since `BcMath\Number`'s constructor rejects exponents. Scientific input is expanded to its exact decimal form, so arbitrary precision is preserved (`1.5e-3` → `0.0015`). The guard also switched from raw `is_numeric` to the strict numeric-string check, so it lines up exactly with `Num::is()`. An exponent so large its decimal form is impractical (guarded at 65536 digits) still yields `null` / throws — well-formed but not representable.
+- **`Enum::isBackedInt` / `isBackedStr` narrow the case value** — their `@phpstan-assert-if-true` now also asserts `int $case->value` / `string $case->value`, so PHPStan knows the backing type inside the guarded branch. No runtime change.
+
 ## [1.9.0] - 2026-05-30
 
 ### Added
@@ -193,6 +206,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.10.0]: https://github.com/rak200/utils/compare/1.9.0...1.10.0
 [1.9.0]: https://github.com/rak200/utils/compare/1.8.0...1.9.0
 [1.8.0]: https://github.com/rak200/utils/compare/1.7.0...1.8.0
 [1.7.0]: https://github.com/rak200/utils/compare/1.6.1...1.7.0

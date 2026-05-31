@@ -255,7 +255,31 @@ final class NumTest extends TestCase {
     public function testParseNumberOrNullRejectsNonNumeric(): void {
         $this->assertNull(Num::parseNumberOrNull('abc'));
         $this->assertNull(Num::parseNumberOrNull(''));
-        $this->assertNull(Num::parseNumberOrNull('1e10'));
+        $this->assertNull(Num::parseNumberOrNull('1e'));
+    }
+
+    public function testParseNumberAcceptsScientificNotation(): void {
+        // Scientific notation is expanded to its exact decimal form, matching
+        // the strings Num::is() reports as numeric.
+        $this->assertSame('1500', (string) Num::parseNumber('1.5e3'));
+        $this->assertSame('0.0015', (string) Num::parseNumber('1.5e-3'));
+        $this->assertSame('-250', (string) Num::parseNumber('-2.5E+2'));
+        $this->assertSame('10000000000', (string) Num::parseNumber('1e10'));
+        $this->assertSame('5', (string) Num::parseNumber('.5e1'));
+    }
+
+    public function testParseNumberPreservesPrecisionOnScientificNotation(): void {
+        // No narrowing through float: every digit survives the expansion.
+        $this->assertSame(
+            '12345678901234567890.12345',
+            (string) Num::parseNumber('1.234567890123456789012345e19'),
+        );
+    }
+
+    public function testParseNumberOrNullRejectsExcessiveExponent(): void {
+        // Well-formed per Num::is(), but its decimal form is impractical, so it
+        // cannot be represented as a Number.
+        $this->assertNull(Num::parseNumberOrNull('1e999999999'));
     }
 
     public function testParseNumberOrNullRejectsSurroundingWhitespace(): void {

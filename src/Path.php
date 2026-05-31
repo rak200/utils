@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_pop, array_slice, count, ctype_alpha, end, explode, implode, ltrim, min,
-    preg_match, rtrim, sprintf, str_contains, str_replace, strlen, strrpos, strtoupper, substr;
+use function array_pop, array_slice, count, ctype_alpha, implode, min,
+    preg_match, sprintf, strlen, strrpos, substr;
 
 /**
  * Logical path manipulation — pure string operations that never touch the disk.
@@ -47,14 +47,14 @@ final class Path {
             if ($part === '') {
                 continue;
             }
-            $segments[] = str_replace('\\', '/', $part);
+            $segments[] = Str::replace($part, '\\', '/');
         }
         if ($segments === []) {
             return '';
         }
         $joined = $segments[0];
         for ($i = 1, $n = count($segments); $i < $n; $i++) {
-            $joined = rtrim($joined, '/') . '/' . ltrim($segments[$i], '/');
+            $joined = Str::trimEnd($joined, '/') . '/' . Str::trimStart($segments[$i], '/');
         }
         return self::normalize($joined);
     }
@@ -68,23 +68,23 @@ final class Path {
         if ($path === '') {
             return '';
         }
-        $unified = str_replace('\\', '/', $path);
+        $unified = Str::replace($path, '\\', '/');
 
         $drive = '';
         if (preg_match('#^([a-zA-Z]):#', $unified, $matches) === 1) {
-            $drive = strtoupper($matches[1]) . ':';
+            $drive = Str::upper($matches[1]) . ':';
             $unified = substr($unified, 2);
         }
 
         $isAbsolute = $unified !== '' && $unified[0] === '/';
-        $segments = explode('/', $unified);
+        $segments = Str::split($unified, '/');
         $stack = [];
         foreach ($segments as $segment) {
             if ($segment === '' || $segment === '.') {
                 continue;
             }
             if ($segment === '..') {
-                if ($stack !== [] && end($stack) !== '..') {
+                if ($stack !== [] && Arr::last($stack) !== '..') {
                     array_pop($stack);
                 } elseif (!$isAbsolute && $drive === '') {
                     $stack[] = '..';
@@ -153,8 +153,8 @@ final class Path {
      * separator), optionally stripping the given $suffix.
      */
     public static function basename(string $path, string $suffix = ''): string {
-        $unified = str_replace('\\', '/', $path);
-        $unified = rtrim($unified, '/');
+        $unified = Str::replace($path, '\\', '/');
+        $unified = Str::trimEnd($unified, '/');
         if ($unified === '') {
             return '';
         }
@@ -177,13 +177,13 @@ final class Path {
         if ($path === '') {
             return '.';
         }
-        $unified = str_replace('\\', '/', $path);
+        $unified = Str::replace($path, '\\', '/');
         $drive = '';
         if (preg_match('#^([a-zA-Z]):#', $unified, $matches) === 1) {
-            $drive = strtoupper($matches[1]) . ':';
+            $drive = Str::upper($matches[1]) . ':';
             $unified = substr($unified, 2);
         }
-        $trimmed = rtrim($unified, '/');
+        $trimmed = Str::trimEnd($unified, '/');
         $pos = strrpos($trimmed, '/');
         if ($pos === false) {
             return $drive !== '' ? ($unified !== '' && $unified[0] === '/' ? $drive . '/' : $drive) : '.';
@@ -232,7 +232,7 @@ final class Path {
      */
     private static function driveOf(string $path): string {
         if (strlen($path) >= 2 && $path[1] === ':' && ctype_alpha($path[0])) {
-            return strtoupper($path[0]) . ':';
+            return Str::upper($path[0]) . ':';
         }
         return '';
     }
@@ -247,12 +247,12 @@ final class Path {
         if ($body === '' || $body === '/' || $body === '.') {
             return [];
         }
-        $body = ltrim($body, '/');
-        if (!str_contains($body, '/')) {
+        $body = Str::trimStart($body, '/');
+        if (!Str::contains($body, '/')) {
             return [$body];
         }
         $parts = [];
-        foreach (explode('/', $body) as $segment) {
+        foreach (Str::split($body, '/') as $segment) {
             if ($segment !== '') {
                 $parts[] = $segment;
             }

@@ -83,7 +83,7 @@ final class Filter {
      * the ends.
      */
     public static function collapseWhitespace(string $value): string {
-        return trim(preg_replace('/\s+/u', ' ', $value) ?? '');
+        return Str::trim(preg_replace('/\s+/u', ' ', $value) ?? '');
     }
 
     /**
@@ -134,10 +134,10 @@ final class Filter {
      * `false → ""`.
      */
     public static function toString(mixed $value, ?string $default = null): ?string {
-        if (is_string($value)) {
+        if (Str::is($value)) {
             return $value;
         }
-        if (is_int($value) || is_float($value) || is_bool($value) || $value instanceof Stringable) {
+        if (Num::isInt($value) || Num::isFloat($value) || Type::isBool($value) || Type::isA($value, Stringable::class)) {
             return (string) $value;
         }
         return $default;
@@ -151,13 +151,13 @@ final class Filter {
      * yields $default.
      */
     public static function toInt(mixed $value, ?int $default = null): ?int {
-        if (is_int($value)) {
+        if (Num::isInt($value)) {
             return $value;
         }
-        if (is_string($value)) {
+        if (Str::is($value)) {
             return Num::parseIntOrNull(Str::trim($value)) ?? $default;
         }
-        if (is_float($value) && is_finite($value) && floor($value) === $value) {
+        if (Num::isFloat($value) && is_finite($value) && floor($value) === $value) {
             return (int) $value;
         }
         return $default;
@@ -169,10 +169,10 @@ final class Filter {
      * $default.
      */
     public static function toFloat(mixed $value, ?float $default = null): ?float {
-        if (is_int($value) || is_float($value)) {
+        if (Num::isInt($value) || Num::isFloat($value)) {
             return (float) $value;
         }
-        if (is_string($value)) {
+        if (Str::is($value)) {
             return Num::parseFloatOrNull(Str::trim($value)) ?? $default;
         }
         return $default;
@@ -185,17 +185,17 @@ final class Filter {
      * `""` are false. Anything else yields $default.
      */
     public static function toBool(mixed $value, ?bool $default = null): ?bool {
-        if (is_bool($value)) {
+        if (Type::isBool($value)) {
             return $value;
         }
-        if (is_int($value)) {
+        if (Num::isInt($value)) {
             return match ($value) {
                 1 => true,
                 0 => false,
                 default => $default,
             };
         }
-        if (is_string($value)) {
+        if (Str::is($value)) {
             return match (Str::lower(Str::trim($value))) {
                 '1', 'true', 'on', 'yes' => true,
                 '0', 'false', 'off', 'no', '' => false,

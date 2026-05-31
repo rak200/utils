@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_is_list, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, is_int, is_string, max, sprintf, usort;
+use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_is_list, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, max, usort;
 
 /**
  * Array helpers.
@@ -404,18 +404,18 @@ final class Arr {
      */
     public static function keyBy(array $array, int|string|callable $key): array {
         $result = [];
-        $isCallable = !is_int($key) && !is_string($key);
+        $isCallable = !Num::isInt($key) && !Str::is($key);
         foreach ($array as $item) {
             if ($isCallable) {
                 /** @var callable(T): (int|string) $key */
                 $k = $key($item);
             } else {
                 if (!is_array($item) || !array_key_exists($key, $item)) {
-                    throw new RuntimeException(sprintf('Item missing key "%s".', (string) $key));
+                    throw new RuntimeException("Item missing key \"$key\"");
                 }
                 $k = $item[$key];
             }
-            if (!is_int($k) && !is_string($k)) {
+            if (!Num::isInt($k) && !Str::is($k)) {
                 throw new RuntimeException('Resolved key must be an int or string.');
             }
             $result[$k] = $item;

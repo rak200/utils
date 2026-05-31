@@ -20,16 +20,19 @@ use Rak200\Utils\Str;
 - [`startsWith` / `endsWith`](#startswith--endswith)
 - [`indexOf` / `lastIndexOf`](#indexof--lastindexof)
 - [`count`](#count)
+- [`span`](#span)
 - [`trim` / `trimStart` / `trimEnd`](#trim--trimstart--trimend)
 - [`substring`](#substring)
 - [`replace`](#replace)
 - [`replaceFirst` / `replaceLast`](#replacefirst--replacelast)
+- [`translate`](#translate)
 - [`split`](#split)
 - [`join`](#join)
 - [`wrap`](#wrap)
 - [`padStart` / `padEnd`](#padstart--padend)
 - [`repeat`](#repeat)
 - [`reverse`](#reverse)
+- [`ord` / `chr`](#ord--chr)
 - [`truncate`](#truncate)
 - [`slug`](#slug)
 - [`toCamel` / `toPascal` / `toSnake` / `toKebab`](#tocamel--topascal--tosnake--tokebab)
@@ -166,14 +169,16 @@ Str::endsWith('file.tar.gz', '.gz');       // true
 
 ## `indexOf` / `lastIndexOf`
 
-0-based character index of the first/last occurrence of `$needle` (multibyte-aware), or `-1` when not found. An empty needle returns `-1` (no meaningful position).
+0-based character index of the first/last occurrence of `$needle` (multibyte-aware), or `-1` when not found. An empty needle returns `-1` (no meaningful position). Both accept an `$offset` to bound the search and an `$ignoreCase` flag for case-insensitive matching.
 
 ```php
-Str::indexOf('hello world', 'world');     // 6
-Str::indexOf('hello', 'xyz');             // -1
-Str::indexOf('ação válida', 'á', 2);      // 7
-Str::lastIndexOf('abcabc', 'c');          // 5
-Str::lastIndexOf('abc', 'z');             // -1
+Str::indexOf('hello world', 'world');            // 6
+Str::indexOf('hello', 'xyz');                    // -1
+Str::indexOf('ação válida', 'á', 2);             // 7
+Str::indexOf('Hello', 'h', 0, true);             // 0   (case-insensitive)
+Str::lastIndexOf('abcabc', 'c');                 // 5
+Str::lastIndexOf('abc', 'z');                    // -1
+Str::lastIndexOf('Hello Hello', 'h', 0, true);   // 6   (case-insensitive)
 ```
 
 [↑ Back to top](#str)
@@ -188,6 +193,21 @@ Number of non-overlapping occurrences of `$needle` in `$haystack` (byte-level vi
 Str::count('abcabcabc', 'a');       // 3
 Str::count('aaaa', 'aa');           // 2   (non-overlapping)
 Str::count('abc', 'z');             // 0
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `span`
+
+Length of the initial run of `$value` made up only of characters in `$chars`, optionally within the window starting at byte offset `$start` for `$length` bytes (byte-level, via `strspn`). Equals [`length`](#length) exactly when every character of `$value` is in `$chars` — handy for "does this contain only these characters?" checks.
+
+```php
+Str::span('hello', 'helo');      // 5   (every char is in the set)
+Str::span('aaabbb', 'a');        // 3   (leading run only)
+Str::span('01x1', '01');         // 2   (stops at the first char outside the set)
+Str::span('xx0011', '01', 2);    // 4   ($start offsets into the string)
 ```
 
 [↑ Back to top](#str)
@@ -244,6 +264,20 @@ Replace only the first/last occurrence. Returns the subject unchanged when `$sea
 Str::replaceFirst('foo-foo-foo', 'foo', 'xyz');   // 'xyz-foo-foo'
 Str::replaceLast('foo-foo-foo', 'foo', 'xyz');    // 'foo-foo-xyz'
 Str::replaceFirst('hello', 'x', 'y');             // 'hello'  (not found)
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `translate`
+
+Replace characters by position: each character in `$from` maps to the character at the same position in `$to` (multibyte-aware, single pass — characters introduced by the replacement are not re-translated). Throws when `$from` and `$to` differ in character length.
+
+```php
+Str::translate('hello', 'el', 'ip');         // 'hippo'
+Str::translate('ab', 'ab', 'bc');            // 'bc'   (single pass; chaining would give 'cc')
+Str::translate('áéíóú', 'áéíóú', 'aeiou');   // 'aeiou'
 ```
 
 [↑ Back to top](#str)
@@ -326,6 +360,21 @@ Multibyte-aware reverse.
 ```php
 Str::reverse('hello');    // 'olleh'
 Str::reverse('ação');     // 'oãça'
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `ord` / `chr`
+
+Convert between a character and its Unicode code point (multibyte-aware). `ord` returns the code point of the first character and throws on an empty string or invalid UTF-8; `chr` returns the character for a code point and throws when it is outside `0`–`0x10FFFF`.
+
+```php
+Str::ord('A');        // 65
+Str::ord('€');        // 8364
+Str::chr(65);         // 'A'
+Str::chr(0x1F600);    // '😀'
 ```
 
 [↑ Back to top](#str)

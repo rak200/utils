@@ -17,6 +17,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`is`](#is)
 - [`isInt` / `isFloat`](#isint--isfloat)
 - [`isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`](#ispositiveint--isnegativeint--isnonnegativeint)
+- [`isFinite`](#isfinite)
 - [`parseInt` / `parseIntOrNull`](#parseint--parseintornull)
 - [`parseFloat` / `parseFloatOrNull`](#parsefloat--parsefloatornull)
 - [`parseNumber` / `parseNumberOrNull`](#parsenumber--parsenumberornull)
@@ -33,6 +34,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`sqrt`](#sqrt)
 - [`floor` / `ceil`](#floor--ceil)
 - [`mod`](#mod)
+- [`intDiv`](#intdiv)
 
 ---
 
@@ -91,6 +93,24 @@ Num::isNegativeInt(0);          // false
 Num::isNonNegativeInt(0);       // true
 Num::isNonNegativeInt(7);       // true
 Num::isNonNegativeInt(-1);      // false
+```
+
+[↑ Back to top](#num)
+
+---
+
+## `isFinite`
+
+True for a finite number — an int, a `BcMath\Number`, a finite float, or a numeric string whose float value is finite. `INF`, `-INF`, `NAN`, overflowing numeric strings, and non-numeric values are false. Accepts `mixed`, so it works as a guard.
+
+```php
+Num::isFinite(42);          // true
+Num::isFinite(3.14);        // true
+Num::isFinite('2.5');       // true
+Num::isFinite(INF);         // false
+Num::isFinite(NAN);         // false
+Num::isFinite('1e400');     // false  (overflows to INF)
+Num::isFinite('abc');       // false
 ```
 
 [↑ Back to top](#num)
@@ -333,6 +353,21 @@ Num::mod(7, 3);                                           // 1
 Num::mod(-7, 3);                                          // -1   (sign follows -7)
 Num::mod(2.5, 1.0);                                       // 0.5
 Num::mod(new Number('-7'), new Number('3'));              // BcMath\Number('-1')
+```
+
+[↑ Back to top](#num)
+
+---
+
+## `intDiv`
+
+Integer division, truncated toward zero (matching PHP's `intdiv()`). The companion to [`mod`](#mod). Throws when the divisor is zero.
+
+```php
+Num::intDiv(7, 2);       // 3
+Num::intDiv(-7, 2);      // -3   (truncates toward zero)
+Num::intDiv(7, -2);      // -3
+Num::intDiv(1, 0);       // throws RuntimeException
 ```
 
 [↑ Back to top](#num)

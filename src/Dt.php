@@ -9,7 +9,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Exception;
 use RuntimeException;
-use function intdiv, sprintf;
+use function sprintf;
 
 /**
  * Date/time helpers built on {@see DateTimeImmutable}. Inputs accept any
@@ -108,7 +108,7 @@ final class Dt {
      * @throws RuntimeException When the timestamp cannot be represented.
      */
     public static function fromEpochMs(int $milliseconds, ?DateTimeZone $tz = null): DateTimeImmutable {
-        $seconds = intdiv($milliseconds, 1000);
+        $seconds = Num::intDiv($milliseconds, 1000);
         $remainder = $milliseconds % 1000;
         if ($remainder < 0) {
             $remainder += 1000;

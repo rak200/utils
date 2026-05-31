@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function sprintf;
+use function bindec, decbin;
 
 /**
  * Bit-manipulation helpers operating on the native PHP int (platform-sized,
@@ -104,11 +104,38 @@ final class Bit {
     }
 
     /**
+     * Returns the base-2 string representation of $value. Negative values use the
+     * platform two's-complement form (PHP_INT_SIZE*8 bits). When $width is given,
+     * the result is left-padded with '0' to at least $width characters.
+     */
+    public static function toStr(int $value, int $width = 0): string {
+        $bits = decbin($value);
+        return $width > 0 ? Str::padStart($bits, $width, '0') : $bits;
+    }
+
+    /**
+     * Returns the integer value of the base-2 string $bits.
+     *
+     * @throws RuntimeException When $bits is empty, contains characters other than
+     *                          '0'/'1', or denotes a value larger than PHP_INT_MAX.
+     */
+    public static function fromStr(string $bits): int {
+        if ($bits === '' || Str::span($bits, '01') !== Str::length($bits)) {
+            throw new RuntimeException('Invalid binary string.');
+        }
+        $value = bindec($bits);
+        if (!Num::isInt($value)) {
+            throw new RuntimeException('Binary string exceeds the integer range.');
+        }
+        return $value;
+    }
+
+    /**
      * Throws when $bit is outside the valid range [0, PHP_INT_SIZE*8 - 1].
      */
     private static function checkBitIndex(int $bit): void {
         if ($bit < 0 || $bit >= self::BITS) {
-            throw new RuntimeException(sprintf('Bit index must be between 0 and %d.', self::BITS - 1));
+            throw new RuntimeException('Bit index must be between 0 and ' . (self::BITS - 1) . '.');
         }
     }
 }

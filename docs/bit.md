@@ -13,6 +13,7 @@ use Rak200\Utils\Bit;
 - [`set` / `unset` / `toggle` / `has`](#set--unset--toggle--has)
 - [`count`](#count)
 - [`leadingZeros` / `trailingZeros`](#leadingzeros--trailingzeros)
+- [`toStr` / `fromStr`](#tostr--fromstr)
 
 ---
 
@@ -60,6 +61,25 @@ Bit::leadingZeros(0);          // 64 on a 64-bit build
 Bit::trailingZeros(1);         // 0
 Bit::trailingZeros(8);         // 3       (1000 has 3 trailing zeros)
 Bit::trailingZeros(0);         // 64 on a 64-bit build
+```
+
+[↑ Back to top](#bit)
+
+---
+
+## `toStr` / `fromStr`
+
+Convert between an `int` and its base-2 string. `toStr` optionally left-pads to a fixed `$width`; negative values use the platform two's-complement form (`PHP_INT_SIZE * 8` bits). `fromStr` reads an **unsigned** binary string and throws on empty/invalid input or a value beyond `PHP_INT_MAX`.
+
+```php
+Bit::toStr(5);             // '101'
+Bit::toStr(5, 8);          // '00000101'  (left-padded to 8)
+Bit::toStr(-1);            // '111…1'     (64 ones on a 64-bit build)
+
+Bit::fromStr('101');       // 5
+Bit::fromStr('00000101');  // 5
+Bit::fromStr('102');       // throws RuntimeException (not binary)
+Bit::fromStr('');          // throws RuntimeException (empty)
 ```
 
 [↑ Back to top](#bit)

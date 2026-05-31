@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_filter, array_map, array_pop, array_reverse, array_values, count, ctype_space,
-    explode, function_exists, iconv, implode, is_string, ltrim, max, mb_str_pad, mb_str_split,
-    mb_strlen, mb_strpos, mb_strrpos, mb_strtolower, mb_strtoupper, mb_substr, preg_replace,
-    preg_split, rtrim, str_contains, str_ends_with, str_repeat, str_replace, str_starts_with,
-    strlen, strpos, strrpos, strtolower, substr_count, substr_replace, trim;
+use function array_combine, array_filter, array_map, array_pop, array_reverse, array_values,
+    count, ctype_space, explode, function_exists, iconv, implode, is_string, ltrim, max,
+    mb_check_encoding, mb_chr, mb_ord, mb_str_pad, mb_str_split, mb_stripos, mb_strlen, mb_strpos,
+    mb_strripos, mb_strrpos,
+    mb_strtolower, mb_strtoupper, mb_substr, preg_replace, preg_split, rtrim, str_contains,
+    str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos, strrpos, strspn, strtolower,
+    strtr, substr_count, substr_replace, trim;
 
 /**
  * Multibyte-safe string helpers.
@@ -79,6 +81,17 @@ final class Str {
      */
     public static function length(string $value): int {
         return mb_strlen($value);
+    }
+
+    /**
+     * Returns the length of the initial segment of $value consisting only of
+     * characters present in $chars — optionally limited to the window starting
+     * at byte offset $start and spanning $length bytes. Byte-level (via
+     * {@see strspn}); equals {@see length()} exactly when every character of
+     * $value is in $chars.
+     */
+    public static function span(string $value, string $chars, int $start = 0, ?int $length = null): int {
+        return strspn($value, $chars, $start, $length);
     }
 
     /**
@@ -195,6 +208,25 @@ final class Str {
     }
 
     /**
+     * Translates characters in $value: each character of $from is replaced with
+     * the character at the same position in $to. Multibyte-aware and applied in a
+     * single pass — characters introduced by the replacement are not re-translated.
+     *
+     * @throws RuntimeException When $from and $to differ in character length.
+     */
+    public static function translate(string $value, string $from, string $to): string {
+        $fromChars = mb_str_split($from);
+        $toChars = mb_str_split($to);
+        if (count($fromChars) !== count($toChars)) {
+            throw new RuntimeException('Translation strings must have the same length.');
+        }
+        if ($fromChars === []) {
+            return $value;
+        }
+        return strtr($value, array_combine($fromChars, $toChars));
+    }
+
+    /**
      * Returns the multibyte-safe substring of $value starting at character
      * index $start. When $length is null, takes the rest of the string.
      */
@@ -204,25 +236,33 @@ final class Str {
 
     /**
      * Returns the 0-based character index of the first occurrence of $needle
-     * in $haystack starting at $offset, or -1 when not found.
+     * in $haystack starting at $offset, or -1 when not found. Pass
+     * $ignoreCase = true for a case-insensitive search.
      */
-    public static function indexOf(string $haystack, string $needle, int $offset = 0): int {
+    public static function indexOf(string $haystack, string $needle, int $offset = 0, bool $ignoreCase = false): int {
         if ($needle === '') {
             return -1;
         }
-        $pos = mb_strpos($haystack, $needle, $offset);
+        $pos = $ignoreCase
+            ? mb_stripos($haystack, $needle, $offset)
+            : mb_strpos($haystack, $needle, $offset);
         return $pos === false ? -1 : $pos;
     }
 
     /**
      * Returns the 0-based character index of the last occurrence of $needle
-     * in $haystack, or -1 when not found.
+     * in $haystack, or -1 when not found. $offset bounds the search the same
+     * way as {@see mb_strrpos} (positive starts that many characters in;
+     * negative stops that many characters before the end). Pass
+     * $ignoreCase = true for a case-insensitive search.
      */
-    public static function lastIndexOf(string $haystack, string $needle): int {
+    public static function lastIndexOf(string $haystack, string $needle, int $offset = 0, bool $ignoreCase = false): int {
         if ($needle === '') {
             return -1;
         }
-        $pos = mb_strrpos($haystack, $needle);
+        $pos = $ignoreCase
+            ? mb_strripos($haystack, $needle, $offset)
+            : mb_strrpos($haystack, $needle, $offset);
         return $pos === false ? -1 : $pos;
     }
 
@@ -270,7 +310,7 @@ final class Str {
         }
         $value = strtolower($value);
         $value = preg_replace('/[^a-z0-9]+/', $separator, $value) ?? '';
-        return trim($value, $separator);
+        return Str::trim($value, $separator);
     }
 
     /**
@@ -369,6 +409,33 @@ final class Str {
      */
     public static function reverse(string $value): string {
         return implode('', array_reverse(mb_str_split($value)));
+    }
+
+    /**
+     * Returns the Unicode code point of the first character of $value.
+     *
+     * @throws RuntimeException When $value is empty or not valid UTF-8.
+     */
+    public static function ord(string $value): int {
+        if ($value === '') {
+            throw new RuntimeException('Cannot take the code point of an empty string.');
+        }
+        if (!mb_check_encoding($value, 'UTF-8')) {
+            throw new RuntimeException('Invalid UTF-8 sequence.');
+        }
+        return mb_ord($value);
+    }
+
+    /**
+     * Returns the character for the given Unicode $codepoint (0 to 0x10FFFF).
+     *
+     * @throws RuntimeException When $codepoint is outside the valid Unicode range.
+     */
+    public static function chr(int $codepoint): string {
+        if ($codepoint < 0 || $codepoint > 0x10FFFF) {
+            throw new RuntimeException("Invalid code point: $codepoint.");
+        }
+        return mb_chr($codepoint);
     }
 
     /**

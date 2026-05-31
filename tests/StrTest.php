@@ -251,4 +251,87 @@ final class StrTest extends TestCase {
         $this->assertSame('foo_bar', Str::slug('Foo  Bar', '_'));
         $this->assertSame('', Str::slug('   '));
     }
+
+    public function testIndexOfWithIgnoreCase(): void {
+        $this->assertSame(0, Str::indexOf('Hello', 'h', 0, true));
+        $this->assertSame(2, Str::indexOf('Hello', 'L', 0, true));
+        $this->assertSame(6, Str::indexOf('Héllo Héllo', 'héllo', 1, true));
+        $this->assertSame(-1, Str::indexOf('Hello', 'h'));          // case-sensitive: no match
+        $this->assertSame(-1, Str::indexOf('Hello', 'x', 0, true));
+    }
+
+    public function testLastIndexOfWithOffsetAndIgnoreCase(): void {
+        $this->assertSame(6, Str::lastIndexOf('Hello Hello', 'h', 0, true));
+        $this->assertSame(3, Str::lastIndexOf('Hello', 'L', 0, true));
+        $this->assertSame(-1, Str::lastIndexOf('Hello', 'h'));      // case-sensitive: no match
+        $this->assertSame(3, Str::lastIndexOf('abcabc', 'a', 1));   // offset limits the region searched
+        $this->assertSame(-1, Str::lastIndexOf('abcabc', 'a', 4));
+    }
+
+    public function testOrd(): void {
+        $this->assertSame(65, Str::ord('A'));
+        $this->assertSame(97, Str::ord('abc'));
+        $this->assertSame(0x20AC, Str::ord('€'));
+        $this->assertSame(0x1F600, Str::ord('😀'));
+    }
+
+    public function testOrdRejectsEmptyString(): void {
+        $this->expectException(RuntimeException::class);
+        Str::ord('');
+    }
+
+    public function testOrdRejectsInvalidUtf8(): void {
+        $this->expectException(RuntimeException::class);
+        Str::ord("\xFF");
+    }
+
+    public function testChr(): void {
+        $this->assertSame('A', Str::chr(65));
+        $this->assertSame('€', Str::chr(0x20AC));
+        $this->assertSame('😀', Str::chr(0x1F600));
+    }
+
+    public function testChrRejectsNegativeCodePoint(): void {
+        $this->expectException(RuntimeException::class);
+        Str::chr(-1);
+    }
+
+    public function testChrRejectsCodePointAboveMax(): void {
+        $this->expectException(RuntimeException::class);
+        Str::chr(0x110000);
+    }
+
+    public function testOrdChrRoundTrip(): void {
+        foreach (['A', 'z', '€', '😀', 'ç'] as $char) {
+            $this->assertSame($char, Str::chr(Str::ord($char)));
+        }
+    }
+
+    public function testTranslate(): void {
+        $this->assertSame('hippo', Str::translate('hello', 'el', 'ip'));
+        $this->assertSame('h3ll0', Str::translate('hello', 'eo', '30'));
+        $this->assertSame('abc', Str::translate('abc', '', ''));
+    }
+
+    public function testTranslateIsMultibyte(): void {
+        $this->assertSame('aeiou', Str::translate('áéíóú', 'áéíóú', 'aeiou'));
+    }
+
+    public function testTranslateIsSinglePass(): void {
+        $this->assertSame('bc', Str::translate('ab', 'ab', 'bc'));
+    }
+
+    public function testTranslateRejectsLengthMismatch(): void {
+        $this->expectException(RuntimeException::class);
+        Str::translate('hello', 'el', 'x');
+    }
+
+    public function testSpan(): void {
+        $this->assertSame(5, Str::span('hello', 'helo'));    // every char is in the set
+        $this->assertSame(3, Str::span('aaabbb', 'a'));      // leading run only
+        $this->assertSame(0, Str::span('xabc', 'abc'));      // first char not in set
+        $this->assertSame(2, Str::span('01x1', '01'));       // stops at the first char outside the set
+        $this->assertSame(4, Str::span('xx0011', '01', 2));  // $start offsets into the string
+        $this->assertSame(2, Str::span('0011', '01', 0, 2)); // $length bounds the window
+    }
 }

@@ -59,4 +59,38 @@ final class BitTest extends TestCase {
         $this->expectException(RuntimeException::class);
         Bit::set(0, PHP_INT_SIZE * 8);
     }
+
+    public function testToStr(): void {
+        $this->assertSame('0', Bit::toStr(0));
+        $this->assertSame('101', Bit::toStr(5));
+        $this->assertSame('00000101', Bit::toStr(5, 8));
+        $this->assertSame('101', Bit::toStr(5, 2));
+    }
+
+    public function testToStrNegativeIsTwosComplement(): void {
+        $this->assertSame(PHP_INT_SIZE * 8, strlen(Bit::toStr(-1)));
+        $this->assertSame(str_repeat('1', PHP_INT_SIZE * 8), Bit::toStr(-1));
+    }
+
+    public function testFromStr(): void {
+        $this->assertSame(0, Bit::fromStr('0'));
+        $this->assertSame(5, Bit::fromStr('101'));
+        $this->assertSame(5, Bit::fromStr('00000101'));
+    }
+
+    public function testFromStrRejectsInvalidChars(): void {
+        $this->expectException(RuntimeException::class);
+        Bit::fromStr('102');
+    }
+
+    public function testFromStrRejectsEmpty(): void {
+        $this->expectException(RuntimeException::class);
+        Bit::fromStr('');
+    }
+
+    public function testToFromStrRoundTrip(): void {
+        foreach ([0, 1, 5, 255, 1024, PHP_INT_MAX] as $value) {
+            $this->assertSame($value, Bit::fromStr(Bit::toStr($value)));
+        }
+    }
 }

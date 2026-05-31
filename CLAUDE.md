@@ -75,10 +75,47 @@ When releasing a new version:
 
 Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
-### Next release
+> The prefer-lib-over-native sweep shipped in 1.11.0 (conservative pass over `Num`, `Base64`, `Path`, `Filter`, `Str::slug`, `Dt`). Deliberately byte-level natives were retained — the `substr_replace`-based `Str::replaceFirst`/`replaceLast`, `Path` drive/segment slicing, and `Rand` cryptographic byte operations — per the *Conventions* caveat (keep the native when the wrapper would break the method's contract).
 
-- **Prefer-lib-over-native sweep** — apply the "prefer the library's own helpers over native functions" convention (see *Conventions*) to the **pre-existing** code, where the semantics match exactly: e.g. `Num::formatNumber` / `Num::parseIntOrNull` (`substr`, `explode`, `str_contains`, `str_split`) and the other classes. New code already follows the convention; this is the migration of older code. Mind the caveats — multibyte vs. byte semantics, `Str::indexOf` returning `-1` (not `false`), `Str::join` filtering blanks (≠ `implode`), and natives with no equivalent. Apply per file and re-run `composer test` + `composer phpstan` after each.
+### Native-function gaps (candidate helpers)
+
+Prefer-lib-over-native is ongoing — these native functions still lack a lib equivalent and fit the pure, static API. Method names are proposals (alternatives in the *Notes*).
+
+| Class | Proposed method | Native PHP | Notes |
+|---|---|---|---|
+| `Str` | `title` | `ucwords` / `mb_convert_case` | Title-case (capitalize each word) |
+| `Str` | `replaceAt(value, start, length, repl)` | `substr_replace` | today internal-only |
+| `Str` | `replace` + `$ignoreCase` flag | `str_ireplace` | case-insensitive replace |
+| `Str` | `before` / `after` | `strstr` / `strrchr` | slice around a delimiter |
+| `Str` | `wordWrap` | `wordwrap` | wrap to a column width |
+| `Str` | `wordCount` | `str_word_count` | count words |
+| `Str` | `format(template, ...args)` | `sprintf` / `vsprintf` | printf-style formatting |
+| `Str` | `isDigits` / `isAlpha` / `isAlnum` | `ctype_*` | predicates (≠ the `Filter` sanitizers) |
+| `Str` | `levenshtein` / `similarity` | `levenshtein` / `similar_text` | lower priority |
+| `Arr` | `reverse` | `array_reverse` | |
+| `Arr` | `slice` | `array_slice` | |
+| `Arr` | `flip` | `array_flip` | |
+| `Arr` | `combine` | `array_combine` | already used internally by `Str::translate` |
+| `Arr` | `diff` / `intersect` | `array_diff` / `array_intersect` | by value (≠ key-based `pick`/`except`) |
+| `Arr` | `search` (a.k.a. `keyOf`) | `array_search` | key of first matching value (≠ predicate-based `find`) |
+| `Arr` | `countValues` | `array_count_values` | frequency map |
+| `Arr` | `count` | `count` | only `isEmpty`/`isNotEmpty` today |
+| `Arr` | `append` / `prepend` | `array_push` / `array_unshift` | immutable (return a new array) |
+| `Arr` | `firstKey` / `lastKey` | `array_key_first` / `array_key_last` | `first`/`last` return the value |
+| `Arr` | `sortKeys` | `ksort` / `krsort` | `sort`/`sortBy` order by value |
+| `Arr` | `fill` | `array_fill` / `array_fill_keys` | |
+| `Num` | `isNan` / `isInfinite` | `is_nan` / `is_infinite` | complement `isFinite` |
+| `Num` | `product` | `array_product` | companion to `sum` |
+| `Num` | `toBase(int, base)` | `base_convert` / `dechex` / `decoct` | inverse of `parseInt($s, $base)` |
+| `Num` | `gcd` / `lcm` | — (no native) | pure helpers |
+| `Str` (or `Hex`) | `toHex` / `fromHex` | `bin2hex` / `hex2bin` | main encoding gap, analogous to `Base64` |
+| `Regex` | `grep` | `preg_grep` | filter an array by pattern |
+| `Bit` | `rotateLeft` / `rotateRight` | — (no native) | bit-topic |
+| `Dt` | `isValidDate` | `checkdate` | |
+| `File` | `realpath` / `touch` / CSV | `realpath` / `touch` / `fgetcsv` / `fputcsv` | more specialised |
 
 ### Deferred
 
-- **`Math`** — only worth splitting out if trigonometry, logarithms, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic.
+- **`Math`** — only worth splitting out if trigonometry, logarithms, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad` and similar belong here, **not** in `Num`.
+- **Mutable / pointer / in-place natives** — `array_pop` / `array_shift` / `array_splice`, in-place `sort`, `end` / `reset` / `next` / `current`, `settype` — break the pure / immutable contract; intentionally left unwrapped.
+- **Global / impure / low-level** — `setlocale`, `ini_*`, raw stream / resource handling — out of scope for a pure helper library.

@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-05-31
+
+### Added
+
+- **`Str::ord` / `Str::chr`** — convert between a character and its Unicode code point (multibyte-aware). `ord` throws on an empty string or invalid UTF-8; `chr` throws outside `0`–`0x10FFFF`.
+- **`Str::translate(string, string $from, string $to)`** — replace characters by position from a `$from`→`$to` map (multibyte-aware, single-pass); throws when the two strings differ in length.
+- **`Str::span(string, string $chars, int $start = 0, ?int $length = null): int`** — length of the leading run of the string made up only of characters in `$chars` (byte-level, via `strspn`); equals the string length exactly when every character is in the set.
+- **`Num::intDiv(int, int): int`** — integer division truncated toward zero, the companion to `Num::mod`; throws on a zero divisor.
+- **`Num::isFinite(mixed): bool`** — true for a finite number (int, `Number`, finite float, or a numeric string whose float value is finite); `INF`, `-INF`, `NAN`, overflowing numeric strings, and non-numbers are false.
+- **`Bit::toStr(int, int $width = 0): string` / `Bit::fromStr(string): int`** — convert between an `int` and its base-2 string, with optional left-padding to a fixed width. `fromStr` reads an unsigned binary string and throws on empty/invalid input or a value beyond `PHP_INT_MAX`.
+
+### Changed
+
+- **`Str::indexOf` / `Str::lastIndexOf` gained an `$ignoreCase` flag** for case-insensitive search; `lastIndexOf` also gained an `$offset` to bound the search. Backward-compatible optional parameters.
+- **Prefer-lib-over-native sweep (internal; no behaviour change).** Pre-existing code now uses the library's own helpers instead of raw natives where the semantics match exactly: `Num::formatNumber` / `parseIntOrNull` (`substr` / `explode` / `str_pad` / `str_starts_with` / `str_contains` / `str_split` → `Str::*`), `Num::expandScientific` (`stripos` → `Str::indexOf(..., ignoreCase: true)`), `Base64` (`str_repeat` / `rtrim` → `Str::repeat` / `trimEnd`), `Path` (`str_replace` / `explode` / `ltrim` / `rtrim` / `str_contains` / `strtoupper` / `end` → `Str::*` / `Arr::last`), `Filter::collapseWhitespace` and `Str::slug` (`trim` → `Str::trim`), and `Dt::fromEpochMs` (`intdiv` → `Num::intDiv`). Deliberately byte-level natives are kept as-is — the `substr_replace`-based `Str::replaceFirst` / `replaceLast`, `Path` drive/segment slicing, and `Rand` cryptographic byte operations.
+
 ## [1.10.0] - 2026-05-30
 
 ### Added
@@ -206,6 +222,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.11.0]: https://github.com/rak200/utils/compare/1.10.0...1.11.0
 [1.10.0]: https://github.com/rak200/utils/compare/1.9.0...1.10.0
 [1.9.0]: https://github.com/rak200/utils/compare/1.8.0...1.9.0
 [1.8.0]: https://github.com/rak200/utils/compare/1.7.0...1.8.0

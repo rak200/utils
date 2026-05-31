@@ -38,12 +38,37 @@ final class NumTest extends TestCase {
         $this->assertSame(Num::is($value), Num::isNumeric($value));
     }
 
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isIntProvider(): iterable {
+        yield 'int'         => [5, true];
+        yield 'float'       => [5.0, false];
+        yield 'numeric str' => ['5', false];
+        yield 'padded'      => [' 5 ', false];
+    }
+
+    #[DataProvider('isIntProvider')]
+    public function testIsInt(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Num::isInt($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isFloatProvider(): iterable {
+        yield 'float'       => [5.0, true];
+        yield 'int'         => [5, false];
+        yield 'numeric str' => ['5.0', false];
+        yield 'padded'      => [' 5.0 ', false];
+    }
+
+    #[DataProvider('isFloatProvider')]
+    public function testIsFloat(mixed $value, bool $expected): void {
+        $this->assertSame($expected, Num::isFloat($value));
+    }
+
     public function testTypeChecks(): void {
-        $this->assertTrue(Num::isInt(5));
-        $this->assertFalse(Num::isInt(5.0));
-        $this->assertFalse(Num::isInt('5'));
-        $this->assertTrue(Num::isFloat(5.0));
-        $this->assertFalse(Num::isFloat(5));
         $this->assertTrue(Num::isNumeric(5));
         $this->assertTrue(Num::isNumeric(5.5));
         $this->assertTrue(Num::isNumeric('5.5'));
@@ -52,9 +77,7 @@ final class NumTest extends TestCase {
 
     public function testTypeChecksRejectSurroundingWhitespace(): void {
         // Native is_numeric()/(int) tolerate surrounding whitespace; the Num
-        // predicates are strict and reject it (covered case-by-case below).
-        $this->assertFalse(Num::isInt(' 5 '));
-        $this->assertFalse(Num::isFloat(' 5.0 '));
+        // predicates are strict and reject it (isInt/isFloat covered in their providers).
         $this->assertFalse(Num::isNumeric(' 42 '));
         $this->assertFalse(Num::isNumeric(' 42'));
         $this->assertFalse(Num::isNumeric("42\n"));
@@ -361,5 +384,33 @@ final class NumTest extends TestCase {
             Num::format(new Number('1234.567'), 2, ',', '.'),
         );
         $this->assertSame('-100.00', Num::format(new Number('-100'), 2));
+    }
+
+    public function testIntDiv(): void {
+        $this->assertSame(3, Num::intDiv(7, 2));
+        $this->assertSame(-3, Num::intDiv(-7, 2));
+        $this->assertSame(-3, Num::intDiv(7, -2));
+        $this->assertSame(3, Num::intDiv(-7, -2));
+        $this->assertSame(0, Num::intDiv(1, 2));
+    }
+
+    public function testIntDivByZeroThrows(): void {
+        $this->expectException(RuntimeException::class);
+        Num::intDiv(1, 0);
+    }
+
+    public function testIsFinite(): void {
+        $this->assertTrue(Num::isFinite(42));
+        $this->assertTrue(Num::isFinite(-1));
+        $this->assertTrue(Num::isFinite(3.14));
+        $this->assertTrue(Num::isFinite('2.5'));
+        $this->assertTrue(Num::isFinite(new Number('1.5')));
+        $this->assertFalse(Num::isFinite(INF));
+        $this->assertFalse(Num::isFinite(-INF));
+        $this->assertFalse(Num::isFinite(NAN));
+        $this->assertFalse(Num::isFinite('1e400'));   // overflows to INF
+        $this->assertFalse(Num::isFinite('abc'));
+        $this->assertFalse(Num::isFinite(null));
+        $this->assertFalse(Num::isFinite([]));
     }
 }

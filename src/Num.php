@@ -7,9 +7,8 @@ namespace Rak200\Utils;
 use BcMath\Number;
 use RoundingMode;
 use RuntimeException;
-use function abs, ceil, explode, floor, fmod, implode, is_float, is_int, is_numeric, is_string,
-    number_format, ord, round, sprintf, sqrt, str_contains, str_pad, str_split,
-    str_starts_with, stripos, strrev, substr;
+use function abs, ceil, floor, fmod, implode, intdiv, is_finite, is_float, is_int, is_numeric, is_string,
+    number_format, ord, round, sprintf, sqrt, str_split, strrev;
 
 /**
  * Numeric helpers for parsing, formatting, arithmetic and aggregation.
@@ -28,12 +27,15 @@ final class Num {
      * guarding {@see expandScientific()} against pathological exponents in
      * untrusted input (e.g. `1e999999999`).
      */
-    private const MAX_NUMBER_DIGITS = 65536;
+    private const int MAX_NUMBER_DIGITS = 65536;
 
     private function __construct() {}
 
     /**
      * Returns true if $value is a native PHP int.
+     *
+     * @phpstan-assert-if-true int $value
+     * @phpstan-assert-if-false !int $value
      */
     public static function isInt(mixed $value): bool {
         return is_int($value);
@@ -48,6 +50,9 @@ final class Num {
 
     /**
      * Returns true if $value is a native PHP float.
+     *
+     * @phpstan-assert-if-true float $value
+     * @phpstan-assert-if-false !float $value
      */
     public static function isFloat(mixed $value): bool {
         return is_float($value);
@@ -99,6 +104,25 @@ final class Num {
     }
 
     /**
+     * Returns true if $value is a finite number: an int, a {@see Number}, a
+     * finite float, or a numeric string whose float value is finite. `INF`,
+     * `-INF`, `NAN`, overflowing numeric strings (e.g. `'1e400'`), and
+     * non-numeric values are false.
+     */
+    public static function isFinite(mixed $value): bool {
+        if (!self::is($value)) {
+            return false;
+        }
+        if (is_float($value)) {
+            return is_finite($value);
+        }
+        if (is_string($value)) {
+            return is_finite((float) $value);
+        }
+        return true;
+    }
+
+    /**
      * Parses $value as an integer in the given $base (2-36).
      *
      * @throws RuntimeException When $value is not a valid integer in $base, or $base is out of range.
@@ -127,16 +151,16 @@ final class Num {
         $sign = 1;
         if ($value[0] === '-') {
             $sign = -1;
-            $value = substr($value, 1);
+            $value = Str::substring($value, 1);
         } elseif ($value[0] === '+') {
-            $value = substr($value, 1);
+            $value = Str::substring($value, 1);
         }
         if ($value === '') {
             return null;
         }
 
         $result = 0;
-        foreach (str_split(strtolower($value)) as $char) {
+        foreach (Str::split(Str::lower($value), '') as $char) {
             $digit = match (true) {
                 $char >= '0' && $char <= '9' => ord($char) - ord('0'),
                 $char >= 'a' && $char <= 'z' => 10 + ord($char) - ord('a'),
@@ -458,6 +482,19 @@ final class Num {
     }
 
     /**
+     * Returns the integer quotient of $a divided by $b, truncated toward zero
+     * (matching PHP's {@see intdiv()}).
+     *
+     * @throws RuntimeException When $b is zero.
+     */
+    public static function intDiv(int $a, int $b): int {
+        if ($b === 0) {
+            throw new RuntimeException('Cannot divide by zero.');
+        }
+        return intdiv($a, $b);
+    }
+
+    /**
      * Adds two values, widening to {@see Number} when either operand is one.
      * Centralises the union-arithmetic branching that the type system cannot
      * express in a single expression.
@@ -491,8 +528,8 @@ final class Num {
      * exceed {@see MAX_NUMBER_DIGITS} digits.
      */
     private static function expandScientific(string $value): ?string {
-        $ePos = stripos($value, 'e');
-        if ($ePos === false) {
+        $ePos = Str::indexOf($value, 'e', 0, true);
+        if ($ePos === -1) {
             return $value;
         }
 
@@ -580,24 +617,24 @@ final class Num {
         string $thousandsSeparator,
     ): string {
         $str = (string) $value->round($decimals, RoundingMode::HalfAwayFromZero);
-        $negative = str_starts_with($str, '-');
+        $negative = Str::startsWith($str, '-');
         if ($negative) {
-            $str = substr($str, 1);
+            $str = Str::substring($str, 1);
         }
-        if (str_contains($str, '.')) {
-            [$intPart, $decPart] = explode('.', $str, 2);
+        if (Str::contains($str, '.')) {
+            [$intPart, $decPart] = Str::split($str, '.', 2);
         } else {
             $intPart = $str;
             $decPart = '';
         }
         if ($decimals > 0) {
-            $decPart = str_pad(substr($decPart, 0, $decimals), $decimals, '0');
+            $decPart = Str::padEnd(Str::substring($decPart, 0, $decimals), $decimals, '0');
         } else {
             $decPart = '';
         }
         $intGrouped = $thousandsSeparator === ''
             ? $intPart
-            : strrev(implode($thousandsSeparator, str_split(strrev($intPart), 3)));
+            : strrev(implode($thousandsSeparator, str_split(Str::reverse($intPart), 3)));
         $result = ($negative ? '-' : '') . $intGrouped;
         if ($decimals > 0) {
             $result .= $decimalSeparator . $decPart;

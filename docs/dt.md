@@ -12,6 +12,7 @@ use DateTimeZone;
 ## Contents
 
 - [`is`](#is)
+- [`isValid`](#isvalid)
 - [`now` / `today`](#now--today)
 - [`of`](#of)
 - [`parse` / `parseOrNull`](#parse--parseornull)
@@ -42,6 +43,21 @@ Dt::is(new DateTimeImmutable());   // true
 Dt::is(new DateTime());            // true
 Dt::is('2026-05-23');              // false   (a date string, not a date object)
 Dt::is(null);                      // false
+```
+
+[↑ Back to top](#dt)
+
+---
+
+## `isValid`
+
+True when `$year`-`$month`-`$day` is a valid Gregorian calendar date. Wraps `checkdate` — handy for validating components before building a date with [`of`](#of).
+
+```php
+Dt::isValid(2024, 2, 29);   // true    (leap year)
+Dt::isValid(2025, 2, 29);   // false   (not a leap year)
+Dt::isValid(2026, 4, 31);   // false   (April has 30 days)
+Dt::isValid(2026, 13, 1);   // false   (month out of range)
 ```
 
 [↑ Back to top](#dt)

@@ -6,12 +6,13 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 use function array_combine, array_filter, array_map, array_pop, array_reverse, array_values,
-    count, ctype_space, explode, function_exists, iconv, implode, is_string, ltrim, max,
-    mb_check_encoding, mb_chr, mb_ord, mb_str_pad, mb_str_split, mb_stripos, mb_strlen, mb_strpos,
-    mb_strripos, mb_strrpos,
-    mb_strtolower, mb_strtoupper, mb_substr, preg_replace, preg_split, rtrim, str_contains,
-    str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos, strrpos, strspn, strtolower,
-    strtr, substr_count, substr_replace, trigger_error, trim;
+    count, ctype_alnum, ctype_alpha, ctype_digit, ctype_space, explode, function_exists, iconv,
+    implode, is_string, levenshtein, ltrim, max, mb_check_encoding, mb_chr, mb_convert_case, mb_ord,
+    mb_str_pad, mb_str_split, mb_stripos, mb_strlen, mb_strpos, mb_strripos, mb_strrpos,
+    mb_strtolower, mb_strtoupper, mb_substr, preg_match_all, preg_replace, preg_split, rtrim,
+    similar_text, sscanf, str_contains, str_ends_with, str_ireplace, str_repeat, str_replace,
+    str_starts_with, strlen, strpos, strrpos, strspn, strtolower, strtr, substr_count,
+    substr_replace, trigger_error, trim, vsprintf, wordwrap;
 
 /**
  * Multibyte-safe string helpers.
@@ -77,10 +78,47 @@ final class Str {
     }
 
     /**
+     * Returns true when $value is non-empty and every character is an ASCII
+     * digit `0-9`. ASCII-only (multibyte digits are not recognised); the empty
+     * string is false. Wraps {@see ctype_digit()} without its int-argument trap.
+     */
+    public static function isDigits(string $value): bool {
+        return $value !== '' && ctype_digit($value);
+    }
+
+    /**
+     * Returns true when $value is non-empty and every character is an ASCII
+     * letter `a-z`/`A-Z`. ASCII-only; the empty string is false. Wraps
+     * {@see ctype_alpha()}.
+     */
+    public static function isAlpha(string $value): bool {
+        return $value !== '' && ctype_alpha($value);
+    }
+
+    /**
+     * Returns true when $value is non-empty and every character is an ASCII
+     * letter or digit. ASCII-only; the empty string is false. Wraps
+     * {@see ctype_alnum()}.
+     */
+    public static function isAlnum(string $value): bool {
+        return $value !== '' && ctype_alnum($value);
+    }
+
+    /**
      * Returns the number of Unicode characters in the string.
      */
     public static function length(string $value): int {
         return mb_strlen($value);
+    }
+
+    /**
+     * Returns the number of bytes in the string — its raw byte length, the
+     * byte-level counterpart to the character count {@see length()} returns.
+     * The two are equal for pure-ASCII input and diverge once multibyte
+     * characters are present (e.g. "é" is one character but two bytes in UTF-8).
+     */
+    public static function byteLength(string $value): int {
+        return strlen($value);
     }
 
     /**
@@ -129,6 +167,15 @@ final class Str {
     }
 
     /**
+     * Returns the string title-cased: the first letter of each word uppercased
+     * and the rest lowercased (multibyte-aware, via {@see mb_convert_case()}).
+     * E.g. "hello WORLD" → "Hello World".
+     */
+    public static function title(string $value): string {
+        return mb_convert_case($value, MB_CASE_TITLE);
+    }
+
+    /**
      * Returns true if $haystack contains $needle (an empty needle is always contained).
      */
     public static function contains(string $haystack, string $needle): bool {
@@ -171,10 +218,13 @@ final class Str {
     }
 
     /**
-     * Replaces every occurrence of $search with $replacement in $subject.
+     * Replaces every occurrence of $search with $replacement in $subject. Pass
+     * $ignoreCase = true for a case-insensitive match (via {@see str_ireplace()}).
      */
-    public static function replace(string $subject, string $search, string $replacement): string {
-        return str_replace($search, $replacement, $subject);
+    public static function replace(string $subject, string $search, string $replacement, bool $ignoreCase = false): string {
+        return $ignoreCase
+            ? str_ireplace($search, $replacement, $subject)
+            : str_replace($search, $replacement, $subject);
     }
 
     /**
@@ -189,7 +239,7 @@ final class Str {
         if ($pos === false) {
             return $subject;
         }
-        return substr_replace($subject, $replacement, $pos, strlen($search));
+        return substr_replace($subject, $replacement, $pos, self::byteLength($search));
     }
 
     /**
@@ -204,7 +254,20 @@ final class Str {
         if ($pos === false) {
             return $subject;
         }
-        return substr_replace($subject, $replacement, $pos, strlen($search));
+        return substr_replace($subject, $replacement, $pos, self::byteLength($search));
+    }
+
+    /**
+     * Replaces the $length characters of $value starting at character index
+     * $start with $replacement (multibyte-aware). A negative $start counts from
+     * the end; a negative $length leaves that many characters untouched at the
+     * end. Use $length = 0 to insert without removing anything.
+     */
+    public static function replaceAt(string $value, int $start, int $length, string $replacement): string {
+        $total = mb_strlen($value);
+        $from = $start < 0 ? max(0, $total + $start) : min($start, $total);
+        $to = $length < 0 ? max($from, $total + $length) : min($total, $from + $length);
+        return mb_substr($value, 0, $from) . $replacement . mb_substr($value, $to);
     }
 
     /**
@@ -275,6 +338,30 @@ final class Str {
     }
 
     /**
+     * Returns the part of $subject before the first occurrence of $search.
+     * Returns $subject unchanged when $search is empty or not found.
+     */
+    public static function before(string $subject, string $search): string {
+        if ($search === '') {
+            return $subject;
+        }
+        $pos = self::indexOf($subject, $search);
+        return $pos === -1 ? $subject : self::substring($subject, 0, $pos);
+    }
+
+    /**
+     * Returns the part of $subject after the first occurrence of $search.
+     * Returns $subject unchanged when $search is empty or not found.
+     */
+    public static function after(string $subject, string $search): string {
+        if ($search === '') {
+            return $subject;
+        }
+        $pos = self::indexOf($subject, $search);
+        return $pos === -1 ? $subject : self::substring($subject, $pos + self::length($search));
+    }
+
+    /**
      * Truncates $value to at most $length characters, appending $ellipsis when
      * truncation occurs. When $length is shorter than $ellipsis, returns the
      * leading $length characters of $ellipsis.
@@ -314,12 +401,14 @@ final class Str {
     }
 
     /**
-     * Splits the string on $separator. An empty separator yields individual characters,
-     * in which case $limit (if given) controls the chunk size.
+     * Splits the string on $separator (default `''`). An empty separator yields
+     * individual characters, in which case $limit (if given) controls the chunk
+     * size; otherwise $limit caps the number of pieces (the final piece keeps the
+     * remainder).
      *
      * @return list<string>
      */
-    public static function split(string $value, string $separator, ?int $limit = null): array {
+    public static function split(string $value, string $separator = '', ?int $limit = null): array {
         if ($separator === '') {
             return mb_str_split($value, max(1, $limit ?? 1));
         }
@@ -519,6 +608,71 @@ final class Str {
      */
     public static function toKebabCase(string $value): string {
         return self::toKebab($value);
+    }
+
+    /**
+     * Wraps $value so no line exceeds $width characters, breaking on spaces with
+     * $break. With $cut = true, words longer than $width are split mid-word.
+     * Byte-level (via {@see wordwrap()}); reliable for ASCII text.
+     *
+     * @throws RuntimeException When $width is less than 1.
+     */
+    public static function wordWrap(string $value, int $width = 75, string $break = "\n", bool $cut = false): string {
+        if ($width < 1) {
+            throw new RuntimeException('Width must be at least 1.');
+        }
+        return wordwrap($value, $width, $break, $cut);
+    }
+
+    /**
+     * Returns the number of words in $value — maximal runs of letters or digits,
+     * Unicode-aware. Punctuation and whitespace separate words, so "it's" counts
+     * as two.
+     */
+    public static function wordCount(string $value): int {
+        $count = preg_match_all('/[\p{L}\p{N}]+/u', $value);
+        return $count === false ? 0 : $count;
+    }
+
+    /**
+     * Formats $template printf-style with the given $args, like
+     * {@see vsprintf()}. E.g. `Str::format('%s is %d', 'x', 5)` → "x is 5".
+     */
+    public static function format(string $template, string|int|float|bool|null ...$args): string {
+        return vsprintf($template, $args);
+    }
+
+    /**
+     * Parses $value against the printf-style $format and returns the extracted
+     * values — the inverse of {@see format()}, via {@see sscanf()}. Each
+     * conversion that finds no match yields null in its slot.
+     *
+     * @return list<int|float|string|null>
+     */
+    public static function scan(string $value, string $format): array {
+        $result = sscanf($value, $format);
+        return Arr::is($result) ? $result : [];
+    }
+
+    /**
+     * Returns the Levenshtein edit distance between $a and $b — the minimum
+     * number of single-character insertions, deletions, or substitutions to turn
+     * one into the other. Byte-level (not multibyte-aware); returns -1 when
+     * either string exceeds 255 bytes.
+     */
+    public static function levenshtein(string $a, string $b): int {
+        return levenshtein($a, $b);
+    }
+
+    /**
+     * Returns how similar $a and $b are as a percentage from 0.0 to 100.0
+     * (via {@see similar_text()}). Byte-level and asymmetric — swapping the
+     * arguments can yield a different result.
+     */
+    public static function similarity(string $a, string $b): float {
+        $percentage = 0.0;
+        similar_text($a, $b, $percentage);
+        return $percentage;
     }
 
     /**

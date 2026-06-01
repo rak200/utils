@@ -76,43 +76,9 @@ When releasing a new version:
 
 Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
-> The prefer-lib-over-native sweep shipped in 1.11.0 (conservative pass over `Num`, `Base64`, `Path`, `Filter`, `Str::slug`, `Dt`). Deliberately byte-level natives were retained — the `substr_replace`-based `Str::replaceFirst`/`replaceLast`, `Path` drive/segment slicing, and `Rand` cryptographic byte operations — per the *Conventions* caveat (keep the native when the wrapper would break the method's contract).
+> The prefer-lib-over-native sweep shipped in 1.11.0 (conservative pass over `Num`, `Base64`, `Path`, `Filter`, `Str::slug`, `Dt`). Deliberately byte-level natives were retained — the `substr_replace`-based `Str::replaceFirst`/`replaceLast` (and the public `Str::replaceAt`, which slices multibyte-safely via `mb_substr`), `Path` drive/segment slicing, and `Rand` cryptographic byte operations — per the *Conventions* caveat (keep the native when the wrapper would break the method's contract).
 
-### Native-function gaps (candidate helpers)
-
-Prefer-lib-over-native is ongoing — these native functions still lack a lib equivalent and fit the pure, static API. Method names are proposals (alternatives in the *Notes*).
-
-| Class | Proposed method | Native PHP | Notes |
-|---|---|---|---|
-| `Str` | `title` | `ucwords` / `mb_convert_case` | Title-case (capitalize each word) |
-| `Str` | `replaceAt(value, start, length, repl)` | `substr_replace` | today internal-only |
-| `Str` | `replace` + `$ignoreCase` flag | `str_ireplace` | case-insensitive replace |
-| `Str` | `before` / `after` | `strstr` / `strrchr` | slice around a delimiter |
-| `Str` | `wordWrap` | `wordwrap` | wrap to a column width |
-| `Str` | `wordCount` | `str_word_count` | count words |
-| `Str` | `format(template, ...args)` | `sprintf` / `vsprintf` | printf-style formatting |
-| `Str` | `scan(string, format)` | `sscanf` | parse a string by a format (inverse of `format`) |
-| `Str` | `isDigits` / `isAlpha` / `isAlnum` | `ctype_*` | predicates (≠ the `Filter` sanitizers) |
-| `Str` | `levenshtein` / `similarity` | `levenshtein` / `similar_text` | lower priority |
-| `Arr` | `reverse` | `array_reverse` | |
-| `Arr` | `slice` | `array_slice` | |
-| `Arr` | `flip` | `array_flip` | |
-| `Arr` | `combine` | `array_combine` | already used internally by `Str::translate` |
-| `Arr` | `diff` / `intersect` | `array_diff` / `array_intersect` | by value (≠ key-based `pick`/`except`) |
-| `Arr` | `search` (a.k.a. `keyOf`) | `array_search` | key of first matching value (≠ predicate-based `find`) |
-| `Arr` | `countValues` | `array_count_values` | frequency map |
-| `Arr` | `count` | `count` | only `isEmpty`/`isNotEmpty` today |
-| `Arr` | `append` / `prepend` | `array_push` / `array_unshift` | immutable (return a new array) |
-| `Arr` | `firstKey` / `lastKey` | `array_key_first` / `array_key_last` | `first`/`last` return the value |
-| `Arr` | `sortKeys` | `ksort` / `krsort` | `sort`/`sortBy` order by value |
-| `Arr` | `fill` | `array_fill` / `array_fill_keys` | |
-| `Num` | `isNan` / `isInfinite` | `is_nan` / `is_infinite` | complement `isFinite` |
-| `Num` | `product` | `array_product` | companion to `sum` |
-| `Num` | `toBase(int, base)` | `base_convert` / `dechex` / `decoct` | inverse of `parseInt($s, $base)` |
-| `Regex` | `grep` | `preg_grep` | filter an array by pattern |
-| `Bit` | `rotateLeft` / `rotateRight` | — (no native) | bit-topic |
-| `Dt` | `isValid` | `checkdate` | |
-| `File` | `realpath` / `touch` / CSV | `realpath` / `touch` / `fgetcsv` / `fputcsv` | more specialised |
+> **The native-function-gap catalogue is exhausted as of 1.13.0.** Every candidate helper that previously sat here shipped in that release — `Str` (`title`, `replaceAt`, `replace`+`$ignoreCase`, `before`/`after`, `wordWrap`, `wordCount`, `format`, `scan`, `isDigits`/`isAlpha`/`isAlnum`, `levenshtein`/`similarity`), `Arr` (`reverse`, `slice`, `flip`, `combine`, `diff`/`intersect`, `search`/`searchOrNull`, `countValues`, `count`, `append`/`prepend`, `firstKey`/`lastKey` + `*OrNull`, `sortKeys`, `fill`/`fillKeys`), `Num` (`isNan`/`isInfinite`, `product`, `toBase`), `Regex::grep`, `Bit::rotateLeft`/`rotateRight`, `Dt::isValid`, and `File` (`realpath`, `touch`, `readCsv`/`writeCsv`). New native-function gaps spotted in future passes go back into a fresh table here.
 
 ### Deferred
 

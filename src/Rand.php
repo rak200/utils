@@ -6,7 +6,7 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 use function array_keys, array_values, bin2hex, bindec, chr, count, decbin, microtime, ord,
-    random_bytes, random_int, sprintf, str_pad, str_split, strlen, substr;
+    random_bytes, random_int, str_pad, str_split, strlen, substr;
 
 /**
  * Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators.
@@ -222,14 +222,12 @@ final class Rand {
      */
     private static function formatUuid(string $bytes): string {
         $hex = bin2hex($bytes);
-        return sprintf(
-            '%s-%s-%s-%s-%s',
-            substr($hex, 0, 8),
-            substr($hex, 8, 4),
-            substr($hex, 12, 4),
-            substr($hex, 16, 4),
-            substr($hex, 20, 12),
-        );
+        $a = substr($hex, 0, 8);
+        $b = substr($hex, 8, 4);
+        $c = substr($hex, 12, 4);
+        $d = substr($hex, 16, 4);
+        $e = substr($hex, 20, 12);
+        return "{$a}-{$b}-{$c}-{$d}-{$e}";
     }
 
     /**

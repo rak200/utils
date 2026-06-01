@@ -413,4 +413,62 @@ final class NumTest extends TestCase {
         $this->assertFalse(Num::isFinite(null));
         $this->assertFalse(Num::isFinite([]));
     }
+
+    public function testIsNan(): void {
+        $this->assertTrue(Num::isNan(NAN));
+        $this->assertFalse(Num::isNan(1.0));
+        $this->assertFalse(Num::isNan(INF));
+        $this->assertFalse(Num::isNan(1));
+        $this->assertFalse(Num::isNan('1.5'));
+        $this->assertFalse(Num::isNan('abc'));
+        $this->assertFalse(Num::isNan(null));
+    }
+
+    public function testIsInfinite(): void {
+        $this->assertTrue(Num::isInfinite(INF));
+        $this->assertTrue(Num::isInfinite(-INF));
+        $this->assertTrue(Num::isInfinite('1e400')); // overflows to INF
+        $this->assertFalse(Num::isInfinite(1.0));
+        $this->assertFalse(Num::isInfinite(NAN));
+        $this->assertFalse(Num::isInfinite(1));
+        $this->assertFalse(Num::isInfinite('1.5'));
+        $this->assertFalse(Num::isInfinite('abc'));
+        $this->assertFalse(Num::isInfinite(null));
+    }
+
+    public function testProduct(): void {
+        $this->assertSame(24, Num::product([2, 3, 4]));
+        $this->assertSame(1, Num::product([]));   // empty → 1 (int)
+        $this->assertSame(0, Num::product([5, 0, 3]));
+        $this->assertSame(7.5, Num::product([3, 2.5]));
+    }
+
+    public function testProductWidensToNumber(): void {
+        $result = Num::product([new Number('2'), 3]);
+        $this->assertInstanceOf(Number::class, $result);
+        $this->assertSame('6', (string) $result);
+    }
+
+    public function testToBase(): void {
+        $this->assertSame('ff', Num::toBase(255, 16));
+        $this->assertSame('-ff', Num::toBase(-255, 16));
+        $this->assertSame('0', Num::toBase(0, 2));
+        $this->assertSame('1010', Num::toBase(10, 2));
+        $this->assertSame('z', Num::toBase(35, 36));
+        $this->assertSame('777', Num::toBase(511, 8));
+        $this->assertSame('-9223372036854775808', Num::toBase(PHP_INT_MIN, 10));
+    }
+
+    public function testToBaseRoundTripsWithParseInt(): void {
+        foreach ([0, 1, 42, 255, 1000, -1, -255, PHP_INT_MAX] as $value) {
+            foreach ([2, 8, 10, 16, 36] as $base) {
+                $this->assertSame($value, Num::parseInt(Num::toBase($value, $base), $base));
+            }
+        }
+    }
+
+    public function testToBaseThrowsForBadBase(): void {
+        $this->expectException(RuntimeException::class);
+        Num::toBase(10, 37);
+    }
 }

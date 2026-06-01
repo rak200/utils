@@ -174,4 +174,57 @@ final class FileTest extends TestCase {
         $this->expectException(RuntimeException::class);
         File::list($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
     }
+
+    public function testTouchCreatesFile(): void {
+        $path = $this->makeTempPath('utils_touch_' . uniqid() . '.txt');
+        $this->assertFalse(File::exists($path));
+        File::touch($path);
+        $this->assertTrue(File::isFile($path));
+        $this->assertSame('', File::read($path));
+    }
+
+    public function testTouchSetsModificationTime(): void {
+        $path = $this->makeTempPath('utils_touchtime_' . uniqid() . '.txt');
+        File::write($path, 'x');
+        $time = 1_600_000_000;
+        File::touch($path, $time);
+        $this->assertSame($time, filemtime($path));
+    }
+
+    public function testRealpathResolvesExistingFile(): void {
+        $path = $this->makeTempPath('utils_realpath_' . uniqid() . '.txt');
+        File::write($path, 'x');
+        $resolved = File::realpath($path);
+        $this->assertTrue(File::isFile($resolved));
+        $this->assertSame(File::realpath($path), $resolved); // stable
+    }
+
+    public function testRealpathThrowsForMissingPath(): void {
+        $this->expectException(RuntimeException::class);
+        File::realpath($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
+    }
+
+    public function testWriteAndReadCsvRoundTrip(): void {
+        $path = $this->makeTempPath('utils_csv_' . uniqid() . '.csv');
+        $rows = [['id', 'name'], ['1', 'Ann'], ['2', 'a,b "c"']];
+        File::writeCsv($path, $rows);
+        $this->assertSame($rows, File::readCsv($path));
+    }
+
+    public function testReadCsvSkipsBlankLines(): void {
+        $path = $this->makeTempPath('utils_csvblank_' . uniqid() . '.csv');
+        File::write($path, "a,b\n\nc,d\n");
+        $this->assertSame([['a', 'b'], ['c', 'd']], File::readCsv($path));
+    }
+
+    public function testReadCsvCustomSeparator(): void {
+        $path = $this->makeTempPath('utils_csvsep_' . uniqid() . '.csv');
+        File::write($path, "a;b;c\n");
+        $this->assertSame([['a', 'b', 'c']], File::readCsv($path, ';'));
+    }
+
+    public function testReadCsvThrowsForMissingFile(): void {
+        $this->expectException(RuntimeException::class);
+        File::readCsv($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid() . '.csv');
+    }
 }

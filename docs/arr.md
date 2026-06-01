@@ -13,9 +13,12 @@ use Rak200\Utils\Arr;
 - [`is`](#is)
 - [`isEmpty` / `isNotEmpty`](#isempty--isnotempty)
 - [`isList` / `isAssoc` / `isNonEmptyArray`](#islist--isassoc--isnonemptyarray)
+- [`count`](#count)
 - [`first` / `firstOrNull`](#first--firstornull)
 - [`last` / `lastOrNull`](#last--lastornull)
+- [`firstKey` / `firstKeyOrNull` / `lastKey` / `lastKeyOrNull`](#firstkey--firstkeyornull--lastkey--lastkeyornull)
 - [`find` / `findOrNull`](#find--findornull)
+- [`search` / `searchOrNull`](#search--searchornull)
 - [`filter`](#filter)
 - [`map`](#map)
 - [`reduce`](#reduce)
@@ -32,6 +35,15 @@ use Rak200\Utils\Arr;
 - [`keyBy`](#keyby)
 - [`sort`](#sort)
 - [`sortBy`](#sortby)
+- [`sortKeys`](#sortkeys)
+- [`reverse`](#reverse)
+- [`slice`](#slice)
+- [`flip`](#flip)
+- [`combine`](#combine)
+- [`diff` / `intersect`](#diff--intersect)
+- [`countValues`](#countvalues)
+- [`append` / `prepend`](#append--prepend)
+- [`fill` / `fillKeys`](#fill--fillkeys)
 - [`merge`](#merge)
 - [`pick` / `except`](#pick--except)
 - [`zip`](#zip)
@@ -93,6 +105,20 @@ Arr::isNonEmptyArray('a');           // false
 
 ---
 
+## `count`
+
+Number of elements in the array.
+
+```php
+Arr::count([]);                   // 0
+Arr::count([1, 2, 3]);            // 3
+Arr::count(['a' => 1, 'b' => 2]); // 2
+```
+
+[↑ Back to top](#arr)
+
+---
+
 ## `first` / `firstOrNull`
 
 Bare throws on an empty array; `*OrNull` returns `null`.
@@ -113,6 +139,23 @@ Arr::firstOrNull([]);               // null
 Arr::last([10, 20, 30]);            // 30
 Arr::last(['a' => 1, 'b' => 2]);    // 2
 Arr::lastOrNull([]);                // null
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `firstKey` / `firstKeyOrNull` / `lastKey` / `lastKeyOrNull`
+
+The key-returning counterparts of [`first`](#first--firstornull) / [`last`](#last--lastornull). Bare throws on an empty array; `*OrNull` returns `null`.
+
+```php
+Arr::firstKey(['x' => 1, 'y' => 2]);   // 'x'
+Arr::lastKey(['x' => 1, 'y' => 2]);    // 'y'
+Arr::firstKey([10, 20]);               // 0
+Arr::lastKey([10, 20]);                // 1
+Arr::firstKeyOrNull([]);               // null
+Arr::lastKeyOrNull([]);                // null
 ```
 
 [↑ Back to top](#arr)
@@ -269,6 +312,22 @@ Arr::contains([1, 2, 3], '2', strict: false); // true
 
 ---
 
+## `search` / `searchOrNull`
+
+Returns the *key* of the first element equal to `$value` (strict by default) — the key-returning counterpart of [`find`](#find--findornull). Bare throws when the value is absent; `*OrNull` returns `null`.
+
+```php
+Arr::search(['a', 'b', 'c'], 'b');         // 1
+Arr::search(['x' => 1, 'y' => 2], 2);      // 'y'
+Arr::searchOrNull([1, 2, 3], 9);           // null
+Arr::searchOrNull([0, 1], '0');            // null  (strict)
+Arr::searchOrNull([0, 1], '0', strict: false); // 0
+```
+
+[↑ Back to top](#arr)
+
+---
+
 ## `keys`
 
 ```php
@@ -355,6 +414,131 @@ $people = [
 ];
 Arr::sortBy($people, fn(array $p) => $p['age']);
 // [['name' => 'a', 'age' => 10], ['name' => 'b', 'age' => 20], ['name' => 'c', 'age' => 30]]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `sortKeys`
+
+Sorts by key with the natural comparator, preserving the key=>value association. Pass `desc: true` for descending order. Immutable.
+
+```php
+Arr::sortKeys(['b' => 1, 'a' => 2, 'c' => 3]);        // ['a' => 2, 'b' => 1, 'c' => 3]
+Arr::sortKeys(['b' => 1, 'a' => 2], desc: true);      // ['b' => 1, 'a' => 2]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `reverse`
+
+Reverses element order. Integer keys are renumbered from 0 (string keys are always kept) unless `preserveKeys: true`.
+
+```php
+Arr::reverse([1, 2, 3]);                  // [3, 2, 1]
+Arr::reverse(['a' => 1, 'b' => 2]);       // ['b' => 2, 'a' => 1]
+Arr::reverse([1, 2, 3], preserveKeys: true); // [2 => 3, 1 => 2, 0 => 1]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `slice`
+
+A slice of `$length` elements from `$offset` (negative `$offset` counts from the end; null `$length` runs to the end, negative `$length` stops that many from the end). Integer keys are renumbered (string keys kept) unless `preserveKeys: true`.
+
+```php
+Arr::slice([1, 2, 3, 4, 5], 1, 2);            // [2, 3]
+Arr::slice([1, 2, 3, 4, 5], -2);              // [4, 5]
+Arr::slice([1, 2, 3, 4, 5], 1, -1);           // [2, 3, 4]
+Arr::slice([1, 2, 3], 1, 2, preserveKeys: true); // [1 => 2, 2 => 3]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `flip`
+
+Swaps keys and values (values must be int or string). On duplicate values the last key wins.
+
+```php
+Arr::flip(['a' => 1, 'b' => 2]);   // [1 => 'a', 2 => 'b']
+Arr::flip(['x', 'y']);             // ['x' => 0, 'y' => 1]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `combine`
+
+Pairs each key in `$keys` with the value at the same position in `$values`. Throws when the two differ in length.
+
+```php
+Arr::combine(['a', 'b'], [1, 2]);   // ['a' => 1, 'b' => 2]
+Arr::combine([], []);               // []
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `diff` / `intersect`
+
+Compare *by value* (loose string comparison, like `array_diff` / `array_intersect`), preserving the keys of the first array. `diff` keeps values not in any of the others; `intersect` keeps values present in every other. These differ from the key-based [`pick` / `except`](#pick--except). With no other arrays, the input is returned unchanged.
+
+```php
+Arr::diff([1, 2, 3, 4], [2, 4]);          // [0 => 1, 2 => 3]
+Arr::diff([1, 2, 3], [1], [3]);           // [1 => 2]
+Arr::intersect([1, 2, 3], [2, 3, 4]);     // [1 => 2, 2 => 3]
+Arr::intersect([1, 2, 3], [2, 3], [2]);   // [1 => 2]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `countValues`
+
+Maps each distinct value to its occurrence count (values must be int or string).
+
+```php
+Arr::countValues(['a', 'b', 'a']);   // ['a' => 2, 'b' => 1]
+Arr::countValues([1, 1, 2]);         // [1 => 2, 2 => 1]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `append` / `prepend`
+
+Immutable add at either end (the input array is left unchanged). `append` keeps existing keys and adds the new values under the next integer key; `prepend` inserts before, renumbering integer keys (string keys kept), matching `array_unshift`.
+
+```php
+Arr::append([1, 2], 3, 4);          // [1, 2, 3, 4]
+Arr::append(['a' => 1], 2);         // ['a' => 1, 0 => 2]
+Arr::prepend([1, 2], 0);            // [0, 1, 2]
+Arr::prepend(['a' => 1], 3);        // [3, 'a' => 1]
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `fill` / `fillKeys`
+
+`fill` builds a 0-indexed list of `$count` copies of a value; `fillKeys` maps every key in `$keys` to a value.
+
+```php
+Arr::fill(3, 'x');                  // ['x', 'x', 'x']
+Arr::fill(0, 'x');                  // []
+Arr::fillKeys(['a', 'b'], 0);       // ['a' => 0, 'b' => 0]
 ```
 
 [↑ Back to top](#arr)

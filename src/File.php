@@ -6,9 +6,9 @@ namespace Rak200\Utils;
 
 use Generator;
 use RuntimeException;
-use function array_values, basename, copy, dirname, fclose, fgets, file_exists, file_get_contents,
-    file_put_contents, filesize, finfo_file, finfo_open, fopen, glob, is_dir, is_file,
-    mkdir, pathinfo, rename, rtrim, sprintf, sys_get_temp_dir, tempnam, unlink;
+use function basename, copy, dirname, fclose, fgetcsv, fgets, file_exists, file_get_contents,
+    file_put_contents, filesize, finfo_file, finfo_open, fopen, fputcsv, glob, is_dir, is_file,
+    mkdir, pathinfo, realpath, rename, sys_get_temp_dir, tempnam, touch, unlink;
 
 /**
  * Filesystem helpers — every operation throws on failure instead of returning
@@ -26,11 +26,11 @@ final class File {
      */
     public static function read(string $path): string {
         if (!is_file($path)) {
-            throw new RuntimeException(sprintf('File not found: %s', $path));
+            throw new RuntimeException("File not found: $path");
         }
         $contents = file_get_contents($path);
         if ($contents === false) {
-            throw new RuntimeException(sprintf('Cannot read file: %s', $path));
+            throw new RuntimeException("Cannot read file: $path");
         }
         return $contents;
     }
@@ -42,7 +42,7 @@ final class File {
      */
     public static function write(string $path, string $content): void {
         if (file_put_contents($path, $content) === false) {
-            throw new RuntimeException(sprintf('Cannot write file: %s', $path));
+            throw new RuntimeException("Cannot write file: $path");
         }
     }
 
@@ -53,7 +53,21 @@ final class File {
      */
     public static function append(string $path, string $content): void {
         if (file_put_contents($path, $content, FILE_APPEND) === false) {
-            throw new RuntimeException(sprintf('Cannot append to file: %s', $path));
+            throw new RuntimeException("Cannot append to file: $path");
+        }
+    }
+
+    /**
+     * Sets the modification (and access) time of $path to $time, defaulting to
+     * now. Creates an empty file when $path does not exist.
+     *
+     * @param int|null $time Unix timestamp; null uses the current time.
+     * @throws RuntimeException When the file cannot be touched.
+     */
+    public static function touch(string $path, ?int $time = null): void {
+        $ok = $time === null ? touch($path) : touch($path, $time);
+        if (!$ok) {
+            throw new RuntimeException("Cannot touch file: $path");
         }
     }
 
@@ -95,7 +109,7 @@ final class File {
             return;
         }
         if (!unlink($path)) {
-            throw new RuntimeException(sprintf('Cannot delete file: %s', $path));
+            throw new RuntimeException("Cannot delete file: $path");
         }
     }
 
@@ -122,13 +136,27 @@ final class File {
     }
 
     /**
+     * Returns the canonical absolute path of $path, resolving symlinks and
+     * `.`/`..` segments. The path must exist on disk.
+     *
+     * @throws RuntimeException When $path does not exist or cannot be resolved.
+     */
+    public static function realpath(string $path): string {
+        $resolved = realpath($path);
+        if ($resolved === false) {
+            throw new RuntimeException("Cannot resolve path: $path");
+        }
+        return $resolved;
+    }
+
+    /**
      * Returns the MIME type of $path (e.g. "image/png"), detected via fileinfo.
      *
      * @throws RuntimeException When the file is missing or the type cannot be determined.
      */
     public static function mimeType(string $path): string {
         if (!is_file($path)) {
-            throw new RuntimeException(sprintf('File not found: %s', $path));
+            throw new RuntimeException("File not found: $path");
         }
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         if ($finfo === false) {
@@ -136,7 +164,7 @@ final class File {
         }
         $type = finfo_file($finfo, $path);
         if ($type === false) {
-            throw new RuntimeException(sprintf('Cannot determine mime type: %s', $path));
+            throw new RuntimeException("Cannot determine mime type: $path");
         }
         return $type;
     }
@@ -148,11 +176,11 @@ final class File {
      */
     public static function size(string $path): int {
         if (!is_file($path)) {
-            throw new RuntimeException(sprintf('File not found: %s', $path));
+            throw new RuntimeException("File not found: $path");
         }
         $size = filesize($path);
         if ($size === false) {
-            throw new RuntimeException(sprintf('Cannot determine file size: %s', $path));
+            throw new RuntimeException("Cannot determine file size: $path");
         }
         return $size;
     }
@@ -166,15 +194,15 @@ final class File {
      */
     public static function lines(string $path): Generator {
         if (!is_file($path)) {
-            throw new RuntimeException(sprintf('File not found: %s', $path));
+            throw new RuntimeException("File not found: $path");
         }
         $handle = fopen($path, 'rb');
         if ($handle === false) {
-            throw new RuntimeException(sprintf('Cannot open file: %s', $path));
+            throw new RuntimeException("Cannot open file: $path");
         }
         try {
             while (($line = fgets($handle)) !== false) {
-                yield rtrim($line, "\r\n");
+                yield Str::trimEnd($line, "\r\n");
             }
         } finally {
             fclose($handle);
@@ -202,10 +230,10 @@ final class File {
      */
     public static function copy(string $source, string $target): void {
         if (!is_file($source)) {
-            throw new RuntimeException(sprintf('Source file not found: %s', $source));
+            throw new RuntimeException("Source file not found: $source");
         }
         if (!copy($source, $target)) {
-            throw new RuntimeException(sprintf('Cannot copy %s to %s.', $source, $target));
+            throw new RuntimeException("Cannot copy $source to $target.");
         }
     }
 
@@ -216,10 +244,10 @@ final class File {
      */
     public static function move(string $source, string $target): void {
         if (!is_file($source)) {
-            throw new RuntimeException(sprintf('Source file not found: %s', $source));
+            throw new RuntimeException("Source file not found: $source");
         }
         if (!rename($source, $target)) {
-            throw new RuntimeException(sprintf('Cannot move %s to %s.', $source, $target));
+            throw new RuntimeException("Cannot move $source to $target.");
         }
     }
 
@@ -234,7 +262,7 @@ final class File {
             return;
         }
         if (!mkdir($path, $mode, $recursive) && !is_dir($path)) {
-            throw new RuntimeException(sprintf('Cannot create directory: %s', $path));
+            throw new RuntimeException("Cannot create directory: $path");
         }
     }
 
@@ -247,12 +275,77 @@ final class File {
      */
     public static function list(string $dir, string $pattern = '*'): array {
         if (!is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory not found: %s', $dir));
+            throw new RuntimeException("Directory not found: $dir");
         }
-        $result = glob(rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $pattern);
+        $result = glob(Str::trimEnd($dir, '/\\') . DIRECTORY_SEPARATOR . $pattern);
         if ($result === false) {
-            throw new RuntimeException(sprintf('Cannot list directory: %s', $dir));
+            throw new RuntimeException("Cannot list directory: $dir");
         }
         return $result;
+    }
+
+    /**
+     * Reads the CSV file at $path into a list of rows, each a list of field
+     * strings. Fully blank lines are skipped. $escape defaults to '' (no escape
+     * character), matching the modern CSV behaviour PHP 8.4 recommends.
+     *
+     * @throws RuntimeException When the file is missing or cannot be opened.
+     * @return list<list<string|null>>
+     */
+    public static function readCsv(
+        string $path,
+        string $separator = ',',
+        string $enclosure = '"',
+        string $escape = '',
+    ): array {
+        if (!is_file($path)) {
+            throw new RuntimeException("File not found: $path");
+        }
+        $handle = fopen($path, 'rb');
+        if ($handle === false) {
+            throw new RuntimeException("Cannot open file: $path");
+        }
+        try {
+            $rows = [];
+            while (($row = fgetcsv($handle, null, $separator, $enclosure, $escape)) !== false) {
+                if ($row === [null]) {
+                    continue;
+                }
+                $rows[] = $row;
+            }
+            return $rows;
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * Writes $rows to the CSV file at $path (creating or overwriting it). Each
+     * row is an array of fields cast to string. $escape defaults to '' (no escape
+     * character), matching the modern CSV behaviour PHP 8.4 recommends.
+     *
+     * @param iterable<array<array-key, string|int|float|bool|null|\Stringable>> $rows
+     * @throws RuntimeException When the file cannot be opened or a row cannot be written.
+     */
+    public static function writeCsv(
+        string $path,
+        iterable $rows,
+        string $separator = ',',
+        string $enclosure = '"',
+        string $escape = '',
+    ): void {
+        $handle = fopen($path, 'wb');
+        if ($handle === false) {
+            throw new RuntimeException("Cannot open file for writing: $path");
+        }
+        try {
+            foreach ($rows as $row) {
+                if (fputcsv($handle, $row, $separator, $enclosure, $escape, "\n") === false) {
+                    throw new RuntimeException("Cannot write CSV row to: $path");
+                }
+            }
+        } finally {
+            fclose($handle);
+        }
     }
 }

@@ -13,29 +13,37 @@ use Rak200\Utils\Str;
 - [`is`](#is)
 - [`isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`](#isblank--isnotblank--isempty--isnonemptystr)
 - [`isWhitespace`](#iswhitespace)
-- [`length`](#length)
+- [`isDigits` / `isAlpha` / `isAlnum`](#isdigits--isalpha--isalnum)
+- [`length` / `byteLength`](#length--bytelength)
 - [`capitalize` / `uncapitalize`](#capitalize--uncapitalize)
 - [`upper` / `lower`](#upper--lower)
+- [`title`](#title)
 - [`contains`](#contains)
 - [`startsWith` / `endsWith`](#startswith--endswith)
 - [`indexOf` / `lastIndexOf`](#indexof--lastindexof)
 - [`count`](#count)
+- [`before` / `after`](#before--after)
 - [`span`](#span)
 - [`trim` / `trimStart` / `trimEnd`](#trim--trimstart--trimend)
 - [`substring`](#substring)
 - [`replace`](#replace)
 - [`replaceFirst` / `replaceLast`](#replacefirst--replacelast)
+- [`replaceAt`](#replaceat)
 - [`translate`](#translate)
 - [`split`](#split)
 - [`join`](#join)
 - [`joinNatural`](#joinnatural)
 - [`wrap`](#wrap)
+- [`wordWrap`](#wordwrap)
+- [`wordCount`](#wordcount)
 - [`padStart` / `padEnd`](#padstart--padend)
 - [`repeat`](#repeat)
 - [`reverse`](#reverse)
 - [`ord` / `chr`](#ord--chr)
 - [`truncate`](#truncate)
 - [`slug`](#slug)
+- [`format` / `scan`](#format--scan)
+- [`levenshtein` / `similarity`](#levenshtein--similarity)
 - [`toCamel` / `toPascal` / `toSnake` / `toKebab`](#tocamel--topascal--tosnake--tokebab)
 
 ---
@@ -100,13 +108,33 @@ Str::isWhitespace("\xC2\xA0");  // false   (U+00A0 — not ASCII whitespace)
 
 ---
 
-## `length`
+## `isDigits` / `isAlpha` / `isAlnum`
 
-Number of Unicode characters (not bytes).
+ASCII character-class predicates (via the `ctype_*` family): all digits, all letters, or all letters/digits. Byte-level — multibyte letters/digits are not recognised — and the empty string is always `false`. These differ from the [`Filter`](filter.md) sanitizers, which strip unwanted characters.
 
 ```php
-Str::length('hello');     // 5
-Str::length('ação');      // 4
+Str::isDigits('0123');     // true
+Str::isDigits('12.3');     // false
+Str::isDigits('');         // false
+Str::isAlpha('abcXYZ');    // true
+Str::isAlpha('abcé');      // false   (é is not ASCII)
+Str::isAlnum('abc123');    // true
+Str::isAlnum('abc 123');   // false   (space)
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `length` / `byteLength`
+
+`length` counts Unicode characters; `byteLength` counts raw bytes (the byte-level counterpart, for when byte offsets matter). The two agree for pure-ASCII input and diverge once multibyte characters appear.
+
+```php
+Str::length('hello');         // 5
+Str::length('ação');          // 4
+Str::byteLength('hello');     // 5
+Str::byteLength('ação');      // 6   ('ç' and 'ã' are two bytes each in UTF-8)
 ```
 
 [↑ Back to top](#str)
@@ -135,6 +163,20 @@ Case every character.
 Str::upper('hello');    // 'HELLO'
 Str::upper('ção');      // 'ÇÃO'
 Str::lower('HELLO');    // 'hello'
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `title`
+
+Title-cases the string: the first letter of each word uppercased, the rest lowercased (multibyte-aware, via `mb_convert_case`).
+
+```php
+Str::title('hello world');   // 'Hello World'
+Str::title('hello WORLD');   // 'Hello World'
+Str::title('árvore útil');   // 'Árvore Útil'
 ```
 
 [↑ Back to top](#str)
@@ -200,6 +242,22 @@ Str::count('abc', 'z');             // 0
 
 ---
 
+## `before` / `after`
+
+Slice around the first occurrence of `$search`. When `$search` is empty or not found, the whole subject is returned unchanged.
+
+```php
+Str::before('user@host', '@');   // 'user'
+Str::after('user@host', '@');    // 'host'
+Str::before('a.b.c', '.');       // 'a'      (first occurrence)
+Str::after('a.b.c', '.');        // 'b.c'
+Str::after('abc', '@');          // 'abc'    (not found → whole)
+```
+
+[↑ Back to top](#str)
+
+---
+
 ## `span`
 
 Length of the initial run of `$value` made up only of characters in `$chars`, optionally within the window starting at byte offset `$start` for `$length` bytes (byte-level, via `strspn`). Equals [`length`](#length) exactly when every character of `$value` is in `$chars` — handy for "does this contain only these characters?" checks.
@@ -246,11 +304,12 @@ Str::substring('hello', -3);          // 'llo'
 
 ## `replace`
 
-Replaces every occurrence of `$search` with `$replacement`.
+Replaces every occurrence of `$search` with `$replacement`. Pass `ignoreCase: true` for a case-insensitive match.
 
 ```php
 Str::replace('hello world', 'world', 'there');   // 'hello there'
 Str::replace('a-b-c', '-', '/');                 // 'a/b/c'
+Str::replace('Hello HELLO', 'hello', 'x', ignoreCase: true);  // 'x x'
 ```
 
 [↑ Back to top](#str)
@@ -265,6 +324,21 @@ Replace only the first/last occurrence. Returns the subject unchanged when `$sea
 Str::replaceFirst('foo-foo-foo', 'foo', 'xyz');   // 'xyz-foo-foo'
 Str::replaceLast('foo-foo-foo', 'foo', 'xyz');    // 'foo-foo-xyz'
 Str::replaceFirst('hello', 'x', 'y');             // 'hello'  (not found)
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `replaceAt`
+
+Replaces the `$length` characters starting at character index `$start` with `$replacement` (multibyte-aware). A negative `$start` counts from the end; a negative `$length` leaves that many characters untouched at the end; `$length = 0` inserts without removing.
+
+```php
+Str::replaceAt('hello', 1, 3, 'XY');     // 'hXYo'
+Str::replaceAt('abc', 1, 0, '-');        // 'a-bc'   (insert)
+Str::replaceAt('hello', -2, 2, '!!');    // 'hel!!'  (negative start)
+Str::replaceAt('hello', 1, -1, 'X');     // 'hXo'    (negative length)
 ```
 
 [↑ Back to top](#str)
@@ -287,12 +361,12 @@ Str::translate('áéíóú', 'áéíóú', 'aeiou');   // 'aeiou'
 
 ## `split`
 
-Split on `$separator`. An empty separator yields individual characters; `$limit` (if given) controls the chunk size in that mode.
+Split on `$separator` (default `''`). The empty separator yields individual characters, in which case `$limit` controls the chunk size; with a real separator, `$limit` caps the number of pieces (the last piece keeps the remainder).
 
 ```php
+Str::split('abc');                // ['a', 'b', 'c']   (default '' separator)
 Str::split('a,b,c,d', ',');       // ['a', 'b', 'c', 'd']
 Str::split('a,b,c,d', ',', 2);    // ['a', 'b,c,d']
-Str::split('abc', '');            // ['a', 'b', 'c']
 Str::split('abcdef', '', 2);      // ['ab', 'cd', 'ef']
 ```
 
@@ -341,6 +415,35 @@ Wrap a non-blank string with `$prefix` and `$suffix`; returns `''` when the inpu
 Str::wrap('hello', '[', ']');     // '[hello]'
 Str::wrap('', '[', ']');          // ''
 Str::wrap('   ', '[', ']');       // ''
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `wordWrap`
+
+Wraps `$value` so no line exceeds `$width` characters, breaking on spaces with `$break`. With `cut: true`, words longer than `$width` are split mid-word. Byte-level (via `wordwrap`); reliable for ASCII text. Throws when `$width < 1`.
+
+```php
+Str::wordWrap('aaa bbb ccc', 7);          // "aaa bbb\nccc"
+Str::wordWrap('aaa bbb', 4, '-');         // 'aaa-bbb'
+Str::wordWrap('abcd', 2, "\n", true);     // "ab\ncd"   (cut long words)
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `wordCount`
+
+Counts words — maximal runs of letters or digits, Unicode-aware. Punctuation and whitespace separate words.
+
+```php
+Str::wordCount('one two three');   // 3
+Str::wordCount("it's");            // 2     (apostrophe splits the word)
+Str::wordCount('café résumé');     // 2     (multibyte words counted)
+Str::wordCount('   ');             // 0
 ```
 
 [↑ Back to top](#str)
@@ -425,6 +528,38 @@ Str::slug('Hello World!');           // 'hello-world'
 Str::slug('Olá, mundo!');            // 'ola-mundo'
 Str::slug('foo  bar', '_');          // 'foo_bar'
 Str::slug('   ');                    // ''
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `format` / `scan`
+
+`format` builds a string printf-style (like `vsprintf`); `scan` is the inverse, parsing a string against a printf-style format (like `sscanf`). In `scan`, each conversion that finds no match yields `null`.
+
+```php
+Str::format('%s is %d', 'x', 5);     // 'x is 5'
+Str::format('%.2f', 3.14159);        // '3.14'
+
+Str::scan('age:42', 'age:%d');       // [42]
+Str::scan('John 25', '%s %d');       // ['John', 25]
+Str::scan('nope', 'age:%d');         // [null]
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `levenshtein` / `similarity`
+
+String-distance metrics (byte-level). `levenshtein` is the edit distance — the minimum single-character insertions, deletions, or substitutions (returns `-1` when either string exceeds 255 bytes). `similarity` is a `0.0`–`100.0` percentage (via `similar_text`) and is asymmetric — swapping the arguments can change the result.
+
+```php
+Str::levenshtein('kitten', 'sitting');   // 3
+Str::levenshtein('abc', 'abc');          // 0
+Str::similarity('abc', 'abc');           // 100.0
+Str::similarity('World', 'word');        // 66.66666666666666
 ```
 
 [↑ Back to top](#str)

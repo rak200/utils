@@ -186,4 +186,13 @@ final class DtTest extends TestCase {
         $this->assertSame(3030, Dt::diffInMinutes($a, $b));
         $this->assertSame(181800, Dt::diffInSeconds($a, $b));
     }
+
+    public function testIsValid(): void {
+        $this->assertTrue(Dt::isValid(2026, 5, 31));
+        $this->assertTrue(Dt::isValid(2024, 2, 29));   // leap year
+        $this->assertFalse(Dt::isValid(2025, 2, 29));  // non-leap year
+        $this->assertFalse(Dt::isValid(2026, 13, 1));  // month out of range
+        $this->assertFalse(Dt::isValid(2026, 4, 31));  // April has 30 days
+        $this->assertFalse(Dt::isValid(2026, 0, 10));  // month zero
+    }
 }

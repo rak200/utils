@@ -6,7 +6,7 @@ namespace Rak200\Utils;
 
 use RuntimeException;
 use function array_pop, array_slice, count, ctype_alpha, implode, min,
-    preg_match, sprintf, strlen, strrpos, substr;
+    preg_match, strrpos, substr;
 
 /**
  * Logical path manipulation — pure string operations that never touch the disk.
@@ -32,7 +32,7 @@ final class Path {
         if ($path[0] === '/' || $path[0] === '\\') {
             return true;
         }
-        return strlen($path) >= 2 && $path[1] === ':' && ctype_alpha($path[0]);
+        return Str::byteLength($path) >= 2 && $path[1] === ':' && ctype_alpha($path[0]);
     }
 
     /**
@@ -121,11 +121,13 @@ final class Path {
         $fromDrive = self::driveOf($fromNorm);
         $toDrive = self::driveOf($toNorm);
         if ($fromDrive !== $toDrive) {
-            throw new RuntimeException(sprintf('Cannot compute relative path across drives %s and %s.', $fromDrive ?: '(none)', $toDrive ?: '(none)'));
+            $fromLabel = $fromDrive ?: '(none)';
+            $toLabel = $toDrive ?: '(none)';
+            throw new RuntimeException("Cannot compute relative path across drives $fromLabel and $toLabel.");
         }
 
-        $fromBody = $fromDrive !== '' ? substr($fromNorm, strlen($fromDrive)) : $fromNorm;
-        $toBody = $toDrive !== '' ? substr($toNorm, strlen($toDrive)) : $toNorm;
+        $fromBody = $fromDrive !== '' ? substr($fromNorm, Str::byteLength($fromDrive)) : $fromNorm;
+        $toBody = $toDrive !== '' ? substr($toNorm, Str::byteLength($toDrive)) : $toNorm;
 
         $fromParts = self::splitBody($fromBody);
         $toParts = self::splitBody($toBody);
@@ -161,8 +163,8 @@ final class Path {
         $pos = strrpos($unified, '/');
         $base = $pos === false ? $unified : substr($unified, $pos + 1);
         if ($suffix !== '' && $suffix !== $base) {
-            $suffixLen = strlen($suffix);
-            if (strlen($base) > $suffixLen && substr($base, -$suffixLen) === $suffix) {
+            $suffixLen = Str::byteLength($suffix);
+            if (Str::byteLength($base) > $suffixLen && substr($base, -$suffixLen) === $suffix) {
                 $base = substr($base, 0, -$suffixLen);
             }
         }
@@ -231,7 +233,7 @@ final class Path {
      * Extracts the Windows drive prefix (e.g. `C:`) from $path, or returns `''`.
      */
     private static function driveOf(string $path): string {
-        if (strlen($path) >= 2 && $path[1] === ':' && ctype_alpha($path[0])) {
+        if (Str::byteLength($path) >= 2 && $path[1] === ':' && ctype_alpha($path[0])) {
             return Str::upper($path[0]) . ':';
         }
         return '';

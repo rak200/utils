@@ -67,4 +67,26 @@ final class RegexTest extends TestCase {
         $this->assertSame('a\\.b', Regex::quote('a.b'));
         $this->assertSame('\\/a\\/', Regex::quote('/a/'));
     }
+
+    public function testGrep(): void {
+        $this->assertSame(
+            [0 => 'apple', 2 => 'avocado'],
+            Regex::grep('/^a/', ['apple', 'banana', 'avocado']),
+        );
+        $this->assertSame([], Regex::grep('/^z/', ['apple', 'banana']));
+    }
+
+    public function testGrepInverted(): void {
+        $this->assertSame(
+            [1 => 'banana'],
+            Regex::grep('/^a/', ['apple', 'banana', 'avocado'], true),
+        );
+    }
+
+    public function testGrepPreservesKeys(): void {
+        $this->assertSame(
+            ['x' => 'a1', 'z' => 'a2'],
+            Regex::grep('/^a/', ['x' => 'a1', 'y' => 'b1', 'z' => 'a2']),
+        );
+    }
 }

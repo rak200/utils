@@ -93,4 +93,41 @@ final class BitTest extends TestCase {
             $this->assertSame($value, Bit::fromStr(Bit::toStr($value)));
         }
     }
+
+    public function testRotateLeft(): void {
+        $this->assertSame(2, Bit::rotateLeft(1, 1));
+        $this->assertSame(20, Bit::rotateLeft(5, 2));        // 0b101 → 0b10100, no wrap
+        $this->assertSame(0, Bit::rotateLeft(0, 5));
+        $this->assertSame(42, Bit::rotateLeft(42, 0));       // no-op
+        // the top bit wraps around to the bottom
+        $this->assertSame(1, Bit::rotateLeft(PHP_INT_MIN, 1));
+    }
+
+    public function testRotateRight(): void {
+        $this->assertSame(1, Bit::rotateRight(2, 1));
+        $this->assertSame(5, Bit::rotateRight(20, 2));
+        $this->assertSame(0, Bit::rotateRight(0, 5));
+        $this->assertSame(42, Bit::rotateRight(42, 0));
+        // the bottom bit wraps around to the top
+        $this->assertSame(PHP_INT_MIN, Bit::rotateRight(1, 1));
+    }
+
+    public function testRotateIsModuloBitWidth(): void {
+        $bits = PHP_INT_SIZE * 8;
+        foreach ([0xABCD, 1, PHP_INT_MIN, PHP_INT_MAX, -1] as $value) {
+            $this->assertSame($value, Bit::rotateLeft($value, $bits));      // full turn
+            $this->assertSame($value, Bit::rotateRight($value, $bits));
+            $this->assertSame(Bit::rotateLeft($value, 3), Bit::rotateLeft($value, $bits + 3));
+            $this->assertSame(Bit::rotateLeft($value, 1), Bit::rotateRight($value, -1)); // negative
+        }
+    }
+
+    public function testRotateLeftRightAreInverse(): void {
+        foreach ([0xABCD, 1, 255, PHP_INT_MIN, PHP_INT_MAX, -1] as $value) {
+            foreach ([1, 7, 13, 31] as $by) {
+                $this->assertSame($value, Bit::rotateRight(Bit::rotateLeft($value, $by), $by));
+                $this->assertSame(Bit::rotateLeft($value, $by), Bit::rotateRight($value, PHP_INT_SIZE * 8 - $by));
+            }
+        }
+    }
 }

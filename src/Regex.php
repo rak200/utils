@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function preg_match, preg_match_all, preg_quote, preg_replace, preg_replace_callback,
-    preg_split, sprintf;
+use function preg_grep, preg_match, preg_match_all, preg_quote, preg_replace, preg_replace_callback,
+    preg_split;
 
 /**
  * PCRE regular expression helpers that throw on invalid patterns instead of
@@ -34,7 +34,7 @@ final class Regex {
     public static function matches(string $pattern, string $subject): bool {
         $result = preg_match($pattern, $subject);
         if ($result === false) {
-            throw new RuntimeException(sprintf('Invalid regex pattern: %s', $pattern));
+            throw new RuntimeException("Invalid regex pattern: $pattern");
         }
         return $result === 1;
     }
@@ -49,7 +49,7 @@ final class Regex {
     public static function match(string $pattern, string $subject): array {
         $result = self::matchOrNull($pattern, $subject);
         if ($result === null) {
-            throw new RuntimeException(sprintf('No match for pattern %s.', $pattern));
+            throw new RuntimeException("No match for pattern $pattern.");
         }
         return $result;
     }
@@ -64,7 +64,7 @@ final class Regex {
         $matches = [];
         $result = preg_match($pattern, $subject, $matches);
         if ($result === false) {
-            throw new RuntimeException(sprintf('Invalid regex pattern: %s', $pattern));
+            throw new RuntimeException("Invalid regex pattern: $pattern");
         }
         return $result === 1 ? $matches : null;
     }
@@ -80,7 +80,7 @@ final class Regex {
         $matches = [];
         $result = preg_match_all($pattern, $subject, $matches);
         if ($result === false) {
-            throw new RuntimeException(sprintf('Invalid regex pattern: %s', $pattern));
+            throw new RuntimeException("Invalid regex pattern: $pattern");
         }
         return $matches;
     }
@@ -94,7 +94,7 @@ final class Regex {
     public static function replace(string $pattern, string $replacement, string $subject): string {
         $result = preg_replace($pattern, $replacement, $subject);
         if ($result === null) {
-            throw new RuntimeException(sprintf('Invalid regex pattern: %s', $pattern));
+            throw new RuntimeException("Invalid regex pattern: $pattern");
         }
         return $result;
     }
@@ -109,7 +109,7 @@ final class Regex {
     public static function replaceCallback(string $pattern, callable $callback, string $subject): string {
         $result = preg_replace_callback($pattern, $callback, $subject);
         if ($result === null) {
-            throw new RuntimeException(sprintf('Invalid regex pattern: %s', $pattern));
+            throw new RuntimeException("Invalid regex pattern: $pattern");
         }
         return $result;
     }
@@ -123,7 +123,23 @@ final class Regex {
     public static function split(string $pattern, string $subject): array {
         $result = preg_split($pattern, $subject);
         if ($result === false) {
-            throw new RuntimeException(sprintf('Invalid regex pattern: %s', $pattern));
+            throw new RuntimeException("Invalid regex pattern: $pattern");
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the elements of $values that match $pattern, preserving their
+     * keys. With $invert = true, returns the elements that do *not* match.
+     *
+     * @param array<array-key, string> $values
+     * @throws RuntimeException When $pattern is invalid.
+     * @return array<array-key, string>
+     */
+    public static function grep(string $pattern, array $values, bool $invert = false): array {
+        $result = preg_grep($pattern, $values, $invert ? PREG_GREP_INVERT : 0);
+        if ($result === false) {
+            throw new RuntimeException("Invalid regex pattern: $pattern");
         }
         return $result;
     }

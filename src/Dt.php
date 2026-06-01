@@ -9,7 +9,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Exception;
 use RuntimeException;
-use function sprintf;
+use function checkdate, intdiv;
 
 /**
  * Date/time helpers built on {@see DateTimeImmutable}. Inputs accept any
@@ -30,6 +30,14 @@ final class Dt {
      */
     public static function is(mixed $value): bool {
         return $value instanceof DateTimeInterface;
+    }
+
+    /**
+     * Returns true when $year-$month-$day is a valid Gregorian calendar date
+     * (e.g. rejects 2025-02-29 but accepts 2024-02-29). Wraps {@see checkdate()}.
+     */
+    public static function isValid(int $year, int $month, int $day): bool {
+        return checkdate($month, $day, $year);
     }
 
     /**
@@ -72,7 +80,7 @@ final class Dt {
     public static function parse(string $value, ?string $format = null): DateTimeImmutable {
         $result = self::parseOrNull($value, $format);
         if ($result === null) {
-            throw new RuntimeException(sprintf('Cannot parse "%s" as date/time.', $value));
+            throw new RuntimeException("Cannot parse \"$value\" as date/time.");
         }
         return $result;
     }
@@ -97,7 +105,7 @@ final class Dt {
      * to $tz.
      */
     public static function fromEpoch(int $seconds, ?DateTimeZone $tz = null): DateTimeImmutable {
-        $dt = new DateTimeImmutable('@' . $seconds);
+        $dt = new DateTimeImmutable("@$seconds");
         return $tz !== null ? $dt->setTimezone($tz) : $dt;
     }
 
@@ -114,9 +122,10 @@ final class Dt {
             $remainder += 1000;
             $seconds -= 1;
         }
-        $dt = DateTimeImmutable::createFromFormat('U.u', sprintf('%d.%06d', $seconds, $remainder * 1000));
+        $micro = $remainder * 1000;
+        $dt = DateTimeImmutable::createFromFormat('U.u', (string) $seconds . '.' . Str::padStart((string) $micro, 6, '0'));
         if ($dt === false) {
-            throw new RuntimeException(sprintf('Cannot create date/time from epoch ms %d.', $milliseconds));
+            throw new RuntimeException("Cannot create date/time from epoch ms $milliseconds.");
         }
         return $tz !== null ? $dt->setTimezone($tz) : $dt;
     }
@@ -160,42 +169,48 @@ final class Dt {
      * Returns $dt shifted by $days days (may be negative).
      */
     public static function addDays(DateTimeInterface $dt, int $days): DateTimeImmutable {
-        return self::immutable($dt)->modify(sprintf('%+d days', $days));
+        $signed = $days >= 0 ? "+$days" : (string) $days;
+        return self::immutable($dt)->modify("$signed days");
     }
 
     /**
      * Returns $dt shifted by $hours hours (may be negative).
      */
     public static function addHours(DateTimeInterface $dt, int $hours): DateTimeImmutable {
-        return self::immutable($dt)->modify(sprintf('%+d hours', $hours));
+        $signed = $hours >= 0 ? "+$hours" : (string) $hours;
+        return self::immutable($dt)->modify("$signed hours");
     }
 
     /**
      * Returns $dt shifted by $minutes minutes (may be negative).
      */
     public static function addMinutes(DateTimeInterface $dt, int $minutes): DateTimeImmutable {
-        return self::immutable($dt)->modify(sprintf('%+d minutes', $minutes));
+        $signed = $minutes >= 0 ? "+$minutes" : (string) $minutes;
+        return self::immutable($dt)->modify("$signed minutes");
     }
 
     /**
      * Returns $dt shifted by $seconds seconds (may be negative).
      */
     public static function addSeconds(DateTimeInterface $dt, int $seconds): DateTimeImmutable {
-        return self::immutable($dt)->modify(sprintf('%+d seconds', $seconds));
+        $signed = $seconds >= 0 ? "+$seconds" : (string) $seconds;
+        return self::immutable($dt)->modify("$signed seconds");
     }
 
     /**
      * Returns $dt shifted by $months months (may be negative).
      */
     public static function addMonths(DateTimeInterface $dt, int $months): DateTimeImmutable {
-        return self::immutable($dt)->modify(sprintf('%+d months', $months));
+        $signed = $months >= 0 ? "+$months" : (string) $months;
+        return self::immutable($dt)->modify("$signed months");
     }
 
     /**
      * Returns $dt shifted by $years years (may be negative).
      */
     public static function addYears(DateTimeInterface $dt, int $years): DateTimeImmutable {
-        return self::immutable($dt)->modify(sprintf('%+d years', $years));
+        $signed = $years >= 0 ? "+$years" : (string) $years;
+        return self::immutable($dt)->modify("$signed years");
     }
 
     /**
@@ -276,7 +291,8 @@ final class Dt {
      */
     public static function startOfWeek(DateTimeInterface $dt): DateTimeImmutable {
         $dayOfWeek = (int) $dt->format('N');
-        return self::startOfDay($dt)->modify(sprintf('-%d days', $dayOfWeek - 1));
+        $offset = $dayOfWeek - 1;
+        return self::startOfDay($dt)->modify("-{$offset} days");
     }
 
     /**
@@ -285,7 +301,8 @@ final class Dt {
      */
     public static function endOfWeek(DateTimeInterface $dt): DateTimeImmutable {
         $dayOfWeek = (int) $dt->format('N');
-        return self::endOfDay($dt)->modify(sprintf('+%d days', 7 - $dayOfWeek));
+        $offset = 7 - $dayOfWeek;
+        return self::endOfDay($dt)->modify("+{$offset} days");
     }
 
     /**

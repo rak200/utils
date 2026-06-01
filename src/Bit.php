@@ -114,6 +114,32 @@ final class Bit {
     }
 
     /**
+     * Rotates the bits of $value left by $by positions (a circular shift over the
+     * full {@see PHP_INT_SIZE}*8-bit width — bits shifted off the top re-enter at
+     * the bottom). $by is taken modulo the bit width, so any integer is accepted.
+     */
+    public static function rotateLeft(int $value, int $by): int {
+        $by = ($by % self::BITS + self::BITS) % self::BITS;
+        if ($by === 0) {
+            return $value;
+        }
+        return ($value << $by) | self::uShr($value, self::BITS - $by);
+    }
+
+    /**
+     * Rotates the bits of $value right by $by positions (a circular shift over the
+     * full {@see PHP_INT_SIZE}*8-bit width — bits shifted off the bottom re-enter
+     * at the top). $by is taken modulo the bit width, so any integer is accepted.
+     */
+    public static function rotateRight(int $value, int $by): int {
+        $by = ($by % self::BITS + self::BITS) % self::BITS;
+        if ($by === 0) {
+            return $value;
+        }
+        return self::uShr($value, $by) | ($value << (self::BITS - $by));
+    }
+
+    /**
      * Returns the integer value of the base-2 string $bits.
      *
      * @throws RuntimeException When $bits is empty, contains characters other than
@@ -137,5 +163,14 @@ final class Bit {
         if ($bit < 0 || $bit >= self::BITS) {
             throw new RuntimeException('Bit index must be between 0 and ' . (self::BITS - 1) . '.');
         }
+    }
+
+    /**
+     * Logical (unsigned, zero-filling) right shift by $shift positions, undoing
+     * the sign-extension of PHP's arithmetic `>>`. Used by the rotate helpers;
+     * $shift is expected in the range [1, BITS - 1].
+     */
+    private static function uShr(int $value, int $shift): int {
+        return ($value >> $shift) & ~(-1 << (self::BITS - $shift));
     }
 }

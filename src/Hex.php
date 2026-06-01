@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function bin2hex, ctype_xdigit, dechex, hex2bin, hexdec, str_split;
+use function bin2hex, ctype_xdigit, dechex, hex2bin, hexdec;
 
 /**
  * Hexadecimal encoding of binary strings — the byte-string ↔ hex-string
@@ -43,11 +43,7 @@ final class Hex {
      *                          non-hex character).
      */
     public static function decode(string $value): string {
-        if (!self::is($value)) {
-            throw new RuntimeException('Invalid hex input.');
-        }
-        $result = hex2bin($value);
-        if ($result === false) {
+        if (!self::is($value) || ($result = hex2bin($value)) === false) {
             throw new RuntimeException('Invalid hex input.');
         }
         return $result;
@@ -66,7 +62,7 @@ final class Hex {
             throw new RuntimeException('Invalid hex input.');
         }
         $bytes = [];
-        foreach (str_split($value, 2) as $pair) {
+        foreach (Str::split($value, limit: 2) as $pair) {
             $bytes[] = (int) hexdec($pair);
         }
         return $bytes;

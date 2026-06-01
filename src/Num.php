@@ -7,8 +7,8 @@ namespace Rak200\Utils;
 use BcMath\Number;
 use RoundingMode;
 use RuntimeException;
-use function abs, ceil, floor, fmod, implode, intdiv, is_finite, is_float, is_int, is_numeric, is_string,
-    number_format, ord, round, sprintf, sqrt, str_split, strrev;
+use function abs, assert, ceil, floor, fmod, implode, intdiv, is_finite, is_infinite, is_int,
+    is_float, is_nan, is_numeric, number_format, ord, round, sqrt;
 
 /**
  * Numeric helpers for parsing, formatting, arithmetic and aggregation.
@@ -68,7 +68,7 @@ final class Num {
     public static function is(mixed $value): bool {
         return is_int($value)
             || is_float($value)
-            || (is_string($value) && self::isStrictNumericString($value))
+            || (Str::is($value) && self::isStrictNumericString($value))
             || $value instanceof Number;
     }
 
@@ -116,10 +116,35 @@ final class Num {
         if (is_float($value)) {
             return is_finite($value);
         }
-        if (is_string($value)) {
+        if (Str::is($value)) {
             return is_finite((float) $value);
         }
         return true;
+    }
+
+    /**
+     * Returns true when $value is `NAN` — a float not-a-number. Ints,
+     * {@see Number}s, numeric strings (which can never denote NaN), and
+     * non-numeric values are all false. Complements {@see isFinite()}.
+     */
+    public static function isNan(mixed $value): bool {
+        return is_float($value) && is_nan($value);
+    }
+
+    /**
+     * Returns true when $value is infinite: `INF`, `-INF`, or a numeric string
+     * whose float value overflows to infinity (e.g. `'1e400'`). Ints,
+     * {@see Number}s, finite floats, and non-numeric values are false.
+     * Complements {@see isFinite()}.
+     */
+    public static function isInfinite(mixed $value): bool {
+        if (is_float($value)) {
+            return is_infinite($value);
+        }
+        if (Str::is($value) && self::isStrictNumericString($value)) {
+            return is_infinite((float) $value);
+        }
+        return false;
     }
 
     /**
@@ -130,7 +155,7 @@ final class Num {
     public static function parseInt(string $value, int $base = 10): int {
         $parsed = self::parseIntOrNull($value, $base);
         if ($parsed === null) {
-            throw new RuntimeException(sprintf('Cannot parse "%s" as integer in base %d.', $value, $base));
+            throw new RuntimeException("Cannot parse \"$value\" as integer in base $base.");
         }
         return $parsed;
     }
@@ -175,6 +200,31 @@ final class Num {
     }
 
     /**
+     * Returns the base-$base (2-36) string representation of the integer $value,
+     * using digits `0-9a-z` (lowercase). Negative values are prefixed with `-`.
+     * Inverse of {@see parseInt()}: `parseInt(toBase($n, $b), $b) === $n`.
+     *
+     * @throws RuntimeException When $base is outside 2-36.
+     */
+    public static function toBase(int $value, int $base): string {
+        if ($base < 2 || $base > 36) {
+            throw new RuntimeException('Base must be between 2 and 36.');
+        }
+        if ($value === 0) {
+            return '0';
+        }
+        $digits = '0123456789abcdefghijklmnopqrstuvwxyz';
+        $negative = $value < 0;
+        $result = '';
+        $n = $value;
+        while ($n !== 0) {
+            $result = $digits[abs($n % $base)] . $result;
+            $n = intdiv($n, $base);
+        }
+        return $negative ? "-$result" : $result;
+    }
+
+    /**
      * Parses $value as a float.
      *
      * @throws RuntimeException When $value is not numeric or has surrounding whitespace.
@@ -182,7 +232,7 @@ final class Num {
     public static function parseFloat(string $value): float {
         $parsed = self::parseFloatOrNull($value);
         if ($parsed === null) {
-            throw new RuntimeException(sprintf('Cannot parse "%s" as float.', $value));
+            throw new RuntimeException("Cannot parse \"$value\" as float.");
         }
         return $parsed;
     }
@@ -211,7 +261,7 @@ final class Num {
     public static function parseNumber(string $value): Number {
         $parsed = self::parseNumberOrNull($value);
         if ($parsed === null) {
-            throw new RuntimeException(sprintf('Cannot parse "%s" as number.', $value));
+            throw new RuntimeException("Cannot parse \"$value\" as number.");
         }
         return $parsed;
     }
@@ -312,6 +362,20 @@ final class Num {
             $sum = self::add($sum, $value);
         }
         return $sum;
+    }
+
+    /**
+     * Returns the product of $values. Widens to {@see Number} when any element is
+     * one. Returns 1 (int) for an empty input.
+     *
+     * @param iterable<int|float|Number> $values
+     */
+    public static function product(iterable $values): int|float|Number {
+        $product = 1;
+        foreach ($values as $value) {
+            $product = self::multiply($product, $value);
+        }
+        return $product;
     }
 
     /**
@@ -509,6 +573,20 @@ final class Num {
     }
 
     /**
+     * Multiplies two values, widening to {@see Number} when either operand is
+     * one. Mirrors {@see add()} for the union-arithmetic branching that the type
+     * system cannot express in a single expression.
+     */
+    private static function multiply(int|float|Number $a, int|float|Number $b): int|float|Number {
+        if ($a instanceof Number || $b instanceof Number) {
+            $aN = $a instanceof Number ? $a : new Number((string) $a);
+            $bN = $b instanceof Number ? $b : new Number((string) $b);
+            return $aN * $bN;
+        }
+        return $a * $b;
+    }
+
+    /**
      * Returns true if $value is a numeric string with no surrounding
      * whitespace. PHP's {@see is_numeric()} accepts leading/trailing whitespace
      * since 8.0; this rejects it so the numeric contract stays strict, matching
@@ -634,7 +712,7 @@ final class Num {
         }
         $intGrouped = $thousandsSeparator === ''
             ? $intPart
-            : strrev(implode($thousandsSeparator, str_split(Str::reverse($intPart), 3)));
+            : Str::reverse(implode($thousandsSeparator, Str::split(Str::reverse($intPart), limit: 3)));
         $result = ($negative ? '-' : '') . $intGrouped;
         if ($decimals > 0) {
             $result .= $decimalSeparator . $decPart;

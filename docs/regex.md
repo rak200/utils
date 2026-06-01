@@ -17,6 +17,7 @@ use Rak200\Utils\Regex;
 - [`replace`](#replace)
 - [`replaceCallback`](#replacecallback)
 - [`split`](#split)
+- [`grep`](#grep)
 - [`quote`](#quote)
 
 ---
@@ -119,6 +120,25 @@ Regex::replaceCallback(
 
 ```php
 Regex::split('/\s*,\s*/', 'a, b ,c  ,  d');     // ['a', 'b', 'c', 'd']
+```
+
+[↑ Back to top](#regex)
+
+---
+
+## `grep`
+
+Filters an array of strings, keeping the elements that match `$pattern` (keys preserved). Pass `$invert = true` to keep the elements that *don't* match.
+
+```php
+Regex::grep('/^a/', ['apple', 'banana', 'avocado']);
+// [0 => 'apple', 2 => 'avocado']
+
+Regex::grep('/^a/', ['apple', 'banana', 'avocado'], true);
+// [1 => 'banana']
+
+Regex::grep('/^a/', ['x' => 'a1', 'y' => 'b1', 'z' => 'a2']);
+// ['x' => 'a1', 'z' => 'a2']   (keys preserved)
 ```
 
 [↑ Back to top](#regex)

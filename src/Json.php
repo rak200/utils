@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use JsonException;
-use function is_string, json_decode, json_encode;
+use function json_decode, json_encode, json_validate;
 
 /**
  * JSON helpers — always throw {@see JsonException} on malformed input/output
@@ -43,15 +43,7 @@ final class Json {
      * @phpstan-assert-if-true string $value
      */
     public static function is(mixed $value): bool {
-        if (!is_string($value)) {
-            return false;
-        }
-        try {
-            self::decode($value);
-            return true;
-        } catch (JsonException) {
-            return false;
-        }
+        return Str::is($value) && json_validate($value);
     }
 
     /**

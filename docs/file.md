@@ -11,15 +11,18 @@ use Rak200\Utils\File;
 ## Contents
 
 - [`read` / `write` / `append`](#read--write--append)
+- [`touch`](#touch)
 - [`exists`](#exists)
 - [`isFile` / `isDir`](#isfile--isdir)
 - [`delete`](#delete)
 - [`mkdir`](#mkdir)
 - [`list`](#list)
 - [`extension` / `basename` / `dirname`](#extension--basename--dirname)
+- [`realpath`](#realpath)
 - [`mimeType`](#mimetype)
 - [`size`](#size)
 - [`lines`](#lines)
+- [`readCsv` / `writeCsv`](#readcsv--writecsv)
 - [`tempFile`](#tempfile)
 - [`copy` / `move`](#copy--move)
 
@@ -33,6 +36,19 @@ use Rak200\Utils\File;
 File::write('/tmp/greeting.txt', "Hello\n");
 File::append('/tmp/greeting.txt', "World\n");
 File::read('/tmp/greeting.txt');    // "Hello\nWorld\n"
+```
+
+[↑ Back to top](#file)
+
+---
+
+## `touch`
+
+Sets the modification time of `$path` (defaulting to now), creating an empty file when it does not exist.
+
+```php
+File::touch('/tmp/marker');                 // create (or bump mtime)
+File::touch('/tmp/marker', 1_600_000_000);  // set a specific Unix timestamp
 ```
 
 [↑ Back to top](#file)
@@ -126,6 +142,20 @@ File::dirname('/var/log/app.log');               // '/var/log'
 
 ---
 
+## `realpath`
+
+Resolves `$path` to its canonical absolute form, following symlinks and collapsing `.`/`..`. The path must exist on disk (otherwise it throws). For pure, disk-free path math use [`Path`](path.md).
+
+```php
+File::realpath('/tmp/../tmp/./app.log');     // '/tmp/app.log'
+File::realpath('relative/file.txt');         // absolute path from the CWD
+File::realpath('/no/such/path');             // throws RuntimeException
+```
+
+[↑ Back to top](#file)
+
+---
+
 ## `mimeType`
 
 Detected via `fileinfo`.
@@ -161,6 +191,27 @@ foreach (File::lines('/var/log/app.log') as $line) {
         echo $line . PHP_EOL;
     }
 }
+```
+
+[↑ Back to top](#file)
+
+---
+
+## `readCsv` / `writeCsv`
+
+Read a CSV file into a list of row arrays, or write rows back out. `readCsv` skips fully blank lines; both default `$escape` to `''` (no escape character — the modern CSV behaviour PHP 8.4 recommends) and accept custom `$separator`/`$enclosure`. Field values are quoted automatically when they contain the separator, quotes, or newlines.
+
+```php
+File::writeCsv('/tmp/people.csv', [
+    ['id', 'name'],
+    ['1', 'Ann'],
+    ['2', 'a,b "c"'],
+]);
+
+File::readCsv('/tmp/people.csv');
+// [['id', 'name'], ['1', 'Ann'], ['2', 'a,b "c"']]
+
+File::readCsv('/tmp/semicolons.csv', separator: ';');
 ```
 
 [↑ Back to top](#file)

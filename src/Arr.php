@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_chunk, array_diff_key, array_filter, array_flip, array_intersect_key, array_is_list, array_key_exists, array_key_first, array_key_last, array_keys, array_map, array_merge, array_unique, array_values, in_array, is_array, max, usort;
+use function array_chunk, array_combine, array_count_values, array_diff, array_diff_key,
+    array_fill, array_fill_keys, array_filter, array_flip, array_intersect, array_intersect_key,
+    array_is_list, array_key_exists, array_key_first, array_key_last, array_keys, array_map,
+    array_merge, array_reverse, array_search, array_slice, array_unique, array_values, count,
+    in_array, is_array, krsort, ksort, max, usort;
 
 /**
  * Array helpers.
@@ -125,6 +129,58 @@ final class Arr {
             return null;
         }
         return $array[array_key_last($array)];
+    }
+
+    /**
+     * Returns the first key of the array.
+     *
+     * @template K of array-key
+     * @param array<K, mixed> $array
+     * @return K
+     * @throws RuntimeException When the array is empty.
+     */
+    public static function firstKey(array $array): int|string {
+        if ($array === []) {
+            throw new RuntimeException('Cannot get first key of an empty array.');
+        }
+        return array_key_first($array);
+    }
+
+    /**
+     * Returns the first key of the array, or null if it is empty.
+     *
+     * @template K of array-key
+     * @param array<K, mixed> $array
+     * @return K|null
+     */
+    public static function firstKeyOrNull(array $array): int|string|null {
+        return array_key_first($array);
+    }
+
+    /**
+     * Returns the last key of the array.
+     *
+     * @template K of array-key
+     * @param array<K, mixed> $array
+     * @return K
+     * @throws RuntimeException When the array is empty.
+     */
+    public static function lastKey(array $array): int|string {
+        if ($array === []) {
+            throw new RuntimeException('Cannot get last key of an empty array.');
+        }
+        return array_key_last($array);
+    }
+
+    /**
+     * Returns the last key of the array, or null if it is empty.
+     *
+     * @template K of array-key
+     * @param array<K, mixed> $array
+     * @return K|null
+     */
+    public static function lastKeyOrNull(array $array): int|string|null {
+        return array_key_last($array);
     }
 
     /**
@@ -376,6 +432,35 @@ final class Arr {
     }
 
     /**
+     * Returns the key of the first element equal to $value (strict comparison by
+     * default). The key-returning counterpart of {@see find()}, which returns the
+     * value.
+     *
+     * @param array<array-key, mixed> $array
+     * @return array-key
+     * @throws RuntimeException When $value is not present.
+     */
+    public static function search(array $array, mixed $value, bool $strict = true): int|string {
+        $key = self::searchOrNull($array, $value, $strict);
+        if ($key === null) {
+            throw new RuntimeException('Value not found in array.');
+        }
+        return $key;
+    }
+
+    /**
+     * Returns the key of the first element equal to $value (strict comparison by
+     * default), or null when $value is not present.
+     *
+     * @param array<array-key, mixed> $array
+     * @return array-key|null
+     */
+    public static function searchOrNull(array $array, mixed $value, bool $strict = true): int|string|null {
+        $key = array_search($value, $array, $strict);
+        return $key === false ? null : $key;
+    }
+
+    /**
      * Extracts the values at $key from each sub-array of $array as a 0-indexed
      * list. Items without the key contribute null.
      *
@@ -497,6 +582,180 @@ final class Arr {
      */
     public static function except(array $array, array $keys): array {
         return array_diff_key($array, array_flip($keys));
+    }
+
+    /**
+     * Returns the number of elements in the array.
+     *
+     * @param array<array-key, mixed> $array
+     */
+    public static function count(array $array): int {
+        return count($array);
+    }
+
+    /**
+     * Returns the array with its elements in reverse order. Integer keys are
+     * renumbered from 0 (string keys are always kept) unless $preserveKeys is true.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return array<array-key, T>
+     */
+    public static function reverse(array $array, bool $preserveKeys = false): array {
+        return array_reverse($array, $preserveKeys);
+    }
+
+    /**
+     * Returns a slice of $length elements from the array starting at $offset
+     * (negative $offset counts from the end; null $length runs to the end,
+     * negative $length stops that many elements from the end). Integer keys are
+     * renumbered (string keys kept) unless $preserveKeys is true.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return array<array-key, T>
+     */
+    public static function slice(array $array, int $offset, ?int $length = null, bool $preserveKeys = false): array {
+        return array_slice($array, $offset, $length, $preserveKeys);
+    }
+
+    /**
+     * Returns the array with keys and values swapped. Values must be int or
+     * string; on duplicate values the last key wins.
+     *
+     * @param array<array-key, int|string> $array
+     * @return array<int|string, array-key>
+     */
+    public static function flip(array $array): array {
+        return array_flip($array);
+    }
+
+    /**
+     * Pairs each key in $keys with the value at the same position in $values.
+     *
+     * @template T
+     * @param list<array-key> $keys
+     * @param list<T> $values
+     * @return array<array-key, T>
+     * @throws RuntimeException When $keys and $values differ in length.
+     */
+    public static function combine(array $keys, array $values): array {
+        if (count($keys) !== count($values)) {
+            throw new RuntimeException('Keys and values must have the same number of elements.');
+        }
+        return array_combine($keys, $values);
+    }
+
+    /**
+     * Returns the values of $array not present in any of $others (loose
+     * string comparison, like {@see array_diff()}). Keys are preserved.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @param array<array-key, mixed> ...$others
+     * @return array<array-key, T>
+     */
+    public static function diff(array $array, array ...$others): array {
+        return $others === [] ? $array : array_diff($array, ...$others);
+    }
+
+    /**
+     * Returns the values of $array present in every one of $others (loose
+     * string comparison, like {@see array_intersect()}). Keys are preserved.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @param array<array-key, mixed> ...$others
+     * @return array<array-key, T>
+     */
+    public static function intersect(array $array, array ...$others): array {
+        return $others === [] ? $array : array_intersect($array, ...$others);
+    }
+
+    /**
+     * Returns a map from each distinct value in $array to its occurrence count.
+     * Values must be int or string (matching {@see array_count_values()}).
+     *
+     * @param array<array-key, int|string> $array
+     * @return array<int|string, int>
+     */
+    public static function countValues(array $array): array {
+        return array_count_values($array);
+    }
+
+    /**
+     * Returns a new array with $values appended after the array's elements,
+     * each under the next integer key (existing keys are preserved). $array
+     * itself is left unchanged.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @param T ...$values
+     * @return array<array-key, T>
+     */
+    public static function append(array $array, mixed ...$values): array {
+        foreach ($values as $value) {
+            $array[] = $value;
+        }
+        return $array;
+    }
+
+    /**
+     * Returns a new array with $values inserted before the array's elements.
+     * Integer keys are renumbered (string keys kept), matching
+     * {@see array_unshift()}. $array itself is left unchanged.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @param T ...$values
+     * @return array<array-key, T>
+     */
+    public static function prepend(array $array, mixed ...$values): array {
+        return $values === [] ? $array : array_merge($values, $array);
+    }
+
+    /**
+     * Returns $array sorted by key with the natural `<=>` comparator, preserving
+     * the key=>value association. Pass $desc = true for descending order.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return array<array-key, T>
+     */
+    public static function sortKeys(array $array, bool $desc = false): array {
+        if ($desc) {
+            krsort($array);
+        } else {
+            ksort($array);
+        }
+        return $array;
+    }
+
+    /**
+     * Returns a 0-indexed list of $count copies of $value.
+     *
+     * @template T
+     * @param T $value
+     * @return list<T>
+     * @throws RuntimeException When $count is negative.
+     */
+    public static function fill(int $count, mixed $value): array {
+        if ($count < 0) {
+            throw new RuntimeException('Count must be non-negative.');
+        }
+        return array_fill(0, $count, $value);
+    }
+
+    /**
+     * Returns an array mapping each key in $keys to $value.
+     *
+     * @template T
+     * @param list<array-key> $keys
+     * @param T $value
+     * @return array<array-key, T>
+     */
+    public static function fillKeys(array $keys, mixed $value): array {
+        return array_fill_keys($keys, $value);
     }
 
     /**

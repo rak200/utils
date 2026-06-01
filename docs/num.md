@@ -18,7 +18,9 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`isInt` / `isFloat`](#isint--isfloat)
 - [`isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`](#ispositiveint--isnegativeint--isnonnegativeint)
 - [`isFinite`](#isfinite)
+- [`isNan` / `isInfinite`](#isnan--isinfinite)
 - [`parseInt` / `parseIntOrNull`](#parseint--parseintornull)
+- [`toBase`](#tobase)
 - [`parseFloat` / `parseFloatOrNull`](#parsefloat--parsefloatornull)
 - [`parseNumber` / `parseNumberOrNull`](#parsenumber--parsenumberornull)
 - [`clamp`](#clamp)
@@ -26,6 +28,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`round`](#round)
 - [`format`](#format)
 - [`sum`](#sum)
+- [`product`](#product)
 - [`avg`](#avg)
 - [`min` / `max`](#min--max)
 - [`abs`](#abs)
@@ -117,6 +120,26 @@ Num::isFinite('abc');       // false
 
 ---
 
+## `isNan` / `isInfinite`
+
+The complements of [`isFinite`](#isfinite). `isNan` is true only for the float `NAN`; `isInfinite` is true for `INF`/`-INF` and for numeric strings that overflow to infinity. Both accept `mixed` and return false for ints, `Number`s, and non-numeric values.
+
+```php
+Num::isNan(NAN);            // true
+Num::isNan(1.0);            // false
+Num::isNan('abc');          // false
+
+Num::isInfinite(INF);       // true
+Num::isInfinite(-INF);      // true
+Num::isInfinite('1e400');   // true   (overflows to INF)
+Num::isInfinite(1.0);       // false
+Num::isInfinite(NAN);       // false
+```
+
+[↑ Back to top](#num)
+
+---
+
 ## `parseInt` / `parseIntOrNull`
 
 Bases 2-36. Strict — rejects any character outside the base alphabet (including a decimal point and surrounding whitespace). Scalar-only — use [`parseNumber`](#parsenumber--parsenumberornull) for big integers that don't fit in `PHP_INT_MAX`.
@@ -129,6 +152,23 @@ Num::parseInt('1010', 2);          // 10
 Num::parseIntOrNull('hello');      // null
 Num::parseIntOrNull('12.5');       // null
 Num::parseIntOrNull(' 42 ');       // null  (surrounding whitespace rejected)
+```
+
+[↑ Back to top](#num)
+
+---
+
+## `toBase`
+
+The inverse of [`parseInt`](#parseint--parseintornull): renders an `int` as a base-2-to-36 string using digits `0-9a-z` (lowercase), with a leading `-` for negatives. `Num::parseInt(Num::toBase($n, $b), $b) === $n`.
+
+```php
+Num::toBase(255, 16);       // 'ff'
+Num::toBase(10, 2);         // '1010'
+Num::toBase(511, 8);        // '777'
+Num::toBase(35, 36);        // 'z'
+Num::toBase(-255, 16);      // '-ff'
+Num::toBase(0, 2);          // '0'
 ```
 
 [↑ Back to top](#num)
@@ -242,6 +282,21 @@ Returns `0` (int) for an empty input. Widens to `BcMath\Number` when any element
 Num::sum([1, 2, 3, 4]);                                   // 10
 Num::sum([1.5, 2.5, 3.0]);                                // 7.0
 Num::sum([1, 2, new Number('0.5')]);                      // BcMath\Number('3.5')
+```
+
+[↑ Back to top](#num)
+
+---
+
+## `product`
+
+The companion to [`sum`](#sum). Returns `1` (int) for an empty input. Widens to `BcMath\Number` when any element is one.
+
+```php
+Num::product([2, 3, 4]);                                  // 24
+Num::product([]);                                         // 1
+Num::product([5, 0, 3]);                                  // 0
+Num::product([3, new Number('2.5')]);                     // BcMath\Number('7.5')
 ```
 
 [↑ Back to top](#num)

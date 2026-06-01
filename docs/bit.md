@@ -13,6 +13,7 @@ use Rak200\Utils\Bit;
 - [`set` / `unset` / `toggle` / `has`](#set--unset--toggle--has)
 - [`count`](#count)
 - [`leadingZeros` / `trailingZeros`](#leadingzeros--trailingzeros)
+- [`rotateLeft` / `rotateRight`](#rotateleft--rotateright)
 - [`toStr` / `fromStr`](#tostr--fromstr)
 
 ---
@@ -61,6 +62,25 @@ Bit::leadingZeros(0);          // 64 on a 64-bit build
 Bit::trailingZeros(1);         // 0
 Bit::trailingZeros(8);         // 3       (1000 has 3 trailing zeros)
 Bit::trailingZeros(0);         // 64 on a 64-bit build
+```
+
+[↑ Back to top](#bit)
+
+---
+
+## `rotateLeft` / `rotateRight`
+
+Circular bit shift over the full `PHP_INT_SIZE * 8`-bit width — bits shifted off one end re-enter at the other. `$by` is taken modulo the bit width (so any integer, including negatives, is accepted), and the two are inverses.
+
+```php
+Bit::rotateLeft(1, 1);          // 2
+Bit::rotateLeft(5, 2);          // 20      (0b101 → 0b10100)
+Bit::rotateLeft(PHP_INT_MIN, 1);// 1       (top bit wraps to the bottom)
+Bit::rotateRight(1, 1);         // PHP_INT_MIN   (bottom bit wraps to the top)
+Bit::rotateRight(20, 2);        // 5
+
+Bit::rotateLeft(42, PHP_INT_SIZE * 8);   // 42   (a full turn is a no-op)
+Bit::rotateLeft(42, -1) === Bit::rotateRight(42, 1);   // true
 ```
 
 [↑ Back to top](#bit)

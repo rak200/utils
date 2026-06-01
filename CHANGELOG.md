@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-06-01
+
+Roadmap sweep: wraps the native-function gaps catalogued in the roadmap as pure, static helpers across `Str`, `Arr`, `Num`, `Regex`, `Bit`, `Dt`, and `File`.
+
+### Added
+
+- **`Str`** — `byteLength` (raw byte length, the byte-level counterpart to the character-counting `length`); `title` (title-case each word, via `mb_convert_case`); `isDigits` / `isAlpha` / `isAlnum` (ASCII `ctype_*` predicates, false for the empty string); `before` / `after` (slice around the first occurrence of a delimiter); `replaceAt(value, start, length, replacement)` (multibyte-aware ranged replace, with negative `$start` / `$length` and length-0 insert); `wordWrap` (column wrap; throws on `$width < 1`); `wordCount` (Unicode-aware word count); `format` (printf-style, `vsprintf`) and `scan` (the inverse, `sscanf`); `levenshtein` (edit distance) and `similarity` (`similar_text` percentage).
+- **`Arr`** — `count`; `reverse`; `slice`; `flip`; `combine` (throws on length mismatch); `diff` / `intersect` (by value, keys preserved); `search` / `searchOrNull` (key of the first matching value); `countValues`; `append` / `prepend` (immutable add at either end); `firstKey` / `firstKeyOrNull` / `lastKey` / `lastKeyOrNull`; `sortKeys` (asc/desc, association preserved); `fill` (count + value → list) and `fillKeys` (keys + value → map).
+- **`Num`** — `isNan` / `isInfinite` (the complements of `isFinite`); `product` (companion to `sum`, `1` for empty input); `toBase(int, base)` (render an `int` in base 2–36, the inverse of `parseInt`).
+- **`Regex::grep(pattern, values, invert = false)`** — keep the array elements that match (or, inverted, that don't), preserving keys.
+- **`Bit::rotateLeft` / `Bit::rotateRight`** — circular bit shift over the full `PHP_INT_SIZE * 8`-bit width; `$by` is taken modulo the bit width (so any integer, including negatives, is accepted) and the two are inverses.
+- **`Dt::isValid(year, month, day)`** — true when the components form a valid Gregorian calendar date (`checkdate`).
+- **`File`** — `touch` (set mtime / create empty file), `realpath` (canonicalise an existing path; throws when missing), and `readCsv` / `writeCsv` (CSV ↔ list of row arrays; `readCsv` skips blank lines; `$escape` defaults to `''`).
+
+### Changed
+
+- **`Str::replace` gained an `$ignoreCase` flag** — `Str::replace($subject, $search, $replacement, ignoreCase: true)` does a case-insensitive replace (via `str_ireplace`). Backward-compatible optional parameter.
+- **`Str::split` gained a default `$separator = ''`** — `Str::split($value)` now splits into individual characters (the previous empty-separator behaviour, now the default). Backward-compatible.
+- **Prefer-lib-over-native (internal; no behaviour change).** Now that `Str::byteLength` exists, the byte-level `strlen` calls in `Path` (`isAbsolute` / `relative` / `basename` / `driveOf`) and `Str::replaceFirst` / `replaceLast` use it instead of the raw native — `Path` no longer imports `strlen`. The `Rand` alphabet-length `strlen` stays as the documented cryptographic byte-operation carve-out.
+- **Other internal cleanups (no behaviour change).** Error-message and format-string `sprintf(...)` calls across `Dt` / `File` / `Num` / `Path` / `Rand` / `Regex` / `Url` were replaced with string interpolation; `Json::is` now uses native `json_validate` (it no longer builds the decoded value); `Hex::decode` folds its two validity checks into one; and `Filter::toInt` routes through `Num::isFinite` / `Num::floor`.
+
 ## [1.12.0] - 2026-05-31
 
 ### Added
@@ -237,6 +258,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.13.0]: https://github.com/rak200/utils/compare/1.12.0...1.13.0
 [1.12.0]: https://github.com/rak200/utils/compare/1.11.0...1.12.0
 [1.11.0]: https://github.com/rak200/utils/compare/1.10.0...1.11.0
 [1.10.0]: https://github.com/rak200/utils/compare/1.9.0...1.10.0

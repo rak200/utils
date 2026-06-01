@@ -82,6 +82,14 @@ final class StrTest extends TestCase {
         $this->assertSame(3, Str::length('açú'));
     }
 
+    public function testByteLengthCountsBytes(): void {
+        $this->assertSame(5, Str::byteLength('hello'));
+        $this->assertSame(0, Str::byteLength(''));
+        // "açú" is 3 characters but 5 bytes in UTF-8 (ç and ú are two bytes each)
+        $this->assertSame(5, Str::byteLength('açú'));
+        $this->assertSame(3, Str::length('açú'));
+    }
+
     public function testCapitalizeUppersFirstCharOnly(): void {
         $this->assertSame('Hello', Str::capitalize('hello'));
         $this->assertSame('Olá', Str::capitalize('olá'));
@@ -359,5 +367,110 @@ final class StrTest extends TestCase {
         $this->assertSame(2, Str::span('01x1', '01'));       // stops at the first char outside the set
         $this->assertSame(4, Str::span('xx0011', '01', 2));  // $start offsets into the string
         $this->assertSame(2, Str::span('0011', '01', 0, 2)); // $length bounds the window
+    }
+
+    public function testIsDigitsAlphaAlnum(): void {
+        $this->assertTrue(Str::isDigits('0123456789'));
+        $this->assertFalse(Str::isDigits(''));
+        $this->assertFalse(Str::isDigits('12.3'));
+        $this->assertFalse(Str::isDigits('12a'));
+
+        $this->assertTrue(Str::isAlpha('abcXYZ'));
+        $this->assertFalse(Str::isAlpha(''));
+        $this->assertFalse(Str::isAlpha('abcé'));   // multibyte is not ASCII
+        $this->assertFalse(Str::isAlpha('ab1'));
+
+        $this->assertTrue(Str::isAlnum('abc123'));
+        $this->assertFalse(Str::isAlnum(''));
+        $this->assertFalse(Str::isAlnum('abc 123'));
+    }
+
+    public function testTitle(): void {
+        $this->assertSame('Hello World', Str::title('hello world'));
+        $this->assertSame('Hello World', Str::title('hello WORLD'));
+        $this->assertSame('', Str::title(''));
+        $this->assertSame('Árvore Útil', Str::title('árvore ÚTIL'));   // multibyte
+    }
+
+    public function testReplaceIgnoreCase(): void {
+        $this->assertSame('x x', Str::replace('Hello HELLO', 'hello', 'x', true));
+        $this->assertSame('Hello HELLO', Str::replace('Hello HELLO', 'hello', 'x')); // default sensitive
+        $this->assertSame('aXc', Str::replace('abc', 'b', 'X'));
+    }
+
+    public function testReplaceAt(): void {
+        $this->assertSame('hXYo', Str::replaceAt('hello', 1, 3, 'XY'));
+        $this->assertSame('a-bc', Str::replaceAt('abc', 1, 0, '-'));      // insert (length 0)
+        $this->assertSame('hel!!', Str::replaceAt('hello', -2, 2, '!!')); // negative start
+        $this->assertSame('hXo', Str::replaceAt('hello', 1, -1, 'X'));    // negative length
+        $this->assertSame('ABCDE', Str::replaceAt('', 0, 0, 'ABCDE'));    // empty subject
+        $this->assertSame('héllo x', Str::replaceAt('héllo world', 6, 5, 'x')); // multibyte char indices
+    }
+
+    public function testBeforeAfter(): void {
+        $this->assertSame('user', Str::before('user@host', '@'));
+        $this->assertSame('host', Str::after('user@host', '@'));
+        $this->assertSame('abc', Str::before('abc', '@'));   // not found → whole
+        $this->assertSame('abc', Str::after('abc', '@'));     // not found → whole
+        $this->assertSame('abc', Str::before('abc', ''));     // empty search → whole
+        $this->assertSame('abc', Str::after('abc', ''));
+        $this->assertSame('a', Str::before('a.b.c', '.'));    // first occurrence
+        $this->assertSame('b.c', Str::after('a.b.c', '.'));
+    }
+
+    public function testWordWrap(): void {
+        $this->assertSame("aaa bbb\nccc", Str::wordWrap('aaa bbb ccc', 7));
+        $this->assertSame('aaa-bbb', Str::wordWrap('aaa bbb', 4, '-'));
+        $this->assertSame("ab\ncd", Str::wordWrap('abcd', 2, "\n", true)); // cut long words
+    }
+
+    public function testWordWrapThrowsForBadWidth(): void {
+        $this->expectException(RuntimeException::class);
+        Str::wordWrap('abc', 0);
+    }
+
+    public function testWordCount(): void {
+        $this->assertSame(0, Str::wordCount(''));
+        $this->assertSame(0, Str::wordCount('   '));
+        $this->assertSame(3, Str::wordCount('one two three'));
+        $this->assertSame(2, Str::wordCount("it's"));        // apostrophe splits the word
+        $this->assertSame(2, Str::wordCount('café résumé')); // multibyte words counted
+    }
+
+    public function testFormat(): void {
+        $this->assertSame('x is 5', Str::format('%s is %d', 'x', 5));
+        $this->assertSame('3.14', Str::format('%.2f', 3.14159));
+        $this->assertSame('no args', Str::format('no args'));
+    }
+
+    public function testScan(): void {
+        $this->assertSame([42], Str::scan('age:42', 'age:%d'));
+        $this->assertSame(['John', 25], Str::scan('John 25', '%s %d'));
+        $this->assertSame([null], Str::scan('nope', 'age:%d')); // no match → null slot
+    }
+
+    public function testFormatScanRoundTrip(): void {
+        $formatted = Str::format('%s %d', 'x', 7);
+        $this->assertSame(['x', 7], Str::scan($formatted, '%s %d'));
+    }
+
+    public function testLevenshtein(): void {
+        $this->assertSame(0, Str::levenshtein('abc', 'abc'));
+        $this->assertSame(3, Str::levenshtein('kitten', 'sitting'));
+        $this->assertSame(3, Str::levenshtein('', 'abc'));
+    }
+
+    public function testSimilarity(): void {
+        $this->assertSame(100.0, Str::similarity('abc', 'abc'));
+        $this->assertSame(0.0, Str::similarity('abc', 'xyz'));
+        $this->assertGreaterThan(50.0, Str::similarity('World', 'word'));
+    }
+
+    public function testSplitDefaultSeparator(): void {
+        $this->assertSame(['a', 'b', 'c'], Str::split('abc'));
+        $this->assertSame(['ab', 'cd', 'ef'], Str::split('abcdef', '', 2)); // chunk size via $limit
+        $this->assertSame(['é', 'ñ'], Str::split('éñ'));                     // multibyte chars
+        $this->assertSame(['a', 'b'], Str::split('a,b', ','));
+        $this->assertSame(['a', 'b,c'], Str::split('a,b,c', ',', 2));        // piece limit
     }
 }

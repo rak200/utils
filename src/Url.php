@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function filter_var, http_build_query, parse_str, parse_url, rawurldecode, rawurlencode, sprintf;
+use function filter_var, http_build_query, parse_str, parse_url, rawurldecode, rawurlencode;
 
 /**
  * URL parsing, building, and query-string encode/decode.
@@ -40,7 +40,7 @@ final class Url {
     public static function parse(string $url): array {
         $result = self::parseOrNull($url);
         if ($result === null) {
-            throw new RuntimeException(sprintf('Cannot parse "%s" as URL.', $url));
+            throw new RuntimeException("Cannot parse \"$url\" as URL.");
         }
         return $result;
     }

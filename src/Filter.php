@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use Stringable;
-use function filter_var, floor, function_exists, htmlspecialchars, htmlspecialchars_decode,
-    iconv, is_bool, is_finite, is_float, is_int, is_string, preg_replace, strip_tags;
+use function filter_var, function_exists, htmlspecialchars, htmlspecialchars_decode,
+    iconv, preg_replace, strip_tags;
 
 /**
  * Input sanitisation and lenient coercion of untrusted values.
@@ -157,7 +157,7 @@ final class Filter {
         if (Str::is($value)) {
             return Num::parseIntOrNull(Str::trim($value)) ?? $default;
         }
-        if (Num::isFloat($value) && is_finite($value) && floor($value) === $value) {
+        if (Num::isFloat($value) && Num::isFinite($value) && Num::floor($value) === $value) {
             return (int) $value;
         }
         return $default;

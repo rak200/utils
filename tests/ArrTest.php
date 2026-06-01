@@ -285,4 +285,130 @@ final class ArrTest extends TestCase {
         $this->assertSame(['a' => 1, 'c' => 3], Arr::pick($a, ['a', 'c']));
         $this->assertSame(['b' => 2], Arr::except($a, ['a', 'c']));
     }
+
+    public function testCount(): void {
+        $this->assertSame(0, Arr::count([]));
+        $this->assertSame(3, Arr::count([1, 2, 3]));
+        $this->assertSame(2, Arr::count(['a' => 1, 'b' => 2]));
+    }
+
+    public function testReverse(): void {
+        $this->assertSame([3, 2, 1], Arr::reverse([1, 2, 3]));
+        $this->assertSame(['b' => 2, 'a' => 1], Arr::reverse(['a' => 1, 'b' => 2]));
+        $this->assertSame([2 => 3, 1 => 2, 0 => 1], Arr::reverse([1, 2, 3], true)); // preserve keys
+    }
+
+    public function testSlice(): void {
+        $this->assertSame([2, 3], Arr::slice([1, 2, 3, 4, 5], 1, 2));
+        $this->assertSame([4, 5], Arr::slice([1, 2, 3, 4, 5], -2));         // negative offset
+        $this->assertSame([2, 3, 4], Arr::slice([1, 2, 3, 4, 5], 1, -1));   // negative length
+        $this->assertSame([1 => 2, 2 => 3], Arr::slice([1, 2, 3], 1, 2, true)); // preserve keys
+    }
+
+    public function testFlip(): void {
+        $this->assertSame([1 => 'a', 2 => 'b'], Arr::flip(['a' => 1, 'b' => 2]));
+        $this->assertSame(['x' => 0, 'y' => 1], Arr::flip(['x', 'y']));
+    }
+
+    public function testCombine(): void {
+        $this->assertSame(['a' => 1, 'b' => 2], Arr::combine(['a', 'b'], [1, 2]));
+        $this->assertSame([], Arr::combine([], []));
+    }
+
+    public function testCombineThrowsOnLengthMismatch(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::combine(['a', 'b'], [1]);
+    }
+
+    public function testDiff(): void {
+        $this->assertSame([0 => 1, 2 => 3], Arr::diff([1, 2, 3, 4], [2, 4]));
+        $this->assertSame([1, 2, 3], Arr::diff([1, 2, 3]));               // no others → unchanged
+        $this->assertSame([1 => 2], Arr::diff([1, 2, 3], [1], [3]));      // multiple others
+    }
+
+    public function testIntersect(): void {
+        $this->assertSame([1 => 2, 2 => 3], Arr::intersect([1, 2, 3], [2, 3, 4]));
+        $this->assertSame([1, 2, 3], Arr::intersect([1, 2, 3]));          // no others → unchanged
+        $this->assertSame([1 => 2], Arr::intersect([1, 2, 3], [2, 3], [2])); // common to all
+    }
+
+    public function testSearch(): void {
+        $this->assertSame(1, Arr::search(['a', 'b', 'c'], 'b'));
+        $this->assertSame('y', Arr::search(['x' => 1, 'y' => 2], 2));
+        $this->assertSame(0, Arr::search([5, 6], 5)); // key 0 is not mistaken for "not found"
+        $this->assertSame(1, Arr::searchOrNull([1, 2, 3], 2));
+        $this->assertNull(Arr::searchOrNull([1, 2, 3], 9));
+        $this->assertNull(Arr::searchOrNull([0, 1], '0')); // strict by default
+        $this->assertSame(0, Arr::searchOrNull([0, 1], '0', false)); // loose
+    }
+
+    public function testSearchThrowsWhenMissing(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::search([1, 2, 3], 9);
+    }
+
+    public function testCountValues(): void {
+        $this->assertSame(['a' => 2, 'b' => 1], Arr::countValues(['a', 'b', 'a']));
+        $this->assertSame([1 => 2, 2 => 1], Arr::countValues([1, 1, 2]));
+        $this->assertSame([], Arr::countValues([]));
+    }
+
+    public function testAppend(): void {
+        $this->assertSame([1, 2, 3], Arr::append([1, 2], 3));
+        $this->assertSame([1, 2, 3, 4], Arr::append([1, 2], 3, 4));
+        $this->assertSame(['a' => 1, 0 => 2], Arr::append(['a' => 1], 2)); // keeps string keys
+        $original = [1, 2];
+        Arr::append($original, 3);
+        $this->assertSame([1, 2], $original); // immutable
+    }
+
+    public function testPrepend(): void {
+        $this->assertSame([0, 1, 2], Arr::prepend([1, 2], 0));
+        $this->assertSame([-1, 0, 1, 2], Arr::prepend([1, 2], -1, 0));
+        $this->assertSame([1, 2], Arr::prepend([1, 2]));            // no values → unchanged
+        $this->assertSame([3, 'a' => 1], Arr::prepend(['a' => 1], 3)); // string keys kept
+    }
+
+    public function testFirstLastKey(): void {
+        $this->assertSame('x', Arr::firstKey(['x' => 1, 'y' => 2]));
+        $this->assertSame('y', Arr::lastKey(['x' => 1, 'y' => 2]));
+        $this->assertSame(0, Arr::firstKey([10, 20]));
+        $this->assertSame(1, Arr::lastKey([10, 20]));
+        $this->assertNull(Arr::firstKeyOrNull([]));
+        $this->assertNull(Arr::lastKeyOrNull([]));
+        $this->assertSame('x', Arr::firstKeyOrNull(['x' => 1]));
+    }
+
+    public function testFirstKeyThrowsWhenEmpty(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::firstKey([]);
+    }
+
+    public function testLastKeyThrowsWhenEmpty(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::lastKey([]);
+    }
+
+    public function testSortKeys(): void {
+        $this->assertSame(['a' => 2, 'b' => 1, 'c' => 3], Arr::sortKeys(['b' => 1, 'a' => 2, 'c' => 3]));
+        $this->assertSame(['c' => 3, 'b' => 1, 'a' => 2], Arr::sortKeys(['b' => 1, 'a' => 2, 'c' => 3], true));
+        $original = ['b' => 1, 'a' => 2];
+        Arr::sortKeys($original);
+        $this->assertSame(['b' => 1, 'a' => 2], $original); // immutable
+    }
+
+    public function testFill(): void {
+        $this->assertSame(['x', 'x', 'x'], Arr::fill(3, 'x'));
+        $this->assertSame([], Arr::fill(0, 'x'));
+    }
+
+    public function testFillThrowsForNegativeCount(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::fill(-1, 'x');
+    }
+
+    public function testFillKeys(): void {
+        $this->assertSame(['a' => 0, 'b' => 0], Arr::fillKeys(['a', 'b'], 0));
+        $this->assertSame([], Arr::fillKeys([], 0));
+    }
 }

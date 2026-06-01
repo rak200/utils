@@ -128,23 +128,49 @@ final class StrTest extends TestCase {
         $this->assertSame(['a', 'ç', 'ú'], Str::split('açú', ''));
     }
 
-    public function testJoinFiltersBlankItems(): void {
-        $this->assertSame('a,b,c', Str::join(['a', '', 'b', '   ', 'c'], ','));
+    public function testJoinNaturalFiltersBlankItems(): void {
+        $this->assertSame('a,b,c', Str::joinNatural(['a', '', 'b', '   ', 'c'], ','));
+        $this->assertSame('ab', Str::joinNatural(['a', '', 'b']));   // default '' separator = concat dropping blanks
     }
 
-    public function testJoinWithPrefixSuffix(): void {
-        $this->assertSame('(a, b)', Str::join(['a', 'b'], ', ', '(', ')'));
+    public function testJoinNaturalWithPrefixSuffix(): void {
+        $this->assertSame('(a, b)', Str::joinNatural(['a', 'b'], ', ', '(', ')'));
     }
 
-    public function testJoinWithLastSeparator(): void {
-        $this->assertSame('a, b and c', Str::join(['a', 'b', 'c'], ', ', '', '', ' and '));
-        $this->assertSame('a and b', Str::join(['a', 'b'], ', ', '', '', ' and '));
-        $this->assertSame('a', Str::join(['a'], ', ', '', '', ' and '));
+    public function testJoinNaturalWithLastSeparator(): void {
+        $this->assertSame('a, b and c', Str::joinNatural(['a', 'b', 'c'], ', ', '', '', ' and '));
+        $this->assertSame('a and b', Str::joinNatural(['a', 'b'], ', ', '', '', ' and '));
+        $this->assertSame('a', Str::joinNatural(['a'], ', ', '', '', ' and '));
     }
 
-    public function testJoinReturnsEmptyForEmptyInput(): void {
-        $this->assertSame('', Str::join([], ','));
-        $this->assertSame('', Str::join(['', '   '], ','));
+    public function testJoinNaturalReturnsEmptyForEmptyInput(): void {
+        $this->assertSame('', Str::joinNatural([], ','));
+        $this->assertSame('', Str::joinNatural(['', '   '], ','));
+    }
+
+    public function testJoinWithoutSkipBlanksMirrorsImplode(): void {
+        $items = ['a', '', 'b', '   ', 'c'];
+        $this->assertSame(implode(',', $items), Str::join($items, ',', skipBlanks: false));
+        $this->assertSame('a,,b', Str::join(['a', '', 'b'], ',', skipBlanks: false));
+        $this->assertSame('abc', Str::join(['a', 'b', 'c'], skipBlanks: false));   // default '' separator = concat
+        // prefix/suffix/lastSeparator still apply; blanks just are not dropped
+        $this->assertSame('[a, , b]', Str::join(['a', '', 'b'], ', ', '[', ']', skipBlanks: false));
+        $this->assertSame('a, b and c', Str::join(['a', 'b', 'c'], ', ', '', '', ' and ', skipBlanks: false));
+    }
+
+    public function testJoinWithSkipBlanksDefaultTriggersDeprecation(): void {
+        $captured = '';
+        set_error_handler(static function (int $errno, string $errstr) use (&$captured): bool {
+            $captured = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+        try {
+            Str::join(['a', 'b'], ',');
+        } finally {
+            restore_error_handler();
+        }
+        $this->assertStringContainsString('joinNatural', $captured);
+        $this->assertStringContainsString('deprecated', $captured);
     }
 
     public function testWrapReturnsEmptyForBlank(): void {

@@ -14,6 +14,7 @@ Per-class API reference with runnable examples. For installation and a package o
 | `File`   | [file.md](file.md)     | Filesystem helpers, line generator |
 | `Json`   | [json.md](json.md)     | JSON with implicit `JSON_THROW_ON_ERROR` |
 | `Base64` | [base64.md](base64.md) | Standard + URL-safe Base64 |
+| `Hex`    | [hex.md](hex.md)       | Hexadecimal encode/decode of binary strings |
 | `Dt`     | [dt.md](dt.md)         | `DateTimeImmutable` helpers |
 | `Url`    | [url.md](url.md)       | URL parse/build, query encode/decode |
 | `Path`   | [path.md](path.md)     | Logical path manipulation (no disk access) |

@@ -11,7 +11,7 @@ use function array_combine, array_filter, array_map, array_pop, array_reverse, a
     mb_strripos, mb_strrpos,
     mb_strtolower, mb_strtoupper, mb_substr, preg_replace, preg_split, rtrim, str_contains,
     str_ends_with, str_repeat, str_replace, str_starts_with, strlen, strpos, strrpos, strspn, strtolower,
-    strtr, substr_count, substr_replace, trim;
+    strtr, substr_count, substr_replace, trigger_error, trim;
 
 /**
  * Multibyte-safe string helpers.
@@ -327,16 +327,53 @@ final class Str {
     }
 
     /**
-     * Joins iterable items into a string, ignoring blank elements.
+     * Joins iterable items with $separator (default `''` concatenates), like
+     * {@see implode()}. $prefix / $suffix wrap a non-empty result; $lastSeparator
+     * (with 2+ parts) joins the final two elements (Oxford-style).
      *
-     * When $lastSeparator is provided and there are 2+ parts, it is used between
-     * the last two elements (e.g. ", " + " and " for an Oxford-style join).
+     * Note: the default $skipBlanks = true — silently dropping blank items — is
+     * deprecated since 1.12.0 and will be removed in 2.0.0 (it emits an
+     * `E_USER_DEPRECATED`). Use {@see joinNatural()} to keep that behaviour, or
+     * pass $skipBlanks = false for a plain {@see implode()}-style join.
      *
      * @param iterable<int|float|string|bool|\Stringable|null> $items
      */
     public static function join(
         iterable $items,
-        string $separator,
+        string $separator = '',
+        string $prefix = '',
+        string $suffix = '',
+        ?string $lastSeparator = null,
+        bool $skipBlanks = true,
+    ): string {
+        if ($skipBlanks) {
+            trigger_error(
+                'Str::join() with $skipBlanks = true (the default) is deprecated since 1.12.0 and '
+                    . 'will be removed in 2.0.0; use Str::joinNatural() to keep dropping blank items, '
+                    . 'or pass $skipBlanks = false for a plain implode()-style join.',
+                E_USER_DEPRECATED,
+            );
+            return self::joinNatural($items, $separator, $prefix, $suffix, $lastSeparator);
+        }
+
+        $parts = [];
+        foreach ($items as $item) {
+            $parts[] = (string) $item;
+        }
+        return self::assembleJoin($parts, $separator, $prefix, $suffix, $lastSeparator);
+    }
+
+    /**
+     * Joins iterable items into a natural-language string: blank items are
+     * dropped, $prefix / $suffix wrap a non-empty result, and $lastSeparator (if
+     * given, with 2+ parts) joins the final two elements (e.g. ", " + " and " for
+     * an Oxford-style join). Returns '' when no non-blank items remain.
+     *
+     * @param iterable<int|float|string|bool|\Stringable|null> $items
+     */
+    public static function joinNatural(
+        iterable $items,
+        string $separator = '',
         string $prefix = '',
         string $suffix = '',
         ?string $lastSeparator = null,
@@ -348,17 +385,7 @@ final class Str {
                 $parts[] = $str;
             }
         }
-
-        if ($parts === []) {
-            return '';
-        }
-
-        if ($lastSeparator === null || count($parts) < 2) {
-            return $prefix . implode($separator, $parts) . $suffix;
-        }
-
-        $last = array_pop($parts);
-        return $prefix . implode($separator, $parts) . $lastSeparator . $last . $suffix;
+        return self::assembleJoin($parts, $separator, $prefix, $suffix, $lastSeparator);
     }
 
     /**
@@ -492,6 +519,30 @@ final class Str {
      */
     public static function toKebabCase(string $value): string {
         return self::toKebab($value);
+    }
+
+    /**
+     * Assembles already-collected $parts with $separator, $prefix / $suffix, and
+     * the optional Oxford-style $lastSeparator. Shared by {@see join()} and
+     * {@see joinNatural()}.
+     *
+     * @param list<string> $parts
+     */
+    private static function assembleJoin(
+        array $parts,
+        string $separator,
+        string $prefix,
+        string $suffix,
+        ?string $lastSeparator,
+    ): string {
+        if ($parts === []) {
+            return '';
+        }
+        if ($lastSeparator === null || count($parts) < 2) {
+            return $prefix . implode($separator, $parts) . $suffix;
+        }
+        $last = array_pop($parts);
+        return $prefix . implode($separator, $parts) . $lastSeparator . $last . $suffix;
     }
 
     /**

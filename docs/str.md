@@ -28,6 +28,7 @@ use Rak200\Utils\Str;
 - [`translate`](#translate)
 - [`split`](#split)
 - [`join`](#join)
+- [`joinNatural`](#joinnatural)
 - [`wrap`](#wrap)
 - [`padStart` / `padEnd`](#padstart--padend)
 - [`repeat`](#repeat)
@@ -301,13 +302,31 @@ Str::split('abcdef', '', 2);      // ['ab', 'cd', 'ef']
 
 ## `join`
 
-Join iterable items into a string, ignoring blank elements. `$lastSeparator`, when given, is used between the final two parts (Oxford-comma style).
+Join iterable items with `$separator`, like `implode()`. `$prefix` / `$suffix` wrap a non-empty result; `$lastSeparator` (with 2+ parts) joins the final two parts (Oxford-comma style).
+
+> **Deprecation:** the default `$skipBlanks = true` (silently dropping blank items) is deprecated since 1.12.0 and will be removed in 2.0.0 — it emits an `E_USER_DEPRECATED`. Use [`joinNatural`](#joinnatural) to keep that behaviour, or pass `skipBlanks: false` for a plain `implode()`-style join.
 
 ```php
-Str::join(['a', 'b', 'c'], ', ');                    // 'a, b, c'
-Str::join(['a', '', 'b', '   ', 'c'], ', ');         // 'a, b, c'
-Str::join(['a', 'b', 'c'], ', ', '[', ']');          // '[a, b, c]'
-Str::join(['a', 'b', 'c'], ', ', '', '', ' and ');   // 'a, b and c'
+Str::join(['a', 'b', 'c'], skipBlanks: false);                         // 'abc'   (default '' separator = concat)
+Str::join(['a', '', 'b'], ',', skipBlanks: false);                     // 'a,,b'  (mirrors implode)
+Str::join(['a', 'b', 'c'], ', ', '[', ']', skipBlanks: false);         // '[a, b, c]'
+Str::join(['a', 'b', 'c'], ', ', '', '', ' and ', skipBlanks: false);  // 'a, b and c'
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `joinNatural`
+
+Join iterable items into a natural-language string: **blank items are dropped**, `$prefix` / `$suffix` wrap a non-empty result, and `$lastSeparator` (with 2+ parts) joins the final two parts (Oxford-comma style). Returns `''` when no non-blank items remain.
+
+```php
+Str::joinNatural(['a', 'b', 'c'], ', ');                    // 'a, b, c'
+Str::joinNatural(['a', '', 'b']);                           // 'ab'  (default '' separator = concat, blanks dropped)
+Str::joinNatural(['a', '', 'b', '   ', 'c'], ', ');         // 'a, b, c'  (blanks dropped)
+Str::joinNatural(['a', 'b', 'c'], ', ', '[', ']');          // '[a, b, c]'
+Str::joinNatural(['a', 'b', 'c'], ', ', '', '', ' and ');   // 'a, b and c'
 ```
 
 [↑ Back to top](#str)

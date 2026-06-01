@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-05-31
+
+### Added
+
+- **`Hex`** — new tier-2 class for hexadecimal encoding of binary strings (the byte-string ↔ hex-string counterpart to `Base64`): `encode` (lowercase, two digits per byte), `decode` (accepts upper- and lowercase; throws on odd length or a non-hex character), the `is` predicate, and `toBytes` / `fromBytes` to bridge hex and a `list<int>` of byte values (0–255).
+- **`Str::joinNatural(items, separator = '', prefix = '', suffix = '', lastSeparator = null)`** — natural-language join: drops blank items, wraps the result with `$prefix` / `$suffix`, and joins the final two parts with an optional Oxford-style `$lastSeparator`. This is the previous behaviour of `Str::join`, now under its own name.
+
+### Changed
+
+- **`Str::join` gained a `$skipBlanks` flag and a default `$separator = ''`, and can now mirror `implode()` / concatenate.** `Str::join($items, skipBlanks: false)` is a plain `implode()`-style join with nothing dropped (omit the separator to concatenate); `$prefix` / `$suffix` / `$lastSeparator` still apply.
+
+### Deprecated
+
+- **`Str::join()` with the default `$skipBlanks = true`** (silently dropping blank items) — now emits an `E_USER_DEPRECATED` and will be removed in 2.0.0. Use `Str::joinNatural()` to keep that behaviour, or pass `skipBlanks: false`.
+
 ## [1.11.0] - 2026-05-31
 
 ### Added
@@ -222,6 +237,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.12.0]: https://github.com/rak200/utils/compare/1.11.0...1.12.0
 [1.11.0]: https://github.com/rak200/utils/compare/1.10.0...1.11.0
 [1.10.0]: https://github.com/rak200/utils/compare/1.9.0...1.10.0
 [1.9.0]: https://github.com/rak200/utils/compare/1.8.0...1.9.0

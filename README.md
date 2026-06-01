@@ -33,6 +33,7 @@ composer require rak200/utils
 - **`File`** — filesystem helpers: read/write/append, exists/delete, path parts, mime type, size, line generator, temp file, copy/move.
 - **`Json`** — JSON with implicit `JSON_THROW_ON_ERROR`: `encode`, `decode`, `is`.
 - **`Base64`** — standard and URL-safe (no-padding) encode/decode, plus the `is` predicate.
+- **`Hex`** — hexadecimal encode/decode of binary strings (the byte-string counterpart to `Base64`), the `is` predicate, and `toBytes`/`fromBytes` for hex ↔ byte-value (`int`) lists.
 - **`Dt`** — `DateTimeImmutable` helpers: construction, formatting (incl. `Dt::sql()`), arithmetic, comparison, period boundaries, diff in integer units.
 - **`Url`** — URL parsing/building and query-string encode/decode: `parse`/`parseOrNull`/`build`, `encode`/`decode`, `encodeQuery`/`decodeQuery`, `is`/`isAbsolute`.
 - **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, `basename`, `dirname`, `extension`, `filename`. Normalises to `/`; preserves Windows drive prefixes.

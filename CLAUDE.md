@@ -24,6 +24,7 @@ utils/
 │   ├── File.php      # filesystem (Tier 2)
 │   ├── Json.php      # JSON (Tier 2)
 │   ├── Base64.php    # Base64 encode/decode (Tier 2)
+│   ├── Hex.php       # hexadecimal encode/decode of binary strings (Tier 2)
 │   ├── Dt.php        # DateTimeImmutable helpers (Tier 2)
 │   ├── Url.php       # URL parse/build, query encode/decode (Tier 2)
 │   ├── Path.php      # logical path manipulation, no disk access (Tier 2)
@@ -90,6 +91,7 @@ Prefer-lib-over-native is ongoing — these native functions still lack a lib eq
 | `Str` | `wordWrap` | `wordwrap` | wrap to a column width |
 | `Str` | `wordCount` | `str_word_count` | count words |
 | `Str` | `format(template, ...args)` | `sprintf` / `vsprintf` | printf-style formatting |
+| `Str` | `scan(string, format)` | `sscanf` | parse a string by a format (inverse of `format`) |
 | `Str` | `isDigits` / `isAlpha` / `isAlnum` | `ctype_*` | predicates (≠ the `Filter` sanitizers) |
 | `Str` | `levenshtein` / `similarity` | `levenshtein` / `similar_text` | lower priority |
 | `Arr` | `reverse` | `array_reverse` | |
@@ -107,15 +109,13 @@ Prefer-lib-over-native is ongoing — these native functions still lack a lib eq
 | `Num` | `isNan` / `isInfinite` | `is_nan` / `is_infinite` | complement `isFinite` |
 | `Num` | `product` | `array_product` | companion to `sum` |
 | `Num` | `toBase(int, base)` | `base_convert` / `dechex` / `decoct` | inverse of `parseInt($s, $base)` |
-| `Num` | `gcd` / `lcm` | — (no native) | pure helpers |
-| `Str` (or `Hex`) | `toHex` / `fromHex` | `bin2hex` / `hex2bin` | main encoding gap, analogous to `Base64` |
 | `Regex` | `grep` | `preg_grep` | filter an array by pattern |
 | `Bit` | `rotateLeft` / `rotateRight` | — (no native) | bit-topic |
-| `Dt` | `isValidDate` | `checkdate` | |
+| `Dt` | `isValid` | `checkdate` | |
 | `File` | `realpath` / `touch` / CSV | `realpath` / `touch` / `fgetcsv` / `fputcsv` | more specialised |
 
 ### Deferred
 
-- **`Math`** — only worth splitting out if trigonometry, logarithms, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad` and similar belong here, **not** in `Num`.
+- **`Math`** — only worth splitting out if trigonometry, logarithms, number theory, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad`, and number-theory helpers such as `gcd` / `lcm` (no native; `gcd` via Euclid, `lcm` derived from it), belong here, **not** in `Num`.
 - **Mutable / pointer / in-place natives** — `array_pop` / `array_shift` / `array_splice`, in-place `sort`, `end` / `reset` / `next` / `current`, `settype` — break the pure / immutable contract; intentionally left unwrapped.
 - **Global / impure / low-level** — `setlocale`, `ini_*`, raw stream / resource handling — out of scope for a pure helper library.

@@ -7,7 +7,7 @@ namespace Rak200\Utils;
 use RuntimeException;
 use function array_combine, array_filter, array_map, array_pop, array_reverse, array_values,
     count, ctype_alnum, ctype_alpha, ctype_digit, ctype_space, explode, function_exists, iconv,
-    implode, is_string, levenshtein, ltrim, max, mb_check_encoding, mb_chr, mb_convert_case, mb_ord,
+    implode, is_string, levenshtein, ltrim, max, mb_check_encoding, mb_chr, mb_convert_case, mb_ord, min,
     mb_str_pad, mb_str_split, mb_stripos, mb_strlen, mb_strpos, mb_strripos, mb_strrpos,
     mb_strtolower, mb_strtoupper, mb_substr, preg_match_all, preg_replace, preg_split, rtrim,
     similar_text, sscanf, str_contains, str_ends_with, str_ireplace, str_repeat, str_replace,

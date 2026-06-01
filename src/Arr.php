@@ -409,8 +409,8 @@ final class Arr {
         if ($arrays === []) {
             return [];
         }
-        $count = max(array_map('count', $arrays));
-        $values = array_map('array_values', $arrays);
+        $count = max(array_map(count(...), $arrays));
+        $values = array_map(array_values(...), $arrays);
         $result = [];
         for ($i = 0; $i < $count; $i++) {
             $tuple = [];

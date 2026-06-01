@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.2] - 2026-06-01
+
+Convention-conformance pass (internal; no behaviour change) — fixes the violations surfaced by auditing the codebase against the conventions adopted in 1.13.1.
+
+### Changed
+
+- **`use function` inventory corrected** — `Str` now imports `min` (used by `replaceAt`, previously resolved via the global fallback), and `Type` drops the now-unused `is_array` / `is_float` imports (it delegates to `Arr::is` / `Num::isFloat`).
+- **`Dt::diffInMinutes` / `Dt::diffInHours` use `Num::intDiv`** instead of the native `intdiv`, matching `Dt::fromEpochMs` and the prefer-lib-over-native rule; `Dt` no longer imports `intdiv`.
+- **`Arr::zip` passes its callbacks with first-class syntax** (`count(...)` / `array_values(...)`) instead of string callables, per the new convention.
+
 ## [1.13.1] - 2026-06-01
 
 Documentation only — no library code or API change.
@@ -266,6 +276,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.13.2]: https://github.com/rak200/utils/compare/1.13.1...1.13.2
 [1.13.1]: https://github.com/rak200/utils/compare/1.13.0...1.13.1
 [1.13.0]: https://github.com/rak200/utils/compare/1.12.0...1.13.0
 [1.12.0]: https://github.com/rak200/utils/compare/1.11.0...1.12.0

@@ -7,7 +7,7 @@ namespace Rak200\Utils;
 use BcMath\Number;
 use UnitEnum;
 use function class_exists, class_parents, class_uses, get_debug_type, interface_exists,
-    is_a, is_array, is_bool, is_callable, is_float, is_int, is_iterable, is_numeric,
+    is_a, is_bool, is_callable, is_int, is_iterable, is_numeric,
     is_object, is_resource, is_scalar, is_string, is_subclass_of, preg_match, trait_exists;
 
 /**

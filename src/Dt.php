@@ -9,7 +9,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Exception;
 use RuntimeException;
-use function checkdate, intdiv;
+use function checkdate;
 
 /**
  * Date/time helpers built on {@see DateTimeImmutable}. Inputs accept any
@@ -392,14 +392,14 @@ final class Dt {
      * Returns the signed difference (b − a) in whole minutes (truncated toward zero).
      */
     public static function diffInMinutes(DateTimeInterface $a, DateTimeInterface $b): int {
-        return intdiv(self::diffInSeconds($a, $b), 60);
+        return Num::intDiv(self::diffInSeconds($a, $b), 60);
     }
 
     /**
      * Returns the signed difference (b − a) in whole hours (truncated toward zero).
      */
     public static function diffInHours(DateTimeInterface $a, DateTimeInterface $b): int {
-        return intdiv(self::diffInSeconds($a, $b), 3600);
+        return Num::intDiv(self::diffInSeconds($a, $b), 3600);
     }
 
     /**

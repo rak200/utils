@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.1] - 2026-06-01
+
+Documentation only — no library code or API change.
+
+### Changed
+
+- **Documented four API conventions in `CLAUDE.md`** ahead of the planned 2.0.0 pass: (1) the prefer-lib-over-native rule now spells out a third carve-out — a helper that *wraps* a native keeps it (`Str::byteLength`→`strlen`, `Str::length`→`mb_strlen`); (2) every native a class still calls must be declared in its `use function` block (the auditable inventory of deliberately-kept natives); (3) callables are passed with first-class syntax `func(...)` / `self::method(...)`, never as strings; (4) naming favours the shortest name that stays unambiguous and discoverable, with an explicit precedence order (conventions/families > consolidated synonym > intuitive abbreviation > redundancy removal) and a `@deprecated`-alias policy for breaking renames. These guide the 2.0.0 work; no public method is renamed in 1.x.
+
 ## [1.13.0] - 2026-06-01
 
 Roadmap sweep: wraps the native-function gaps catalogued in the roadmap as pure, static helpers across `Str`, `Arr`, `Num`, `Regex`, `Bit`, `Dt`, and `File`.
@@ -258,6 +266,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.13.1]: https://github.com/rak200/utils/compare/1.13.0...1.13.1
 [1.13.0]: https://github.com/rak200/utils/compare/1.12.0...1.13.0
 [1.12.0]: https://github.com/rak200/utils/compare/1.11.0...1.12.0
 [1.11.0]: https://github.com/rak200/utils/compare/1.10.0...1.11.0

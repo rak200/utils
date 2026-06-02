@@ -67,7 +67,7 @@ final class Enum {
      * @throws RuntimeException When $enumClass is not a backed enum.
      */
     public static function values(string $enumClass): array {
-        if (!Type::isSubclassOf($enumClass, BackedEnum::class)) {
+        if (!Type::isSubclass($enumClass, BackedEnum::class)) {
             throw new RuntimeException("$enumClass is not a backed enum.");
         }
         $values = [];

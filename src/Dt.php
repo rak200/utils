@@ -376,7 +376,7 @@ final class Dt {
     /**
      * Returns the signed difference (b − a) in whole days.
      */
-    public static function diffInDays(DateTimeInterface $a, DateTimeInterface $b): int {
+    public static function diffDays(DateTimeInterface $a, DateTimeInterface $b): int {
         $diff = $a->diff($b);
         return ($diff->invert === 0 ? 1 : -1) * $diff->days;
     }
@@ -384,22 +384,50 @@ final class Dt {
     /**
      * Returns the signed difference (b − a) in whole seconds.
      */
-    public static function diffInSeconds(DateTimeInterface $a, DateTimeInterface $b): int {
+    public static function diffSeconds(DateTimeInterface $a, DateTimeInterface $b): int {
         return $b->getTimestamp() - $a->getTimestamp();
     }
 
     /**
      * Returns the signed difference (b − a) in whole minutes (truncated toward zero).
      */
-    public static function diffInMinutes(DateTimeInterface $a, DateTimeInterface $b): int {
-        return Num::intDiv(self::diffInSeconds($a, $b), 60);
+    public static function diffMinutes(DateTimeInterface $a, DateTimeInterface $b): int {
+        return Num::intDiv(self::diffSeconds($a, $b), 60);
     }
 
     /**
      * Returns the signed difference (b − a) in whole hours (truncated toward zero).
      */
+    public static function diffHours(DateTimeInterface $a, DateTimeInterface $b): int {
+        return Num::intDiv(self::diffSeconds($a, $b), 3600);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::diffDays()} instead. Will be removed in 2.0.0.
+     */
+    public static function diffInDays(DateTimeInterface $a, DateTimeInterface $b): int {
+        return self::diffDays($a, $b);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::diffSeconds()} instead. Will be removed in 2.0.0.
+     */
+    public static function diffInSeconds(DateTimeInterface $a, DateTimeInterface $b): int {
+        return self::diffSeconds($a, $b);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::diffMinutes()} instead. Will be removed in 2.0.0.
+     */
+    public static function diffInMinutes(DateTimeInterface $a, DateTimeInterface $b): int {
+        return self::diffMinutes($a, $b);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::diffHours()} instead. Will be removed in 2.0.0.
+     */
     public static function diffInHours(DateTimeInterface $a, DateTimeInterface $b): int {
-        return Num::intDiv(self::diffInSeconds($a, $b), 3600);
+        return self::diffHours($a, $b);
     }
 
     /**

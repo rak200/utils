@@ -14,7 +14,7 @@ use Rak200\Utils\Hash;
 - [`crc32`](#crc32)
 - [`hmac`](#hmac)
 - [`equals`](#equals)
-- [`password` / `verifyPassword`](#password--verifypassword)
+- [`password` / `verify`](#password--verify)
 
 ---
 
@@ -76,7 +76,7 @@ Hash::equals('abc', 'abd');     // false
 
 ---
 
-## `password` / `verifyPassword`
+## `password` / `verify`
 
 `password` uses PHP's current `PASSWORD_DEFAULT` (bcrypt at the time of writing).
 
@@ -84,8 +84,10 @@ Hash::equals('abc', 'abd');     // false
 $hash = Hash::password('correct horse battery staple');
 // e.g. '$2y$12$EXa...' (60 chars for bcrypt)
 
-Hash::verifyPassword('correct horse battery staple', $hash);   // true
-Hash::verifyPassword('wrong password', $hash);                 // false
+Hash::verify('correct horse battery staple', $hash);   // true
+Hash::verify('wrong password', $hash);                 // false
 ```
+
+> The previous name `verifyPassword` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#hash)

@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2026-06-02
+
+Brings forward the 2.0.0 roadmap work in a **backwards-compatible** way: shorter method names, a full prefer-lib-over-native sweep, and two new helper pairs. Every rename ships a `@deprecated` alias, so nothing breaks in 1.x — the removals stay queued for 2.0.0.
+
+### Added
+
+- **`Str::toBytes(string): list<int>` / `Str::fromBytes(list<int>): string`** — convert between a binary string and its byte values (0–255), the raw-string counterpart to `Hex::toBytes` / `fromBytes`. `fromBytes` throws on a value outside 0–255.
+- **`Num::isPositive` / `Num::isNegative`** — sign predicates for `int|float|Number` (`> 0` / `< 0`; zero is neither), generalising the deprecated int-only `isPositiveInt` / `isNegativeInt`.
+- **Shorter canonical names** (each with a `@deprecated` alias under the old name): `Str::len` (was `length`), `Str::byteLen` (`byteLength`), `Str::sub` (`substring`), `Str::trunc` (`truncate`); `Num` — n/a; `Dt::diffDays` / `diffSeconds` / `diffMinutes` / `diffHours` (`diffIn*`); `File::mime` (`mimeType`), `File::temp` (`tempFile`), `File::ext` (`extension`); `Path::ext` (`extension`); `Filter::squish` (`collapseWhitespace`), `Filter::stripControl` (`removeControlChars`), `Filter::toStr` (`toString`); `Hash::verify` (`verifyPassword`); `Type::isInstance` (`isInstanceOf`), `Type::isSubclass` (`isSubclassOf`).
+
+### Changed
+
+- **Prefer-lib-over-native sweep completed (internal; no behaviour change).** The intra-codebase natives that the 1.13.0 helpers made replaceable now route through the lib: `Str` array ops (`array_combine`/`array_reverse`/`array_map`/`array_filter`/`array_values`/`count` → `Arr::*`), `Path` (`array_slice`→`Arr::slice`, `count`→`Arr::count`, `ctype_alpha`→`Str::isAlpha`, `preg_match`→`Regex::matchOrNull`), `Type::isIntLike` (`preg_match`→`Regex::matches`), and `Rand` (array ops → `Arr::*`).
+- **`Rand`'s byte/crypto carve-out lifted to just `random_int` / `random_bytes` / `microtime`.** UUID/ULID generation now works in the `int[]` domain via the new `Str::toBytes` / `fromBytes`, with `Hex::encode` and `Bit::toStr` / `fromStr` for the hex/base conversions.
+
+### Deprecated
+
+- The pre-rename names listed under **Added** (`length`, `byteLength`, `substring`, `truncate`, `diffIn*`, `mimeType`, `tempFile`, `extension`, `collapseWhitespace`, `removeControlChars`, `toString`, `verifyPassword`, `isInstanceOf`, `isSubclassOf`) — all `@deprecated since 1.14.0`, removed in 2.0.0.
+- **`Str::isNonEmptyStr`, `Arr::isNonEmptyArray`, `Num::isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`** — redundant under strict typing. Use a typed parameter (or `Str::is`/`Arr::is` guards), and `Num::isPositive` / `isNegative` for the sign checks. Note `!isNegative()` is **not** equivalent to `isNonNegativeInt` (it is true for non-ints; the exact replacement is `Num::isInt($v) && $v >= 0`). Removed in 2.0.0.
+
 ## [1.13.2] - 2026-06-01
 
 Convention-conformance pass (internal; no behaviour change) — fixes the violations surfaced by auditing the codebase against the conventions adopted in 1.13.1.
@@ -276,6 +296,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.14.0]: https://github.com/rak200/utils/compare/1.13.2...1.14.0
 [1.13.2]: https://github.com/rak200/utils/compare/1.13.1...1.13.2
 [1.13.1]: https://github.com/rak200/utils/compare/1.13.0...1.13.1
 [1.13.0]: https://github.com/rak200/utils/compare/1.12.0...1.13.0

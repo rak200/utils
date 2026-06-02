@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_combine, array_filter, array_map, array_pop, array_reverse, array_values,
-    count, ctype_alnum, ctype_alpha, ctype_digit, ctype_space, explode, function_exists, iconv,
-    implode, is_string, levenshtein, ltrim, max, mb_check_encoding, mb_chr, mb_convert_case, mb_ord, min,
-    mb_str_pad, mb_str_split, mb_stripos, mb_strlen, mb_strpos, mb_strripos, mb_strrpos,
-    mb_strtolower, mb_strtoupper, mb_substr, preg_match_all, preg_replace, preg_split, rtrim,
-    similar_text, sscanf, str_contains, str_ends_with, str_ireplace, str_repeat, str_replace,
-    str_starts_with, strlen, strpos, strrpos, strspn, strtolower, strtr, substr_count,
-    substr_replace, trigger_error, trim, vsprintf, wordwrap;
+use function array_pop, chr, ctype_alnum, ctype_alpha, ctype_digit, ctype_space, explode,
+    function_exists, iconv, implode, is_string, levenshtein, ltrim, max, mb_check_encoding, mb_chr,
+    mb_convert_case, mb_ord, min, mb_str_pad, mb_str_split, mb_stripos, mb_strlen, mb_strpos,
+    mb_strripos, mb_strrpos, mb_strtolower, mb_strtoupper, mb_substr, ord, preg_match_all,
+    preg_replace, preg_split, rtrim, similar_text, sscanf, str_contains, str_ends_with, str_ireplace,
+    str_repeat, str_replace, str_starts_with, strlen, strpos, strrpos, strspn, strtolower, strtr,
+    substr_count, substr_replace, trigger_error, trim, vsprintf, wordwrap;
 
 /**
  * Multibyte-safe string helpers.
@@ -64,6 +63,10 @@ final class Str {
     /**
      * Returns true if $value is a string with at least one character
      * (whitespace counts). Non-strings always return false.
+     *
+     * @deprecated since 1.14.0, redundant under strict typing — use a typed
+     *             `string` parameter, or `Str::is($v) && $v !== ''` when a
+     *             `mixed` guard is genuinely needed. Will be removed in 2.0.0.
      */
     public static function isNonEmptyStr(mixed $value): bool {
         return is_string($value) && $value !== '';
@@ -107,18 +110,66 @@ final class Str {
     /**
      * Returns the number of Unicode characters in the string.
      */
-    public static function length(string $value): int {
+    public static function len(string $value): int {
         return mb_strlen($value);
     }
 
     /**
+     * @deprecated since 1.14.0, use {@see self::len()} instead. Will be removed in 2.0.0.
+     */
+    public static function length(string $value): int {
+        return self::len($value);
+    }
+
+    /**
      * Returns the number of bytes in the string — its raw byte length, the
-     * byte-level counterpart to the character count {@see length()} returns.
+     * byte-level counterpart to the character count {@see len()} returns.
      * The two are equal for pure-ASCII input and diverge once multibyte
      * characters are present (e.g. "é" is one character but two bytes in UTF-8).
      */
-    public static function byteLength(string $value): int {
+    public static function byteLen(string $value): int {
         return strlen($value);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::byteLen()} instead. Will be removed in 2.0.0.
+     */
+    public static function byteLength(string $value): int {
+        return self::byteLen($value);
+    }
+
+    /**
+     * Returns the raw byte values (0–255) of $value as a 0-indexed list — the
+     * byte-string counterpart to {@see Hex::toBytes()}. These are bytes, not
+     * Unicode code points (use {@see ord()} for a character's code point).
+     *
+     * @return list<int>
+     */
+    public static function toBytes(string $value): array {
+        $bytes = [];
+        $len = strlen($value);
+        for ($i = 0; $i < $len; $i++) {
+            $bytes[] = ord($value[$i]);
+        }
+        return $bytes;
+    }
+
+    /**
+     * Builds a binary string from a list of byte values (0–255). Inverse of
+     * {@see toBytes()}; mirrors {@see Hex::fromBytes()}.
+     *
+     * @param list<int> $bytes
+     * @throws RuntimeException When a value is outside 0–255.
+     */
+    public static function fromBytes(array $bytes): string {
+        $result = '';
+        foreach ($bytes as $byte) {
+            if ($byte < 0 || $byte > 255) {
+                throw new RuntimeException("Byte value out of range: $byte.");
+            }
+            $result .= chr($byte);
+        }
+        return $result;
     }
 
     /**
@@ -239,7 +290,7 @@ final class Str {
         if ($pos === false) {
             return $subject;
         }
-        return substr_replace($subject, $replacement, $pos, self::byteLength($search));
+        return substr_replace($subject, $replacement, $pos, self::byteLen($search));
     }
 
     /**
@@ -254,7 +305,7 @@ final class Str {
         if ($pos === false) {
             return $subject;
         }
-        return substr_replace($subject, $replacement, $pos, self::byteLength($search));
+        return substr_replace($subject, $replacement, $pos, self::byteLen($search));
     }
 
     /**
@@ -280,21 +331,28 @@ final class Str {
     public static function translate(string $value, string $from, string $to): string {
         $fromChars = mb_str_split($from);
         $toChars = mb_str_split($to);
-        if (count($fromChars) !== count($toChars)) {
+        if (Arr::count($fromChars) !== Arr::count($toChars)) {
             throw new RuntimeException('Translation strings must have the same length.');
         }
         if ($fromChars === []) {
             return $value;
         }
-        return strtr($value, array_combine($fromChars, $toChars));
+        return strtr($value, Arr::combine($fromChars, $toChars));
     }
 
     /**
      * Returns the multibyte-safe substring of $value starting at character
      * index $start. When $length is null, takes the rest of the string.
      */
-    public static function substring(string $value, int $start, ?int $length = null): string {
+    public static function sub(string $value, int $start, ?int $length = null): string {
         return mb_substr($value, $start, $length);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::sub()} instead. Will be removed in 2.0.0.
+     */
+    public static function substring(string $value, int $start, ?int $length = null): string {
+        return self::sub($value, $start, $length);
     }
 
     /**
@@ -346,7 +404,7 @@ final class Str {
             return $subject;
         }
         $pos = self::indexOf($subject, $search);
-        return $pos === -1 ? $subject : self::substring($subject, 0, $pos);
+        return $pos === -1 ? $subject : self::sub($subject, 0, $pos);
     }
 
     /**
@@ -358,7 +416,7 @@ final class Str {
             return $subject;
         }
         $pos = self::indexOf($subject, $search);
-        return $pos === -1 ? $subject : self::substring($subject, $pos + self::length($search));
+        return $pos === -1 ? $subject : self::sub($subject, $pos + self::len($search));
     }
 
     /**
@@ -368,7 +426,7 @@ final class Str {
      *
      * @throws RuntimeException When $length is negative.
      */
-    public static function truncate(string $value, int $length, string $ellipsis = '…'): string {
+    public static function trunc(string $value, int $length, string $ellipsis = '…'): string {
         if ($length < 0) {
             throw new RuntimeException('Length must be non-negative.');
         }
@@ -380,6 +438,13 @@ final class Str {
             return mb_substr($ellipsis, 0, $length);
         }
         return mb_substr($value, 0, $length - $ellipsisLen) . $ellipsis;
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::trunc()} instead. Will be removed in 2.0.0.
+     */
+    public static function truncate(string $value, int $length, string $ellipsis = '…'): string {
+        return self::trunc($value, $length, $ellipsis);
     }
 
     /**
@@ -524,7 +589,7 @@ final class Str {
      * Returns the string with its characters in reverse order (multibyte-aware).
      */
     public static function reverse(string $value): string {
-        return implode('', array_reverse(mb_str_split($value)));
+        return implode('', Arr::reverse(mb_str_split($value)));
     }
 
     /**
@@ -565,21 +630,21 @@ final class Str {
      * Converts the string to PascalCase (e.g. "hello world" → "HelloWorld").
      */
     public static function toPascal(string $value): string {
-        return implode('', array_map(self::capitalize(...), self::splitWords($value)));
+        return implode('', Arr::map(self::splitWords($value), self::capitalize(...)));
     }
 
     /**
      * Converts the string to snake_case (e.g. "HelloWorld" → "hello_world").
      */
     public static function toSnake(string $value): string {
-        return implode('_', array_map(mb_strtolower(...), self::splitWords($value)));
+        return implode('_', Arr::map(self::splitWords($value), self::lower(...)));
     }
 
     /**
      * Converts the string to kebab-case (e.g. "HelloWorld" → "hello-world").
      */
     public static function toKebab(string $value): string {
-        return implode('-', array_map(mb_strtolower(...), self::splitWords($value)));
+        return implode('-', Arr::map(self::splitWords($value), self::lower(...)));
     }
 
     /**
@@ -692,7 +757,7 @@ final class Str {
         if ($parts === []) {
             return '';
         }
-        if ($lastSeparator === null || count($parts) < 2) {
+        if ($lastSeparator === null || Arr::count($parts) < 2) {
             return $prefix . implode($separator, $parts) . $suffix;
         }
         $last = array_pop($parts);
@@ -710,6 +775,6 @@ final class Str {
         $value = preg_replace('/(\p{Ll}|\p{Nd})(\p{Lu})/u', '$1 $2', $value) ?? $value;
         $value = preg_replace('/(\p{Lu}+)(\p{Lu}\p{Ll})/u', '$1 $2', $value) ?? $value;
         $parts = preg_split('/[\s_\-]+/u', $value) ?: [];
-        return array_values(array_filter($parts, static fn(string $p): bool => $p !== ''));
+        return Arr::values(Arr::filter($parts, static fn(string $p): bool => $p !== ''));
     }
 }

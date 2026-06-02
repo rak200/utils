@@ -216,4 +216,13 @@ final class FilterTest extends TestCase {
         $this->assertFalse(Filter::toBool('on', false) === null);
         $this->assertTrue(Filter::toBool('on', false));
     }
+
+    public function testRenamedMethodsAndAliases(): void {
+        $this->assertSame('a b c', Filter::squish("  a   b\t\nc  "));
+        $this->assertSame(Filter::collapseWhitespace('a   b'), Filter::squish('a   b'));
+        $this->assertSame('abc', Filter::stripControl("a\x00b\x07c"));
+        $this->assertSame(Filter::removeControlChars("a\x00b"), Filter::stripControl("a\x00b"));
+        $this->assertSame('5', Filter::toStr(5));
+        $this->assertSame(Filter::toString(true), Filter::toStr(true));
+    }
 }

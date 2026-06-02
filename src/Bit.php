@@ -146,7 +146,7 @@ final class Bit {
      *                          '0'/'1', or denotes a value larger than PHP_INT_MAX.
      */
     public static function fromStr(string $bits): int {
-        if ($bits === '' || Str::span($bits, '01') !== Str::length($bits)) {
+        if ($bits === '' || Str::span($bits, '01') !== Str::len($bits)) {
             throw new RuntimeException('Invalid binary string.');
         }
         $value = bindec($bits);

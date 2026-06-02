@@ -30,7 +30,7 @@ use DateTimeZone;
 - [`startOfWeek` / `endOfWeek`](#startofweek--endofweek)
 - [`startOfMonth` / `endOfMonth`](#startofmonth--endofmonth)
 - [`startOfYear` / `endOfYear`](#startofyear--endofyear)
-- [`diffInDays` / `diffInSeconds` / `diffInMinutes` / `diffInHours`](#diffindays--diffinseconds--diffinminutes--diffinhours)
+- [`diffDays` / `diffSeconds` / `diffMinutes` / `diffHours`](#diffdays--diffseconds--diffminutes--diffhours)
 
 ---
 
@@ -301,18 +301,20 @@ Dt::endOfYear($dt);        // 2026-12-31 23:59:59.999999
 
 ---
 
-## `diffInDays` / `diffInSeconds` / `diffInMinutes` / `diffInHours`
+## `diffDays` / `diffSeconds` / `diffMinutes` / `diffHours`
 
 Signed difference `b − a`. Minute/hour variants truncate toward zero.
 
 ```php
 $a = Dt::of(2026, 5, 23, 10, 0, 0);
 $b = Dt::of(2026, 5, 30, 12, 30, 0);
-Dt::diffInDays($a, $b);        // 7
-Dt::diffInHours($a, $b);       // 170      (7 × 24 + 2)
-Dt::diffInMinutes($a, $b);     // 10230    (170 × 60 + 30)
-Dt::diffInSeconds($a, $b);     // 613800
-Dt::diffInDays($b, $a);        // -7       (signed)
+Dt::diffDays($a, $b);        // 7
+Dt::diffHours($a, $b);       // 170      (7 × 24 + 2)
+Dt::diffMinutes($a, $b);     // 10230    (170 × 60 + 30)
+Dt::diffSeconds($a, $b);     // 613800
+Dt::diffDays($b, $a);        // -7       (signed)
 ```
+
+> The previous names `diffInDays` / `diffInSeconds` / `diffInMinutes` / `diffInHours` remain as `@deprecated` aliases since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#dt)

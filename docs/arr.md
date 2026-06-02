@@ -101,6 +101,8 @@ Arr::isNonEmptyArray([]);            // false
 Arr::isNonEmptyArray('a');           // false
 ```
 
+> `isNonEmptyArray` is `@deprecated` since 1.14.0 (redundant under strict typing — use a typed `array` with [`isNotEmpty`](#isempty--isnotempty), or `Arr::is($v) && $v !== []`). Will be removed in 2.0.0.
+
 [↑ Back to top](#arr)
 
 ---

@@ -80,8 +80,27 @@ final class Num {
     }
 
     /**
+     * Returns true when $value is greater than zero. Accepts int, float, or
+     * {@see Number}.
+     */
+    public static function isPositive(int|float|Number $value): bool {
+        return $value instanceof Number ? $value > new Number('0') : $value > 0;
+    }
+
+    /**
+     * Returns true when $value is less than zero. Accepts int, float, or
+     * {@see Number}.
+     */
+    public static function isNegative(int|float|Number $value): bool {
+        return $value instanceof Number ? $value < new Number('0') : $value < 0;
+    }
+
+    /**
      * Returns true if $value is an int strictly greater than zero. Floats
      * and numeric strings are rejected.
+     *
+     * @deprecated since 1.14.0, use {@see self::isPositive()} (int/float/Number)
+     *             or `Num::isInt($v) && $v > 0`. Will be removed in 2.0.0.
      */
     public static function isPositiveInt(mixed $value): bool {
         return is_int($value) && $value > 0;
@@ -90,6 +109,9 @@ final class Num {
     /**
      * Returns true if $value is an int strictly less than zero. Floats and
      * numeric strings are rejected.
+     *
+     * @deprecated since 1.14.0, use {@see self::isNegative()} (int/float/Number)
+     *             or `Num::isInt($v) && $v < 0`. Will be removed in 2.0.0.
      */
     public static function isNegativeInt(mixed $value): bool {
         return is_int($value) && $value < 0;
@@ -98,6 +120,9 @@ final class Num {
     /**
      * Returns true if $value is an int greater than or equal to zero.
      * Floats and numeric strings are rejected.
+     *
+     * @deprecated since 1.14.0, use `Num::isInt($v) && $v >= 0`. Note `!isNegative()`
+     *             is *not* equivalent (it is true for non-ints). Will be removed in 2.0.0.
      */
     public static function isNonNegativeInt(mixed $value): bool {
         return is_int($value) && $value >= 0;
@@ -176,9 +201,9 @@ final class Num {
         $sign = 1;
         if ($value[0] === '-') {
             $sign = -1;
-            $value = Str::substring($value, 1);
+            $value = Str::sub($value, 1);
         } elseif ($value[0] === '+') {
-            $value = Str::substring($value, 1);
+            $value = Str::sub($value, 1);
         }
         if ($value === '') {
             return null;
@@ -611,15 +636,15 @@ final class Num {
             return $value;
         }
 
-        $mantissa = Str::substring($value, 0, $ePos);
-        $exp = (int) Str::substring($value, $ePos + 1);
+        $mantissa = Str::sub($value, 0, $ePos);
+        $exp = (int) Str::sub($value, $ePos + 1);
 
         $sign = '';
         if ($mantissa !== '' && ($mantissa[0] === '+' || $mantissa[0] === '-')) {
             if ($mantissa[0] === '-') {
                 $sign = '-';
             }
-            $mantissa = Str::substring($mantissa, 1);
+            $mantissa = Str::sub($mantissa, 1);
         }
 
         if (Str::contains($mantissa, '.')) {
@@ -630,17 +655,17 @@ final class Num {
         }
 
         $digits = $intPart . $fracPart;
-        if (Str::length($digits) + abs($exp) > self::MAX_NUMBER_DIGITS) {
+        if (Str::len($digits) + abs($exp) > self::MAX_NUMBER_DIGITS) {
             return null;
         }
 
-        $pointPos = Str::length($intPart) + $exp;
+        $pointPos = Str::len($intPart) + $exp;
         if ($pointPos <= 0) {
             $result = '0.' . Str::repeat('0', -$pointPos) . $digits;
-        } elseif ($pointPos >= Str::length($digits)) {
-            $result = $digits . Str::repeat('0', $pointPos - Str::length($digits));
+        } elseif ($pointPos >= Str::len($digits)) {
+            $result = $digits . Str::repeat('0', $pointPos - Str::len($digits));
         } else {
-            $result = Str::substring($digits, 0, $pointPos) . '.' . Str::substring($digits, $pointPos);
+            $result = Str::sub($digits, 0, $pointPos) . '.' . Str::sub($digits, $pointPos);
         }
 
         return $sign . $result;
@@ -697,7 +722,7 @@ final class Num {
         $str = (string) $value->round($decimals, RoundingMode::HalfAwayFromZero);
         $negative = Str::startsWith($str, '-');
         if ($negative) {
-            $str = Str::substring($str, 1);
+            $str = Str::sub($str, 1);
         }
         if (Str::contains($str, '.')) {
             [$intPart, $decPart] = Str::split($str, '.', 2);
@@ -706,7 +731,7 @@ final class Num {
             $decPart = '';
         }
         if ($decimals > 0) {
-            $decPart = Str::padEnd(Str::substring($decPart, 0, $decimals), $decimals, '0');
+            $decPart = Str::padEnd(Str::sub($decPart, 0, $decimals), $decimals, '0');
         } else {
             $decPart = '';
         }

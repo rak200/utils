@@ -79,13 +79,16 @@ When releasing a new version:
 
 Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
-> The prefer-lib-over-native sweep shipped in 1.11.0 (conservative pass over `Num`, `Base64`, `Path`, `Filter`, `Str::slug`, `Dt`). Deliberately byte-level natives were retained — the `substr_replace`-based `Str::replaceFirst`/`replaceLast` (and the public `Str::replaceAt`, which slices multibyte-safely via `mb_substr`), `Path` drive/segment slicing, and `Rand` cryptographic byte operations — per the *Conventions* caveat (keep the native when the wrapper would break the method's contract).
+> The prefer-lib-over-native sweep finished in 1.14.0 (a final pass over `Str`, `Path`, `Type`, and `Rand` on top of the 1.11.0/1.13.x passes). The natives that remain are deliberate: the `substr_replace`-based `Str::replaceFirst`/`replaceLast` (and the public `Str::replaceAt`, which slices multibyte-safely via `mb_substr`), `Path` drive/segment slicing (`substr`/`strrpos`), `Str::toBytes`/`fromBytes` (which *are* the `ord`/`chr` wrappers), and `Rand`'s irreducible `random_int`/`random_bytes`/`microtime` — per the *Conventions* caveat (keep the native when there is no equivalent or the wrapper would break the method's contract).
 
 > **The native-function-gap catalogue is exhausted as of 1.13.0.** Every candidate helper that previously sat here shipped in that release — `Str` (`title`, `replaceAt`, `replace`+`$ignoreCase`, `before`/`after`, `wordWrap`, `wordCount`, `format`, `scan`, `isDigits`/`isAlpha`/`isAlnum`, `levenshtein`/`similarity`), `Arr` (`reverse`, `slice`, `flip`, `combine`, `diff`/`intersect`, `search`/`searchOrNull`, `countValues`, `count`, `append`/`prepend`, `firstKey`/`lastKey` + `*OrNull`, `sortKeys`, `fill`/`fillKeys`), `Num` (`isNan`/`isInfinite`, `product`, `toBase`), `Regex::grep`, `Bit::rotateLeft`/`rotateRight`, `Dt::isValid`, and `File` (`realpath`, `touch`, `readCsv`/`writeCsv`). New native-function gaps spotted in future passes go back into a fresh table here.
 
 ### 2.0.0 (planned, breaking)
 
-The naming, full native-substitution, `use function`, and first-class-callable conventions (see *Conventions*) are applied in a single breaking pass for 2.0.0: shortened/renamed public methods, every remaining replaceable native swapped for its lib helper, and string callables (e.g. in `Arr::zip`) moved to first-class syntax. Renames ship with `@deprecated` aliases kept through the 2.x line. **No renames are applied before then** — the 1.x API stays stable.
+The additive part of this work shipped in **1.14.0**: the shortened method names (`Str::len`/`sub`/`trunc`/`byteLen`, `Dt::diff*`, `File::mime`/`temp`/`ext`, `Path::ext`, `Filter::squish`/`stripControl`/`toStr`, `Hash::verify`, `Type::isInstance`/`isSubclass`) landed as the new canonicals with `@deprecated` aliases, the native-substitution sweep is complete, and string callables are first-class. So **2.0.0 is now reduced to removals + the one behaviour flip:**
+
+- Drop every method already marked `@deprecated ... removed in 2.0.0` — the 1.2.0/1.8.0-era aliases (`toCamelCase`/`toPascalCase`/`toSnakeCase`/`toKebabCase`, `isInteger`, `isNumeric`, `isDirectory`, `isValid`/`Json`) **and** the 1.14.0 renames' aliases listed above, plus the retired guards `Str::isNonEmptyStr`, `Arr::isNonEmptyArray`, `Num::isPositiveInt`/`isNegativeInt`/`isNonNegativeInt`.
+- Flip `Str::join`'s `$skipBlanks` default to `false` (drop the `E_USER_DEPRECATED`).
 
 ### Deferred
 

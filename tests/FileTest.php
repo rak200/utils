@@ -227,4 +227,15 @@ final class FileTest extends TestCase {
         $this->expectException(RuntimeException::class);
         File::readCsv($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid() . '.csv');
     }
+
+    public function testRenamedMethodsAndAliases(): void {
+        $path = $this->makeTempPath('utils_alias_' . uniqid() . '.txt');
+        File::write($path, 'x');
+        $this->assertSame(File::mimeType($path), File::mime($path)); // alias forwards
+        $this->assertSame('txt', File::ext('dir/file.txt'));
+        $this->assertSame(File::extension('dir/file.txt'), File::ext('dir/file.txt'));
+        $temp = File::temp();
+        $this->created[] = $temp;
+        $this->assertTrue(File::isFile($temp));
+    }
 }

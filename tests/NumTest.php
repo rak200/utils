@@ -471,4 +471,23 @@ final class NumTest extends TestCase {
         $this->expectException(RuntimeException::class);
         Num::toBase(10, 37);
     }
+
+    public function testIsPositive(): void {
+        $this->assertTrue(Num::isPositive(5));
+        $this->assertTrue(Num::isPositive(0.001));
+        $this->assertTrue(Num::isPositive(new Number('0.5')));
+        $this->assertFalse(Num::isPositive(0));
+        $this->assertFalse(Num::isPositive(-1));
+        $this->assertFalse(Num::isPositive(-2.5));
+        $this->assertFalse(Num::isPositive(new Number('0')));
+    }
+
+    public function testIsNegative(): void {
+        $this->assertTrue(Num::isNegative(-5));
+        $this->assertTrue(Num::isNegative(-0.001));
+        $this->assertTrue(Num::isNegative(new Number('-0.5')));
+        $this->assertFalse(Num::isNegative(0));
+        $this->assertFalse(Num::isNegative(1));
+        $this->assertFalse(Num::isNegative(new Number('0')));
+    }
 }

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_keys, array_values, bin2hex, bindec, chr, count, decbin, microtime, ord,
-    random_bytes, random_int, str_pad, str_split, strlen, substr;
+use function microtime, random_bytes, random_int;
 
 /**
  * Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators.
@@ -96,9 +95,9 @@ final class Rand {
         if ($alphabet === '') {
             throw new RuntimeException('Alphabet cannot be empty.');
         }
-        $alphabetLen = strlen($alphabet);
+        $alphabetLen = Str::byteLen($alphabet);
         $result = '';
-        foreach (str_split($pattern) as $char) {
+        foreach (Str::split($pattern) as $char) {
             $result .= $char === '#'
                 ? $alphabet[random_int(0, $alphabetLen - 1)]
                 : $char;
@@ -110,9 +109,9 @@ final class Rand {
      * Generates a random UUID version 4 (RFC 4122) in canonical 8-4-4-4-12 hex form.
      */
     public static function uuidV4(): string {
-        $bytes = random_bytes(16);
-        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
-        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        $bytes = Str::toBytes(random_bytes(16));
+        $bytes[6] = ($bytes[6] & 0x0f) | 0x40;
+        $bytes[8] = ($bytes[8] & 0x3f) | 0x80;
         return self::formatUuid($bytes);
     }
 
@@ -121,16 +120,9 @@ final class Rand {
      * millisecond timestamp as a prefix.
      */
     public static function uuidV7(): string {
-        $timestampMs = (int) (microtime(true) * 1000);
-        $bytes = chr(($timestampMs >> 40) & 0xff)
-            . chr(($timestampMs >> 32) & 0xff)
-            . chr(($timestampMs >> 24) & 0xff)
-            . chr(($timestampMs >> 16) & 0xff)
-            . chr(($timestampMs >> 8) & 0xff)
-            . chr($timestampMs & 0xff)
-            . random_bytes(10);
-        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x70);
-        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        $bytes = [...self::timestampBytes(), ...Str::toBytes(random_bytes(10))];
+        $bytes[6] = ($bytes[6] & 0x0f) | 0x70;
+        $bytes[8] = ($bytes[8] & 0x3f) | 0x80;
         return self::formatUuid($bytes);
     }
 
@@ -139,14 +131,7 @@ final class Rand {
      * millisecond prefix.
      */
     public static function ulid(): string {
-        $timestampMs = (int) (microtime(true) * 1000);
-        $bytes = chr(($timestampMs >> 40) & 0xff)
-            . chr(($timestampMs >> 32) & 0xff)
-            . chr(($timestampMs >> 24) & 0xff)
-            . chr(($timestampMs >> 16) & 0xff)
-            . chr(($timestampMs >> 8) & 0xff)
-            . chr($timestampMs & 0xff)
-            . random_bytes(10);
+        $bytes = [...self::timestampBytes(), ...Str::toBytes(random_bytes(10))];
         return self::encodeCrockfordBase32($bytes);
     }
 
@@ -169,8 +154,8 @@ final class Rand {
         if ($items === []) {
             throw new RuntimeException('Cannot pick from an empty array.');
         }
-        $keys = array_keys($items);
-        return $items[$keys[random_int(0, count($keys) - 1)]];
+        $keys = Arr::keys($items);
+        return $items[$keys[random_int(0, Arr::count($keys) - 1)]];
     }
 
     /**
@@ -182,14 +167,14 @@ final class Rand {
      * @return list<T>
      */
     public static function shuffle(array $items): array {
-        $values = array_values($items);
-        for ($i = count($values) - 1; $i > 0; $i--) {
+        $values = Arr::values($items);
+        for ($i = Arr::count($values) - 1; $i > 0; $i--) {
             $j = random_int(0, $i);
             if ($i !== $j) {
                 [$values[$i], $values[$j]] = [$values[$j], $values[$i]];
             }
         }
-        return array_values($values);
+        return Arr::values($values);
     }
 
     /**
@@ -209,7 +194,7 @@ final class Rand {
      * at random from $alphabet with {@see random_int}.
      */
     private static function pickFromAlphabet(int $length, string $alphabet): string {
-        $alphabetLen = strlen($alphabet);
+        $alphabetLen = Str::byteLen($alphabet);
         $result = '';
         for ($i = 0; $i < $length; $i++) {
             $result .= $alphabet[random_int(0, $alphabetLen - 1)];
@@ -218,31 +203,53 @@ final class Rand {
     }
 
     /**
-     * Renders 16 raw bytes as the canonical 8-4-4-4-12 hex UUID string.
+     * Returns the current Unix-millisecond timestamp as 6 big-endian byte
+     * values — the time prefix shared by {@see uuidV7()} and {@see ulid()}.
+     *
+     * @return list<int>
      */
-    private static function formatUuid(string $bytes): string {
-        $hex = bin2hex($bytes);
-        $a = substr($hex, 0, 8);
-        $b = substr($hex, 8, 4);
-        $c = substr($hex, 12, 4);
-        $d = substr($hex, 16, 4);
-        $e = substr($hex, 20, 12);
+    private static function timestampBytes(): array {
+        $ms = (int) (microtime(true) * 1000);
+        return [
+            ($ms >> 40) & 0xff,
+            ($ms >> 32) & 0xff,
+            ($ms >> 24) & 0xff,
+            ($ms >> 16) & 0xff,
+            ($ms >> 8) & 0xff,
+            $ms & 0xff,
+        ];
+    }
+
+    /**
+     * Renders 16 byte values as the canonical 8-4-4-4-12 hex UUID string.
+     *
+     * @param list<int> $bytes
+     */
+    private static function formatUuid(array $bytes): string {
+        $hex = Hex::fromBytes($bytes);
+        $a = Str::sub($hex, 0, 8);
+        $b = Str::sub($hex, 8, 4);
+        $c = Str::sub($hex, 12, 4);
+        $d = Str::sub($hex, 16, 4);
+        $e = Str::sub($hex, 20, 12);
         return "{$a}-{$b}-{$c}-{$d}-{$e}";
     }
 
     /**
-     * Encodes 16 bytes (128 bits) into a 26-character Crockford Base32 string
-     * by left-padding with 2 zero bits to reach 130 bits = 26 × 5-bit groups.
+     * Encodes 16 byte values (128 bits) into a 26-character Crockford Base32
+     * string by left-padding with 2 zero bits to reach 130 bits = 26 × 5-bit groups.
+     *
+     * @param list<int> $bytes
      */
-    private static function encodeCrockfordBase32(string $bytes): string {
+    private static function encodeCrockfordBase32(array $bytes): string {
         $bits = '';
-        foreach (str_split($bytes) as $byte) {
-            $bits .= str_pad(decbin(ord($byte)), 8, '0', STR_PAD_LEFT);
+        foreach ($bytes as $byte) {
+            $bits .= Bit::toStr($byte, 8);
         }
         $bits = '00' . $bits;
         $result = '';
         for ($i = 0; $i < 130; $i += 5) {
-            $result .= self::CROCKFORD_BASE32[(int) bindec(substr($bits, $i, 5))];
+            $result .= self::CROCKFORD_BASE32[Bit::fromStr(Str::sub($bits, $i, 5))];
         }
         return $result;
     }

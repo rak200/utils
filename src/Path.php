@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_pop, array_slice, count, ctype_alpha, implode, min,
-    preg_match, strrpos, substr;
+use function array_pop, implode, min, strrpos, substr;
 
 /**
  * Logical path manipulation — pure string operations that never touch the disk.
@@ -32,7 +31,7 @@ final class Path {
         if ($path[0] === '/' || $path[0] === '\\') {
             return true;
         }
-        return Str::byteLength($path) >= 2 && $path[1] === ':' && ctype_alpha($path[0]);
+        return Str::byteLen($path) >= 2 && $path[1] === ':' && Str::isAlpha($path[0]);
     }
 
     /**
@@ -53,7 +52,7 @@ final class Path {
             return '';
         }
         $joined = $segments[0];
-        for ($i = 1, $n = count($segments); $i < $n; $i++) {
+        for ($i = 1, $n = Arr::count($segments); $i < $n; $i++) {
             $joined = Str::trimEnd($joined, '/') . '/' . Str::trimStart($segments[$i], '/');
         }
         return self::normalize($joined);
@@ -71,8 +70,9 @@ final class Path {
         $unified = Str::replace($path, '\\', '/');
 
         $drive = '';
-        if (preg_match('#^([a-zA-Z]):#', $unified, $matches) === 1) {
-            $drive = Str::upper($matches[1]) . ':';
+        $driveMatch = Regex::matchOrNull('#^([a-zA-Z]):#', $unified);
+        if ($driveMatch !== null) {
+            $drive = Str::upper($driveMatch[1]) . ':';
             $unified = substr($unified, 2);
         }
 
@@ -126,20 +126,20 @@ final class Path {
             throw new RuntimeException("Cannot compute relative path across drives $fromLabel and $toLabel.");
         }
 
-        $fromBody = $fromDrive !== '' ? substr($fromNorm, Str::byteLength($fromDrive)) : $fromNorm;
-        $toBody = $toDrive !== '' ? substr($toNorm, Str::byteLength($toDrive)) : $toNorm;
+        $fromBody = $fromDrive !== '' ? substr($fromNorm, Str::byteLen($fromDrive)) : $fromNorm;
+        $toBody = $toDrive !== '' ? substr($toNorm, Str::byteLen($toDrive)) : $toNorm;
 
         $fromParts = self::splitBody($fromBody);
         $toParts = self::splitBody($toBody);
 
         $common = 0;
-        $max = min(count($fromParts), count($toParts));
+        $max = min(Arr::count($fromParts), Arr::count($toParts));
         while ($common < $max && $fromParts[$common] === $toParts[$common]) {
             $common++;
         }
 
-        $up = count($fromParts) - $common;
-        $down = array_slice($toParts, $common);
+        $up = Arr::count($fromParts) - $common;
+        $down = Arr::slice($toParts, $common);
         $result = [];
         for ($i = 0; $i < $up; $i++) {
             $result[] = '..';
@@ -163,8 +163,8 @@ final class Path {
         $pos = strrpos($unified, '/');
         $base = $pos === false ? $unified : substr($unified, $pos + 1);
         if ($suffix !== '' && $suffix !== $base) {
-            $suffixLen = Str::byteLength($suffix);
-            if (Str::byteLength($base) > $suffixLen && substr($base, -$suffixLen) === $suffix) {
+            $suffixLen = Str::byteLen($suffix);
+            if (Str::byteLen($base) > $suffixLen && substr($base, -$suffixLen) === $suffix) {
                 $base = substr($base, 0, -$suffixLen);
             }
         }
@@ -181,8 +181,9 @@ final class Path {
         }
         $unified = Str::replace($path, '\\', '/');
         $drive = '';
-        if (preg_match('#^([a-zA-Z]):#', $unified, $matches) === 1) {
-            $drive = Str::upper($matches[1]) . ':';
+        $driveMatch = Regex::matchOrNull('#^([a-zA-Z]):#', $unified);
+        if ($driveMatch !== null) {
+            $drive = Str::upper($driveMatch[1]) . ':';
             $unified = substr($unified, 2);
         }
         $trimmed = Str::trimEnd($unified, '/');
@@ -201,7 +202,7 @@ final class Path {
      * basename), without the leading dot. Returns `''` when the basename has
      * no `.` or starts with `.` (dotfile with no further dot).
      */
-    public static function extension(string $path): string {
+    public static function ext(string $path): string {
         $base = self::basename($path);
         if ($base === '' || $base === '.' || $base === '..') {
             return '';
@@ -211,6 +212,13 @@ final class Path {
             return '';
         }
         return substr($base, $pos + 1);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::ext()} instead. Will be removed in 2.0.0.
+     */
+    public static function extension(string $path): string {
+        return self::ext($path);
     }
 
     /**
@@ -233,7 +241,7 @@ final class Path {
      * Extracts the Windows drive prefix (e.g. `C:`) from $path, or returns `''`.
      */
     private static function driveOf(string $path): string {
-        if (Str::byteLength($path) >= 2 && $path[1] === ':' && ctype_alpha($path[0])) {
+        if (Str::byteLen($path) >= 2 && $path[1] === ':' && Str::isAlpha($path[0])) {
             return Str::upper($path[0]) . ':';
         }
         return '';

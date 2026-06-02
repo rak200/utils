@@ -16,7 +16,7 @@ use Rak200\Utils\Path;
 - [`isAbsolute`](#isabsolute)
 - [`basename`](#basename)
 - [`dirname`](#dirname)
-- [`extension`](#extension)
+- [`ext`](#ext)
 - [`filename`](#filename)
 
 ---
@@ -122,16 +122,18 @@ Path::dirname('C:/Users/me');                // 'C:/Users'
 
 ---
 
-## `extension`
+## `ext`
 
 Returns the part of the basename after the last `.`, without the leading dot. Returns `''` for `README`, `.hidden`, or paths ending in `/`.
 
 ```php
-Path::extension('/a/file.txt');              // 'txt'
-Path::extension('archive.tar.gz');           // 'gz'
-Path::extension('README');                   // ''
-Path::extension('.hidden');                  // ''
+Path::ext('/a/file.txt');              // 'txt'
+Path::ext('archive.tar.gz');           // 'gz'
+Path::ext('README');                   // ''
+Path::ext('.hidden');                  // ''
 ```
+
+> The previous name `extension` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#path)
 

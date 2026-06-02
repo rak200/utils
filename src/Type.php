@@ -8,16 +8,16 @@ use BcMath\Number;
 use UnitEnum;
 use function class_exists, class_parents, class_uses, get_debug_type, interface_exists,
     is_a, is_bool, is_callable, is_int, is_iterable, is_numeric,
-    is_object, is_resource, is_scalar, is_string, is_subclass_of, preg_match, trait_exists;
+    is_object, is_resource, is_scalar, is_string, is_subclass_of, trait_exists;
 
 /**
  * Type-checking predicates. Every method accepts `mixed` so it can be used as
  * a type guard on values whose shape is not yet known.
  *
  * Topic-specific predicates live with their tier-1 class:
- * - String shape: {@see Str::isBlank()}, {@see Str::isNonEmptyStr()}.
- * - Array shape: {@see Arr::isList()}, {@see Arr::isAssoc()}, {@see Arr::isNonEmptyArray()}.
- * - Integer sign: {@see Num::isPositiveInt()}, {@see Num::isNegativeInt()}, {@see Num::isNonNegativeInt()}.
+ * - String shape: {@see Str::isBlank()}, {@see Str::isNotBlank()}.
+ * - Array shape: {@see Arr::isList()}, {@see Arr::isAssoc()}.
+ * - Numeric sign: {@see Num::isPositive()}, {@see Num::isNegative()}.
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
@@ -189,7 +189,7 @@ final class Type {
         if (!is_string($value)) {
             return false;
         }
-        return preg_match('/^[+-]?\d+$/', $value) === 1;
+        return Regex::matches('/^[+-]?\d+$/', $value);
     }
 
     /**
@@ -200,6 +200,13 @@ final class Type {
      * @template T of object
      * @param class-string<T> $class
      * @phpstan-assert-if-true T $value
+     */
+    public static function isInstance(mixed $value, string $class): bool {
+        return $value instanceof $class;
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::isInstance()} instead. Will be removed in 2.0.0.
      */
     public static function isInstanceOf(mixed $value, string $class): bool {
         return $value instanceof $class;
@@ -252,11 +259,18 @@ final class Type {
      * @param class-string<T> $class
      * @phpstan-assert-if-true T|class-string<T> $value
      */
-    public static function isSubclassOf(mixed $value, string $class): bool {
+    public static function isSubclass(mixed $value, string $class): bool {
         if (!is_object($value) && !is_string($value)) {
             return false;
         }
         return is_subclass_of($value, $class, true);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::isSubclass()} instead. Will be removed in 2.0.0.
+     */
+    public static function isSubclassOf(mixed $value, string $class): bool {
+        return self::isSubclass($value, $class);
     }
 
     /**

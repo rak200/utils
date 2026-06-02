@@ -195,4 +195,18 @@ final class DtTest extends TestCase {
         $this->assertFalse(Dt::isValid(2026, 4, 31));  // April has 30 days
         $this->assertFalse(Dt::isValid(2026, 0, 10));  // month zero
     }
+
+    public function testDiffRenamedMethodsAndAliases(): void {
+        $a = new DateTimeImmutable('2026-05-23 12:00:00');
+        $b = new DateTimeImmutable('2026-05-25 14:30:00');
+        $this->assertSame(2, Dt::diffDays($a, $b));
+        $this->assertSame(50, Dt::diffHours($a, $b));
+        $this->assertSame(3030, Dt::diffMinutes($a, $b));
+        $this->assertSame(181800, Dt::diffSeconds($a, $b));
+        // deprecated aliases forward to the new names
+        $this->assertSame(Dt::diffDays($a, $b), Dt::diffInDays($a, $b));
+        $this->assertSame(Dt::diffHours($a, $b), Dt::diffInHours($a, $b));
+        $this->assertSame(Dt::diffMinutes($a, $b), Dt::diffInMinutes($a, $b));
+        $this->assertSame(Dt::diffSeconds($a, $b), Dt::diffInSeconds($a, $b));
+    }
 }

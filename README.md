@@ -28,7 +28,7 @@ composer require rak200/utils
 ### Tier 2 — contextual
 
 - **`Regex`** — regex with consistent naming: `matches`, `match`/`matchAll`, `replace`/`replaceCallback`, `split`, `grep`, `quote`.
-- **`Hash`** — hashing and password handling: `md5`/`sha*`/`crc32`/`hmac`, constant-time `equals`, `password`/`verifyPassword`.
+- **`Hash`** — hashing and password handling: `md5`/`sha*`/`crc32`/`hmac`, constant-time `equals`, `password`/`verify`.
 - **`Bit`** — bit manipulation: `set`/`unset`/`toggle`/`has`, popcount, leading/trailing zeros, `rotateLeft`/`rotateRight`, base-2 string (`toStr`/`fromStr`).
 - **`File`** — filesystem helpers: read/write/append, `touch`, exists/delete, path parts, `realpath`, mime type, size, line generator, CSV (`readCsv`/`writeCsv`), temp file, copy/move.
 - **`Json`** — JSON with implicit `JSON_THROW_ON_ERROR`: `encode`, `decode`, `is`.
@@ -37,9 +37,9 @@ composer require rak200/utils
 - **`Dt`** — `DateTimeImmutable` helpers: construction, `isValid` calendar check, formatting (incl. `Dt::sql()`), arithmetic, comparison, period boundaries, diff in integer units.
 - **`Url`** — URL parsing/building and query-string encode/decode: `parse`/`parseOrNull`/`build`, `encode`/`decode`, `encodeQuery`/`decodeQuery`, `is`/`isAbsolute`.
 - **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, `basename`, `dirname`, `extension`, `filename`. Normalises to `/`; preserves Windows drive prefixes.
-- **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class/trait checks (`isInstanceOf`/`isA`/`isSubclassOf`/`isClassName`/`isInterfaceName`/`usesTrait`). Domain-mirroring predicates (`isStr`/`isInt`/`isFloat`/`isArray`/`isEnum`/`isNumeric`) are aliases of the canonical `is` on each domain class (`Str::is`, `Num::isInt`/`Num::isFloat`/`Num::is`, `Arr::is`, `Enum::is`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNonEmptyStr`, `Arr::isList`/`Arr::isAssoc`/`Arr::isNonEmptyArray`, `Num::isPositiveInt`/`Num::isNegativeInt`/`Num::isNonNegativeInt`.
+- **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class/trait checks (`isInstance`/`isA`/`isSubclass`/`isClassName`/`isInterfaceName`/`usesTrait`). Domain-mirroring predicates (`isStr`/`isInt`/`isFloat`/`isArray`/`isEnum`/`isNumeric`) are aliases of the canonical `is` on each domain class (`Str::is`, `Num::isInt`/`Num::isFloat`/`Num::is`, `Arr::is`, `Enum::is`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNotBlank`, `Arr::isList`/`Arr::isAssoc`, `Num::isPositive`/`Num::isNegative`.
 - **`Enum`** — class-level operations on enums: `names`/`values`, name lookup (`fromName`/`tryFromName` — the gap PHP leaves open), `random`, `[name => value]` map via `toArray`, plus the `is`/`isBacked` predicates.
-- **`Filter`** — input sanitisation and lenient coercion of untrusted values: `escapeHtml`/`unescapeHtml`, `stripTags`, character whitelists (`digits`/`alpha`/`alnum`), `collapseWhitespace`/`removeControlChars`/`ascii`, `email`/`url`, and `mixed`-to-typed coercers with a default (`toString`/`toInt`/`toFloat`/`toBool`).
+- **`Filter`** — input sanitisation and lenient coercion of untrusted values: `escapeHtml`/`unescapeHtml`, `stripTags`, character whitelists (`digits`/`alpha`/`alnum`), `squish`/`stripControl`/`ascii`, `email`/`url`, and `mixed`-to-typed coercers with a default (`toStr`/`toInt`/`toFloat`/`toBool`).
 
 ## Documentation
 

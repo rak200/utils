@@ -16,6 +16,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 
 - [`is`](#is)
 - [`isInt` / `isFloat`](#isint--isfloat)
+- [`isPositive` / `isNegative`](#ispositive--isnegative)
 - [`isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`](#ispositiveint--isnegativeint--isnonnegativeint)
 - [`isFinite`](#isfinite)
 - [`isNan` / `isInfinite`](#isnan--isinfinite)
@@ -80,6 +81,26 @@ Num::isFloat(42);                         // false
 
 ---
 
+## `isPositive` / `isNegative`
+
+Sign predicates for any number — `int`, `float`, or `BcMath\Number`. `isPositive` is `> 0`, `isNegative` is `< 0`; zero is neither.
+
+```php
+Num::isPositive(5);                 // true
+Num::isPositive(0.001);             // true
+Num::isPositive(new Number('0.5')); // true
+Num::isPositive(0);                 // false
+Num::isPositive(-1);                // false
+
+Num::isNegative(-5);                // true
+Num::isNegative(new Number('-0.5'));// true
+Num::isNegative(0);                 // false
+```
+
+[↑ Back to top](#num)
+
+---
+
 ## `isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`
 
 Strict — the value must be a native `int` (floats and numeric strings are rejected). Accept `mixed` so they can be used as guards.
@@ -97,6 +118,8 @@ Num::isNonNegativeInt(0);       // true
 Num::isNonNegativeInt(7);       // true
 Num::isNonNegativeInt(-1);      // false
 ```
+
+> All three are `@deprecated` since 1.14.0 (redundant under strict typing). Use [`isPositive`](#ispositive--isnegative) / [`isNegative`](#ispositive--isnegative) for int/float/Number, or `Num::isInt($v) && $v >= 0` for the int-only checks. Note `!isNegative()` is **not** equivalent to `isNonNegativeInt` (it is true for non-ints). Will be removed in 2.0.0.
 
 [↑ Back to top](#num)
 

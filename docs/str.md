@@ -14,7 +14,8 @@ use Rak200\Utils\Str;
 - [`isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`](#isblank--isnotblank--isempty--isnonemptystr)
 - [`isWhitespace`](#iswhitespace)
 - [`isDigits` / `isAlpha` / `isAlnum`](#isdigits--isalpha--isalnum)
-- [`length` / `byteLength`](#length--bytelength)
+- [`len` / `byteLen`](#len--bytelen)
+- [`toBytes` / `fromBytes`](#tobytes--frombytes)
 - [`capitalize` / `uncapitalize`](#capitalize--uncapitalize)
 - [`upper` / `lower`](#upper--lower)
 - [`title`](#title)
@@ -25,7 +26,7 @@ use Rak200\Utils\Str;
 - [`before` / `after`](#before--after)
 - [`span`](#span)
 - [`trim` / `trimStart` / `trimEnd`](#trim--trimstart--trimend)
-- [`substring`](#substring)
+- [`sub`](#sub)
 - [`replace`](#replace)
 - [`replaceFirst` / `replaceLast`](#replacefirst--replacelast)
 - [`replaceAt`](#replaceat)
@@ -40,7 +41,7 @@ use Rak200\Utils\Str;
 - [`repeat`](#repeat)
 - [`reverse`](#reverse)
 - [`ord` / `chr`](#ord--chr)
-- [`truncate`](#truncate)
+- [`trunc`](#trunc)
 - [`slug`](#slug)
 - [`format` / `scan`](#format--scan)
 - [`levenshtein` / `similarity`](#levenshtein--similarity)
@@ -88,6 +89,8 @@ Str::isNonEmptyStr('');      // false
 Str::isNonEmptyStr(null);    // false
 ```
 
+> `isNonEmptyStr` is `@deprecated` since 1.14.0 (redundant under strict typing — use a typed `string`, or `Str::is($v) && $v !== ''`). Will be removed in 2.0.0.
+
 [↑ Back to top](#str)
 
 ---
@@ -126,15 +129,34 @@ Str::isAlnum('abc 123');   // false   (space)
 
 ---
 
-## `length` / `byteLength`
+## `len` / `byteLen`
 
-`length` counts Unicode characters; `byteLength` counts raw bytes (the byte-level counterpart, for when byte offsets matter). The two agree for pure-ASCII input and diverge once multibyte characters appear.
+`len` counts Unicode characters; `byteLen` counts raw bytes (the byte-level counterpart, for when byte offsets matter). The two agree for pure-ASCII input and diverge once multibyte characters appear.
 
 ```php
-Str::length('hello');         // 5
-Str::length('ação');          // 4
-Str::byteLength('hello');     // 5
-Str::byteLength('ação');      // 6   ('ç' and 'ã' are two bytes each in UTF-8)
+Str::len('hello');         // 5
+Str::len('ação');          // 4
+Str::byteLen('hello');     // 5
+Str::byteLen('ação');      // 6   ('ç' and 'ã' are two bytes each in UTF-8)
+```
+
+> The previous names `length` / `byteLength` remain as `@deprecated` aliases since 1.14.0 and will be removed in 2.0.0.
+
+[↑ Back to top](#str)
+
+---
+
+## `toBytes` / `fromBytes`
+
+Convert between a binary string and a 0-indexed list of its byte values (0–255) — the raw-string counterpart to [`Hex::toBytes`](hex.md) / `Hex::fromBytes`. These are bytes, not Unicode code points (use [`ord`](#ord--chr) for a character's code point). `fromBytes` throws on a value outside 0–255.
+
+```php
+Str::toBytes('hi');           // [104, 105]
+Str::toBytes("\x00\xff");     // [0, 255]
+Str::toBytes('');             // []
+Str::fromBytes([104, 105]);   // 'hi'
+Str::fromBytes([0, 255]);     // "\x00\xff"
+Str::fromBytes([256]);        // throws RuntimeException (out of range)
 ```
 
 [↑ Back to top](#str)
@@ -288,15 +310,17 @@ Str::trimEnd('  hello  ');             // '  hello'
 
 ---
 
-## `substring`
+## `sub`
 
 Multibyte-safe slicing. When `$length` is `null`, takes everything from `$start` to the end.
 
 ```php
-Str::substring('hello', 1, 3);        // 'ell'
-Str::substring('ação', 1);            // 'ção'
-Str::substring('hello', -3);          // 'llo'
+Str::sub('hello', 1, 3);        // 'ell'
+Str::sub('ação', 1);            // 'ção'
+Str::sub('hello', -3);          // 'llo'
 ```
+
+> The previous name `substring` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#str)
 
@@ -503,17 +527,19 @@ Str::chr(0x1F600);    // '😀'
 
 ---
 
-## `truncate`
+## `trunc`
 
 Truncates to at most `$length` characters, appending `$ellipsis` when truncation actually happens. When `$length` is shorter than `$ellipsis`, returns the leading `$length` characters of `$ellipsis`.
 
 ```php
-Str::truncate('hello', 10);              // 'hello'
-Str::truncate('hello world', 4);         // 'hel…'
-Str::truncate('hello world', 6);         // 'hello…'
-Str::truncate('hello', 2);               // 'h…'
-Str::truncate('hello world', 5, '...');  // 'he...'
+Str::trunc('hello', 10);              // 'hello'
+Str::trunc('hello world', 4);         // 'hel…'
+Str::trunc('hello world', 6);         // 'hello…'
+Str::trunc('hello', 2);               // 'h…'
+Str::trunc('hello world', 5, '...');  // 'he...'
 ```
+
+> The previous name `truncate` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#str)
 

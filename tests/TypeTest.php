@@ -425,6 +425,22 @@ final class TypeTest extends TestCase {
     public function testIsSubclassOf(mixed $value, string $class, bool $expected): void {
         $this->assertSame($expected, Type::isSubclassOf($value, $class));
     }
+
+    public function testRenamedPredicatesAndAliases(): void {
+        $this->assertTrue(Type::isInstance(new \RuntimeException(), \Throwable::class));
+        $this->assertFalse(Type::isInstance('x', \Throwable::class));
+        $this->assertTrue(Type::isSubclass(\RuntimeException::class, \Exception::class));
+        $this->assertFalse(Type::isSubclass(\Exception::class, \Exception::class)); // not its own subclass
+        // deprecated aliases forward to the new names
+        $this->assertSame(
+            Type::isInstance(new \RuntimeException(), \Throwable::class),
+            Type::isInstanceOf(new \RuntimeException(), \Throwable::class),
+        );
+        $this->assertSame(
+            Type::isSubclass(\RuntimeException::class, \Exception::class),
+            Type::isSubclassOf(\RuntimeException::class, \Exception::class),
+        );
+    }
 }
 
 trait GreetTrait {}

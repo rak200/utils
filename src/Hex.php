@@ -25,7 +25,7 @@ final class Hex {
         if ($value === '') {
             return true;
         }
-        return Str::length($value) % 2 === 0 && ctype_xdigit($value);
+        return Str::len($value) % 2 === 0 && ctype_xdigit($value);
     }
 
     /**

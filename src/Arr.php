@@ -68,6 +68,11 @@ final class Arr {
     /**
      * Returns true if $value is an array with at least one element. Accepts
      * `mixed` (unlike {@see isNotEmpty()}, which requires an `array`).
+     *
+     * @deprecated since 1.14.0, redundant under strict typing — use a typed
+     *             `array` parameter with {@see isNotEmpty()}, or
+     *             `Arr::is($v) && $v !== []` when a `mixed` guard is needed.
+     *             Will be removed in 2.0.0.
      */
     public static function isNonEmptyArray(mixed $value): bool {
         return is_array($value) && $value !== [];

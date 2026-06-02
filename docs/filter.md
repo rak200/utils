@@ -15,11 +15,11 @@ The coercers differ from the [`Num`](num.md) parsers on purpose: `Num::parseInt`
 - [`escapeHtml` / `unescapeHtml`](#escapehtml--unescapehtml)
 - [`stripTags`](#striptags)
 - [`digits` / `alpha` / `alnum`](#digits--alpha--alnum)
-- [`collapseWhitespace`](#collapsewhitespace)
-- [`removeControlChars`](#removecontrolchars)
+- [`squish`](#squish)
+- [`stripControl`](#stripcontrol)
 - [`ascii`](#ascii)
 - [`email` / `url`](#email--url)
-- [`toString`](#tostring)
+- [`toStr`](#tostr)
 - [`toInt`](#toint)
 - [`toFloat`](#tofloat)
 - [`toBool`](#tobool)
@@ -74,27 +74,31 @@ Filter::alnum('a1 b2! café');            // 'a1b2café'
 
 ---
 
-## `collapseWhitespace`
+## `squish`
 
 Collapses every run of whitespace into a single space and trims the ends.
 
 ```php
-Filter::collapseWhitespace("  a\t\n b   c  ");   // 'a b c'
-Filter::collapseWhitespace("   \t\n  ");         // ''
+Filter::squish("  a\t\n b   c  ");   // 'a b c'
+Filter::squish("   \t\n  ");         // ''
 ```
+
+> The previous name `collapseWhitespace` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#filter)
 
 ---
 
-## `removeControlChars`
+## `stripControl`
 
 Removes ASCII and Unicode control characters (`\p{Cc}` — the C0/C1 ranges, including null bytes, escapes, tabs, and newlines).
 
 ```php
-Filter::removeControlChars("a\tb\nc\0d");   // 'abcd'
-Filter::removeControlChars("caf\x00é");     // 'café'
+Filter::stripControl("a\tb\nc\0d");   // 'abcd'
+Filter::stripControl("caf\x00é");     // 'café'
 ```
+
+> The previous name `removeControlChars` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#filter)
 
@@ -128,18 +132,20 @@ Filter::url('https://example.com/path');      // 'https://example.com/path'
 
 ---
 
-## `toString`
+## `toStr`
 
 Coerces to a string: strings pass through; int/float/bool and `Stringable` objects are cast; null, arrays, and non-stringable objects yield `$default`. Note the native bool cast (`true → "1"`, `false → ""`).
 
 ```php
-Filter::toString('hi');               // 'hi'
-Filter::toString(42);                 // '42'
-Filter::toString(true);               // '1'
-Filter::toString(null);               // null
-Filter::toString(null, 'fallback');   // 'fallback'
-Filter::toString(['a']);              // null
+Filter::toStr('hi');               // 'hi'
+Filter::toStr(42);                 // '42'
+Filter::toStr(true);               // '1'
+Filter::toStr(null);               // null
+Filter::toStr(null, 'fallback');   // 'fallback'
+Filter::toStr(['a']);              // null
 ```
+
+> The previous name `toString` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#filter)
 

@@ -25,7 +25,7 @@ final class Base64 {
             return true;
         }
         $encoded = Str::translate($value, '-_', '+/');
-        $padded = $encoded . Str::repeat('=', (4 - Str::length($encoded) % 4) % 4);
+        $padded = $encoded . Str::repeat('=', (4 - Str::len($encoded) % 4) % 4);
         return base64_decode($padded, true) !== false;
     }
 
@@ -66,7 +66,7 @@ final class Base64 {
      */
     public static function decodeUrl(string $value): string {
         $encoded = Str::translate($value, '-_', '+/');
-        $padded = $encoded . Str::repeat('=', (4 - Str::length($encoded) % 4) % 4);
+        $padded = $encoded . Str::repeat('=', (4 - Str::len($encoded) % 4) % 4);
         $result = base64_decode($padded, true);
         if ($result === false) {
             throw new RuntimeException('Invalid base64url input.');

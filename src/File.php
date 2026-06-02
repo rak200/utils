@@ -116,8 +116,15 @@ final class File {
     /**
      * Returns the extension of $path (without the leading dot) or '' when none.
      */
-    public static function extension(string $path): string {
+    public static function ext(string $path): string {
         return pathinfo($path, PATHINFO_EXTENSION);
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::ext()} instead. Will be removed in 2.0.0.
+     */
+    public static function extension(string $path): string {
+        return self::ext($path);
     }
 
     /**
@@ -154,7 +161,7 @@ final class File {
      *
      * @throws RuntimeException When the file is missing or the type cannot be determined.
      */
-    public static function mimeType(string $path): string {
+    public static function mime(string $path): string {
         if (!is_file($path)) {
             throw new RuntimeException("File not found: $path");
         }
@@ -167,6 +174,13 @@ final class File {
             throw new RuntimeException("Cannot determine mime type: $path");
         }
         return $type;
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::mime()} instead. Will be removed in 2.0.0.
+     */
+    public static function mimeType(string $path): string {
+        return self::mime($path);
     }
 
     /**
@@ -215,12 +229,19 @@ final class File {
      *
      * @throws RuntimeException When the temp file cannot be created.
      */
-    public static function tempFile(?string $prefix = null): string {
+    public static function temp(?string $prefix = null): string {
         $path = tempnam(sys_get_temp_dir(), $prefix ?? 'utl');
         if ($path === false) {
             throw new RuntimeException('Cannot create temp file.');
         }
         return $path;
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::temp()} instead. Will be removed in 2.0.0.
+     */
+    public static function tempFile(?string $prefix = null): string {
+        return self::temp($prefix);
     }
 
     /**

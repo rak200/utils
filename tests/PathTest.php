@@ -154,4 +154,10 @@ final class PathTest extends TestCase {
         $this->assertSame('.hidden', Path::filename('.hidden'));
         $this->assertSame('', Path::filename(''));
     }
+
+    public function testExtRenamedAndAlias(): void {
+        $this->assertSame('gz', Path::ext('a.tar.gz'));
+        $this->assertSame('', Path::ext('README'));
+        $this->assertSame(Path::extension('dir/file.txt'), Path::ext('dir/file.txt')); // alias forwards
+    }
 }

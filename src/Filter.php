@@ -82,16 +82,30 @@ final class Filter {
      * Collapses every run of whitespace in $value into a single space and trims
      * the ends.
      */
-    public static function collapseWhitespace(string $value): string {
+    public static function squish(string $value): string {
         return Str::trim(preg_replace('/\s+/u', ' ', $value) ?? '');
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::squish()} instead. Will be removed in 2.0.0.
+     */
+    public static function collapseWhitespace(string $value): string {
+        return self::squish($value);
     }
 
     /**
      * Removes ASCII and Unicode control characters (`\p{Cc}` — the C0/C1
      * ranges, including null bytes, escapes, tabs, and newlines) from $value.
      */
-    public static function removeControlChars(string $value): string {
+    public static function stripControl(string $value): string {
         return preg_replace('/\p{Cc}/u', '', $value) ?? '';
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::stripControl()} instead. Will be removed in 2.0.0.
+     */
+    public static function removeControlChars(string $value): string {
+        return self::stripControl($value);
     }
 
     /**
@@ -133,7 +147,7 @@ final class Filter {
      * objects yield $default. Note the native bool cast — `true → "1"`,
      * `false → ""`.
      */
-    public static function toString(mixed $value, ?string $default = null): ?string {
+    public static function toStr(mixed $value, ?string $default = null): ?string {
         if (Str::is($value)) {
             return $value;
         }
@@ -141,6 +155,13 @@ final class Filter {
             return (string) $value;
         }
         return $default;
+    }
+
+    /**
+     * @deprecated since 1.14.0, use {@see self::toStr()} instead. Will be removed in 2.0.0.
+     */
+    public static function toString(mixed $value, ?string $default = null): ?string {
+        return self::toStr($value, $default);
     }
 
     /**

@@ -17,13 +17,13 @@ use Rak200\Utils\File;
 - [`delete`](#delete)
 - [`mkdir`](#mkdir)
 - [`list`](#list)
-- [`extension` / `basename` / `dirname`](#extension--basename--dirname)
+- [`ext` / `basename` / `dirname`](#ext--basename--dirname)
 - [`realpath`](#realpath)
-- [`mimeType`](#mimetype)
+- [`mime`](#mime)
 - [`size`](#size)
 - [`lines`](#lines)
 - [`readCsv` / `writeCsv`](#readcsv--writecsv)
-- [`tempFile`](#tempfile)
+- [`temp`](#temp)
 - [`copy` / `move`](#copy--move)
 
 ---
@@ -126,17 +126,19 @@ File::list('/var/log', 'app-*.log');   // glob with prefix
 
 ---
 
-## `extension` / `basename` / `dirname`
+## `ext` / `basename` / `dirname`
 
 Path-component helpers.
 
 ```php
-File::extension('/var/log/app.log');             // 'log'
-File::extension('README');                       // ''
+File::ext('/var/log/app.log');                   // 'log'
+File::ext('README');                             // ''
 File::basename('/var/log/app.log');              // 'app.log'
 File::basename('/var/log/app.log', '.log');      // 'app'
 File::dirname('/var/log/app.log');               // '/var/log'
 ```
+
+> The previous name `extension` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#file)
 
@@ -156,14 +158,16 @@ File::realpath('/no/such/path');             // throws RuntimeException
 
 ---
 
-## `mimeType`
+## `mime`
 
 Detected via `fileinfo`.
 
 ```php
-File::mimeType('/path/to/photo.png');     // 'image/png'
-File::mimeType('/path/to/script.sh');     // 'text/x-shellscript'
+File::mime('/path/to/photo.png');     // 'image/png'
+File::mime('/path/to/script.sh');     // 'text/x-shellscript'
 ```
+
+> The previous name `mimeType` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#file)
 
@@ -218,14 +222,16 @@ File::readCsv('/tmp/semicolons.csv', separator: ';');
 
 ---
 
-## `tempFile`
+## `temp`
 
 Creates an empty temp file in the system temp dir and returns its absolute path. Default prefix is `utl`.
 
 ```php
-File::tempFile();              // e.g. '/tmp/utlAB1cD2'
-File::tempFile('report-');     // e.g. '/tmp/report-XyZ123'
+File::temp();              // e.g. '/tmp/utlAB1cD2'
+File::temp('report-');     // e.g. '/tmp/report-XyZ123'
 ```
+
+> The previous name `tempFile` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#file)
 

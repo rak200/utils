@@ -473,4 +473,31 @@ final class StrTest extends TestCase {
         $this->assertSame(['a', 'b'], Str::split('a,b', ','));
         $this->assertSame(['a', 'b,c'], Str::split('a,b,c', ',', 2));        // piece limit
     }
+
+    public function testToBytesAndFromBytes(): void {
+        $this->assertSame([], Str::toBytes(''));
+        $this->assertSame([104, 105], Str::toBytes('hi'));
+        $this->assertSame([0, 255, 16], Str::toBytes("\x00\xff\x10"));
+        $this->assertSame('hi', Str::fromBytes([104, 105]));
+        $this->assertSame("\x00\xff", Str::fromBytes([0, 255]));
+        $this->assertSame('', Str::fromBytes([]));
+        $bin = random_bytes(64);
+        $this->assertSame($bin, Str::fromBytes(Str::toBytes($bin))); // round-trip arbitrary binary
+    }
+
+    public function testFromBytesRejectsOutOfRange(): void {
+        $this->expectException(RuntimeException::class);
+        Str::fromBytes([0, 256]);
+    }
+
+    public function testRenamedMethodsAndAliases(): void {
+        $this->assertSame(3, Str::len('abc'));
+        $this->assertSame(Str::length('açú'), Str::len('açú'));         // alias forwards
+        $this->assertSame(2, Str::byteLen('é'));
+        $this->assertSame(Str::byteLength('héllo'), Str::byteLen('héllo'));
+        $this->assertSame('ell', Str::sub('hello', 1, 3));
+        $this->assertSame(Str::substring('héllo', 1), Str::sub('héllo', 1));
+        $this->assertSame('he…', Str::trunc('hello world', 3));
+        $this->assertSame(Str::truncate('hello world', 6), Str::trunc('hello world', 6));
+    }
 }

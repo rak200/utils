@@ -90,8 +90,13 @@ The additive part of this work shipped in **1.14.0**: the shortened method names
 - Drop every method already marked `@deprecated ... removed in 2.0.0` — the 1.2.0/1.8.0-era aliases (`toCamelCase`/`toPascalCase`/`toSnakeCase`/`toKebabCase`, `isInteger`, `isNumeric`, `isDirectory`, `isValid`/`Json`) **and** the 1.14.0 renames' aliases listed above, plus the retired guards `Str::isNonEmptyStr`, `Arr::isNonEmptyArray`, `Num::isPositiveInt`/`isNegativeInt`/`isNonNegativeInt`.
 - Flip `Str::join`'s `$skipBlanks` default to `false` (drop the `E_USER_DEPRECATED`).
 
-### Deferred
+### Contingent (additive — ships in any minor when there's demand, not gated on 2.0.0)
 
-- **`Math`** — only worth splitting out if trigonometry, logarithms, number theory, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad`, and number-theory helpers such as `gcd` / `lcm` (no native; `gcd` via Euclid, `lcm` derived from it), belong here, **not** in `Num`.
-- **Mutable / pointer / in-place natives** — `array_pop` / `array_shift` / `array_splice`, in-place `sort`, `end` / `reset` / `next` / `current`, `settype` — break the pure / immutable contract; intentionally left unwrapped.
+- **`Math`** — only worth splitting out if trigonometry, logarithms, number theory, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad`, and number-theory helpers such as `gcd` / `lcm` (no native; `gcd` via Euclid, `lcm` derived from it), belong here, **not** in `Num`. Purely additive — there's no point creating an empty class, so it lands in a minor release when real demand appears; it is **not** a 2.0.0 prerequisite.
+
+### Out of scope (by design — won't do)
+
+Deliberate exclusions, not pending work: these contradict the library's pure / immutable / stateless contract. Impure concerns belong in a separate sibling library (e.g. `rak200/http-input`), not here.
+
+- **Mutable / pointer / in-place natives** — `array_pop` / `array_shift` / `array_splice`, in-place `sort`, `end` / `reset` / `next` / `current`, `settype` — break the pure / immutable contract. The useful cases already have immutable equivalents: `array_push` / `array_unshift` → `Arr::append` / `prepend`, in-place `sort` → `Arr::sort` / `sortBy` / `sortKeys`, `settype` → `Filter::to*`, `end` / `reset` / `current` → `Arr::first` / `last`.
 - **Global / impure / low-level** — `setlocale`, `ini_*`, raw stream / resource handling — out of scope for a pure helper library.

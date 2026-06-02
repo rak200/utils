@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.1] - 2026-06-02
+
+Documentation only — no library code or API change.
+
+### Changed
+
+- **Clarified the `CLAUDE.md` roadmap's deferred section.** Split it into *Contingent* (the additive `Math` class — ships in a minor when there's demand, **not** gated on 2.0.0) and *Out of scope (by design)* (the mutable/pointer/in-place natives and global/impure/low-level functions — deliberate exclusions that contradict the pure/immutable contract, with the immutable equivalents that already cover the useful cases noted). No behaviour or API change; 2.0.0 stays scoped to removals + the `Str::join` default flip.
+
 ## [1.14.0] - 2026-06-02
 
 Brings forward the 2.0.0 roadmap work in a **backwards-compatible** way: shorter method names, a full prefer-lib-over-native sweep, and two new helper pairs. Every rename ships a `@deprecated` alias, so nothing breaks in 1.x — the removals stay queued for 2.0.0.
@@ -296,6 +304,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.14.1]: https://github.com/rak200/utils/compare/1.14.0...1.14.1
 [1.14.0]: https://github.com/rak200/utils/compare/1.13.2...1.14.0
 [1.13.2]: https://github.com/rak200/utils/compare/1.13.1...1.13.2
 [1.13.1]: https://github.com/rak200/utils/compare/1.13.0...1.13.1

@@ -43,6 +43,9 @@ use Rak200\Utils\Arr;
 - [`diff` / `intersect`](#diff--intersect)
 - [`countValues`](#countvalues)
 - [`append` / `prepend`](#append--prepend)
+- [`shift` / `shiftOrNull`](#shift--shiftornull)
+- [`pop` / `popOrNull`](#pop--popornull)
+- [Dropping the first / last element (`array_shift` / `array_pop`)](#dropping-the-first--last-element-array_shift--array_pop)
 - [`fill` / `fillKeys`](#fill--fillkeys)
 - [`merge`](#merge)
 - [`pick` / `except`](#pick--except)
@@ -528,6 +531,50 @@ Arr::append(['a' => 1], 2);         // ['a' => 1, 0 => 2]
 Arr::prepend([1, 2], 0);            // [0, 1, 2]
 Arr::prepend(['a' => 1], 3);        // [3, 'a' => 1]
 ```
+
+[↑ Back to top](#arr)
+
+---
+
+## `shift` / `shiftOrNull`
+
+Immutable `array_shift`: returns the `[firstElement, rest]` pair without mutating the input. The remainder follows [`slice`](#slice) semantics (integer keys renumbered, string keys kept). Bare throws on an empty array; `*OrNull` returns `null`.
+
+```php
+[$first, $rest] = Arr::shift([10, 20, 30]);          // [10, [20, 30]]
+[$first, $rest] = Arr::shift(['a' => 1, 'b' => 2]);  // [1, ['b' => 2]]
+Arr::shiftOrNull([]);                                 // null
+Arr::shift([]);                                       // RuntimeException
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `pop` / `popOrNull`
+
+Immutable `array_pop`: returns the `[lastElement, rest]` pair without mutating the input. The remainder follows [`slice`](#slice) semantics. Bare throws on an empty array; `*OrNull` returns `null`.
+
+```php
+[$last, $rest] = Arr::pop([10, 20, 30]);            // [30, [10, 20]]
+[$last, $rest] = Arr::pop(['a' => 1, 'b' => 2]);    // [2, ['a' => 1]]
+Arr::popOrNull([]);                                  // null
+Arr::pop([]);                                        // RuntimeException
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## Dropping the first / last element (`array_shift` / `array_pop`)
+
+PHP's `array_shift` / `array_pop` are excluded by design — they mutate the array in place, breaking the immutable contract (each *returns* an element **and** *mutates* the array). The immutable substitutes are [`shift`](#shift--shiftornull) / [`pop`](#pop--popornull), which return both halves as a `[element, rest]` pair without touching the input. Pick the helper by how much of the result you actually need:
+
+| What you want | Use |
+|---|---|
+| element **and** rest (full `array_shift` / `array_pop`) | `[$x, $rest] = Arr::shift($a)` / `Arr::pop($a)` |
+| the element only | `Arr::first($a)` / `Arr::last($a)` (or `*OrNull`) |
+| the rest only | `Arr::slice($a, 1)` (drop first) / `Arr::slice($a, 0, -1)` (drop last) |
 
 [↑ Back to top](#arr)
 

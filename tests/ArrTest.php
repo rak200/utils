@@ -369,6 +369,44 @@ final class ArrTest extends TestCase {
         $this->assertSame([3, 'a' => 1], Arr::prepend(['a' => 1], 3)); // string keys kept
     }
 
+    public function testShift(): void {
+        $this->assertSame([10, [20, 30]], Arr::shift([10, 20, 30]));
+        $this->assertSame([1, ['b' => 2]], Arr::shift(['a' => 1, 'b' => 2])); // string keys kept
+        $this->assertSame(['only', []], Arr::shift(['only']));
+        $original = [1, 2, 3];
+        Arr::shift($original);
+        $this->assertSame([1, 2, 3], $original); // immutable
+    }
+
+    public function testShiftOrNull(): void {
+        $this->assertSame([10, [20, 30]], Arr::shiftOrNull([10, 20, 30]));
+        $this->assertNull(Arr::shiftOrNull([]));
+    }
+
+    public function testShiftThrowsWhenEmpty(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::shift([]);
+    }
+
+    public function testPop(): void {
+        $this->assertSame([30, [10, 20]], Arr::pop([10, 20, 30]));
+        $this->assertSame([2, ['a' => 1]], Arr::pop(['a' => 1, 'b' => 2])); // string keys kept
+        $this->assertSame(['only', []], Arr::pop(['only']));
+        $original = [1, 2, 3];
+        Arr::pop($original);
+        $this->assertSame([1, 2, 3], $original); // immutable
+    }
+
+    public function testPopOrNull(): void {
+        $this->assertSame([30, [10, 20]], Arr::popOrNull([10, 20, 30]));
+        $this->assertNull(Arr::popOrNull([]));
+    }
+
+    public function testPopThrowsWhenEmpty(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::pop([]);
+    }
+
     public function testFirstLastKey(): void {
         $this->assertSame('x', Arr::firstKey(['x' => 1, 'y' => 2]));
         $this->assertSame('y', Arr::lastKey(['x' => 1, 'y' => 2]));

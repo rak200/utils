@@ -21,7 +21,7 @@ composer require rak200/utils
 ### Tier 1 — scalars and core structures
 
 - **`Str`** — string operations (multibyte-safe by default): blank/`ctype` checks, case helpers (`title`/`toCamel`/`toSnake`/...), search, `before`/`after`, trim, split/join, `replace`/`replaceAt`, padding/wrapping (`wordWrap`/`wordCount`), `format`/`scan`, `levenshtein`/`similarity`.
-- **`Arr`** — array operations: emptiness, count, first/last (value and key) lookup, find/search, filter/map/reduce, flatten, groupBy, partition, chunk, unique, reverse/slice/flip/combine, diff/intersect, countValues, append/prepend, fill, sort/sortKeys, zip, range.
+- **`Arr`** — array operations: emptiness, count, first/last (value and key) lookup, find/search, filter/map/reduce, flatten, groupBy, partition, chunk, unique, reverse/slice/flip/combine, diff/intersect, countValues, append/prepend, immutable shift/pop (`[element, rest]`), fill, sort/sortKeys, zip, range.
 - **`Num`** — number operations: type checks (incl. `isFinite`/`isNan`/`isInfinite`), parsing (incl. `parseNumber` returning `BcMath\Number`) and `toBase`, clamp/inRange, rounding, formatting, aggregates (`sum`/`product`/`avg`/...), sign, arithmetic (`pow`, `sqrt`, `floor`, `ceil`, `mod`). Aggregation and per-element methods accept and propagate `BcMath\Number` alongside `int|float`.
 - **`Rand`** — randomness in one place: int/float/bytes/string, masked patterns, UUID v4 / UUID v7, ULID, nanoid. Alphabet constants: `Rand::NUM`, `Rand::HEX`, `Rand::ALPHA`, `Rand::ALNUM`.
 

@@ -720,6 +720,64 @@ final class Arr {
     }
 
     /**
+     * Immutable {@see array_shift()}: returns a `[firstElement, rest]` pair
+     * without mutating $array. The remainder follows {@see slice()} semantics
+     * (integer keys renumbered, string keys kept).
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return array{0: T, 1: array<array-key, T>}
+     * @throws RuntimeException When the array is empty.
+     */
+    public static function shift(array $array): array {
+        if ($array === []) {
+            throw new RuntimeException('Cannot shift from an empty array.');
+        }
+        return [self::first($array), self::slice($array, 1)];
+    }
+
+    /**
+     * Returns the `[firstElement, rest]` pair of {@see shift()}, or null when
+     * the array is empty.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return array{0: T, 1: array<array-key, T>}|null
+     */
+    public static function shiftOrNull(array $array): ?array {
+        return $array === [] ? null : [self::first($array), self::slice($array, 1)];
+    }
+
+    /**
+     * Immutable {@see array_pop()}: returns a `[lastElement, rest]` pair without
+     * mutating $array. The remainder follows {@see slice()} semantics (integer
+     * keys renumbered, string keys kept).
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return array{0: T, 1: array<array-key, T>}
+     * @throws RuntimeException When the array is empty.
+     */
+    public static function pop(array $array): array {
+        if ($array === []) {
+            throw new RuntimeException('Cannot pop from an empty array.');
+        }
+        return [self::last($array), self::slice($array, 0, -1)];
+    }
+
+    /**
+     * Returns the `[lastElement, rest]` pair of {@see pop()}, or null when the
+     * array is empty.
+     *
+     * @template T
+     * @param array<array-key, T> $array
+     * @return array{0: T, 1: array<array-key, T>}|null
+     */
+    public static function popOrNull(array $array): ?array {
+        return $array === [] ? null : [self::last($array), self::slice($array, 0, -1)];
+    }
+
+    /**
      * Returns $array sorted by key with the natural `<=>` comparator, preserving
      * the key=>value association. Pass $desc = true for descending order.
      *

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2026-06-02
+
+### Added
+
+- **`Arr::shift` / `Arr::shiftOrNull` and `Arr::pop` / `Arr::popOrNull`** — immutable counterparts to `array_shift` / `array_pop`. Each returns a `[element, rest]` pair (the first/last element plus the remainder) without mutating the input; the remainder follows `Arr::slice` semantics (integer keys renumbered, string keys kept). Bare throws `RuntimeException` on an empty array; the `*OrNull` variant returns `null`. They fill the one immutable case that couldn't be expressed in a single existing call — for just one half, `Arr::first` / `last` (element) or `Arr::slice` (remainder) still apply.
+
 ## [1.14.1] - 2026-06-02
 
 Documentation only — no library code or API change.
@@ -304,6 +310,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.15.0]: https://github.com/rak200/utils/compare/1.14.1...1.15.0
 [1.14.1]: https://github.com/rak200/utils/compare/1.14.0...1.14.1
 [1.14.0]: https://github.com/rak200/utils/compare/1.13.2...1.14.0
 [1.13.2]: https://github.com/rak200/utils/compare/1.13.1...1.13.2

@@ -267,7 +267,6 @@ final class Type {
     }
 
     /**
-     *
      * @template T of object
      * @param class-string<T> $class
      * @phpstan-assert-if-true T|class-string<T> $value

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.0] - 2026-06-02
+
+### Added
+
+- **`Arr::pluck` gains an optional `$indexKey`** — the three-argument form of `array_column`: `Arr::pluck($rows, 'name', 'id')` returns `['id' => 'name', ...]`, keying each plucked value by that column of the same item (following `Arr::keyBy` — the item must hold `$indexKey`, later collisions overwrite, otherwise it throws). The no-`$indexKey` call is unchanged (0-indexed list). The other `array_column` shapes already map to existing helpers: extract-a-column is `Arr::pluck($rows, $col)`, and rows-keyed-by-a-column is `Arr::keyBy($rows, $col)`.
+
 ## [1.15.1] - 2026-06-02
 
 Type-correctness pass — the codebase is now clean under `phpstan analyse` at **level max**. No runtime behaviour or public-API change.
@@ -325,6 +331,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.16.0]: https://github.com/rak200/utils/compare/1.15.1...1.16.0
 [1.15.1]: https://github.com/rak200/utils/compare/1.15.0...1.15.1
 [1.15.0]: https://github.com/rak200/utils/compare/1.14.1...1.15.0
 [1.14.1]: https://github.com/rak200/utils/compare/1.14.0...1.14.1

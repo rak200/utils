@@ -230,6 +230,23 @@ final class ArrTest extends TestCase {
         $this->assertSame(['a', 'b', null], Arr::pluck($rows, 'name'));
     }
 
+    public function testPluckWithIndexKey(): void {
+        $rows = [
+            ['id' => 1, 'name' => 'a'],
+            ['id' => 2, 'name' => 'b'],
+        ];
+        $this->assertSame([1 => 'a', 2 => 'b'], Arr::pluck($rows, 'name', 'id'));
+        $this->assertSame([1 => null], Arr::pluck([['id' => 1]], 'name', 'id')); // missing value → null
+        // later collision overwrites, like array_column
+        $dup = [['k' => 'x', 'v' => 1], ['k' => 'x', 'v' => 2]];
+        $this->assertSame(['x' => 2], Arr::pluck($dup, 'v', 'k'));
+    }
+
+    public function testPluckThrowsWhenIndexKeyMissing(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::pluck([['name' => 'a']], 'name', 'id');
+    }
+
     public function testKeyByColumn(): void {
         $rows = [
             ['id' => 'a', 'v' => 1],

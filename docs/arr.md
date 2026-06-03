@@ -358,7 +358,7 @@ Arr::values(['a' => 1, 'b' => 2]);     // [1, 2]
 
 ## `pluck`
 
-Extracts the value at `$key` from each sub-array. Items without the key contribute `null`.
+Extracts the value at `$key` from each sub-array. Items without the key contribute `null`. Pass `$indexKey` to key each value by that column of the same item — the three-argument `array_column`; it follows [`keyBy`](#keyby) (the item must hold `$indexKey`, later collisions overwrite, otherwise it throws).
 
 ```php
 $rows = [
@@ -366,8 +366,9 @@ $rows = [
     ['id' => 2, 'name' => 'b'],
     ['id' => 3],
 ];
-Arr::pluck($rows, 'id');       // [1, 2, 3]
-Arr::pluck($rows, 'name');     // ['a', 'b', null]
+Arr::pluck($rows, 'id');             // [1, 2, 3]
+Arr::pluck($rows, 'name');           // ['a', 'b', null]
+Arr::pluck($rows, 'name', 'id');     // [1 => 'a', 2 => 'b', 3 => null]
 ```
 
 [↑ Back to top](#arr)

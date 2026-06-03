@@ -466,16 +466,26 @@ final class Arr {
     }
 
     /**
-     * Extracts the values at $key from each sub-array of $array as a 0-indexed
-     * list. Items without the key contribute null.
+     * Extracts the values at $key from each sub-array of $array. Items without
+     * the key contribute null. With no $indexKey the result is a 0-indexed list;
+     * with $indexKey each value is keyed by that column of the same item,
+     * following {@see keyBy()} (the item must be an array holding $indexKey;
+     * later collisions overwrite) — the three-argument {@see array_column()}.
      *
      * @param array<array-key, mixed> $array
-     * @return list<mixed>
+     * @return ($indexKey is null ? list<mixed> : array<int|string, mixed>)
+     * @throws RuntimeException When $indexKey is given and an item lacks it or
+     *                          the resolved key is not an int or string.
      */
-    public static function pluck(array $array, int|string $key): array {
+    public static function pluck(array $array, int|string $key, int|string|null $indexKey = null): array {
+        $extract = static fn(mixed $item): mixed
+            => is_array($item) && array_key_exists($key, $item) ? $item[$key] : null;
+        if ($indexKey !== null) {
+            return self::map(self::keyBy($array, $indexKey), $extract);
+        }
         $result = [];
         foreach ($array as $item) {
-            $result[] = is_array($item) && array_key_exists($key, $item) ? $item[$key] : null;
+            $result[] = $extract($item);
         }
         return $result;
     }

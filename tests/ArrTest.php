@@ -358,7 +358,7 @@ final class ArrTest extends TestCase {
         $this->assertSame([1, 2, 3, 4], Arr::append([1, 2], 3, 4));
         $this->assertSame(['a' => 1, 0 => 2], Arr::append(['a' => 1], 2)); // keeps string keys
         $original = [1, 2];
-        Arr::append($original, 3);
+        $this->assertSame([1, 2, 3], Arr::append($original, 3)); // new array
         $this->assertSame([1, 2], $original); // immutable
     }
 

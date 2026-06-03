@@ -715,6 +715,7 @@ final class Str {
      * @return list<int|float|string|null>
      */
     public static function scan(string $value, string $format): array {
+        /** @var list<int|float|string|null>|int|null $result */
         $result = sscanf($value, $format);
         return Arr::is($result) ? $result : [];
     }

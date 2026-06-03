@@ -46,7 +46,7 @@ final class TypeNarrowingFixture {
     }
 
     public function instanceOf(mixed $value): void {
-        if (Type::isInstanceOf($value, ArrayIterator::class)) {
+        if (Type::isInstance($value, ArrayIterator::class)) {
             \PHPStan\Testing\assertType(ArrayIterator::class, $value);
         }
     }

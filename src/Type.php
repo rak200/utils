@@ -267,6 +267,10 @@ final class Type {
     }
 
     /**
+     *
+     * @template T of object
+     * @param class-string<T> $class
+     * @phpstan-assert-if-true T|class-string<T> $value
      * @deprecated since 1.14.0, use {@see self::isSubclass()} instead. Will be removed in 2.0.0.
      */
     public static function isSubclassOf(mixed $value, string $class): bool {

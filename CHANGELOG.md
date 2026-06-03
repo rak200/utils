@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.1] - 2026-06-02
+
+Type-correctness pass — the codebase is now clean under `phpstan analyse` at **level max**. No runtime behaviour or public-API change.
+
+### Changed
+
+- **`Arr::diff` / `Arr::intersect`** — value type narrowed to `@template T of int|string`, matching the string-cast contract of `array_diff` / `array_intersect` (and the existing `Arr::countValues` convention). Phpdoc only.
+- **`Type::isSubclassOf`** (deprecated alias) — now carries the `@template`/`class-string` and `@phpstan-assert-if-true` annotations so it type-checks while forwarding to `Type::isSubclass`.
+- **`Rand::formatUuid`** — `@param` relaxed from `list<int>` to `int[]` (it only needs ordered int byte values; `Hex::fromBytes` accepts `array<int>`), so the post-mask `$bytes[6]`/`$bytes[8]` writes no longer trip the `list` shape.
+
+### Fixed
+
+- **`Regex::grep` / `Str::scan`** — annotate the genuinely-known result type that PHPStan's value-type-erasing `preg_grep` / `sscanf` stubs (`'array|false'` / `'array|int|null'`) drop. Runtime behaviour unchanged.
+- **Test suite type-correctness** — `ArrTest` asserts the array returned by the immutable `Arr::append` (instead of an unused pure call); `Type` predicate tests exercise the canonical `isInstance` / `isSubclass` (with the deprecated-alias forwarding folded into the same data-provider cases) and the narrowing fixture uses canonical `isInstance`.
+
 ## [1.15.0] - 2026-06-02
 
 ### Added
@@ -310,6 +325,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[1.15.1]: https://github.com/rak200/utils/compare/1.15.0...1.15.1
 [1.15.0]: https://github.com/rak200/utils/compare/1.14.1...1.15.0
 [1.14.1]: https://github.com/rak200/utils/compare/1.14.0...1.14.1
 [1.14.0]: https://github.com/rak200/utils/compare/1.13.2...1.14.0

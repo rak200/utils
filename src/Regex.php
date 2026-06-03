@@ -137,6 +137,7 @@ final class Regex {
      * @return array<array-key, string>
      */
     public static function grep(string $pattern, array $values, bool $invert = false): array {
+        /** @var array<array-key, string>|false $result */
         $result = preg_grep($pattern, $values, $invert ? PREG_GREP_INVERT : 0);
         if ($result === false) {
             throw new RuntimeException("Invalid regex pattern: $pattern");

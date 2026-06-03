@@ -655,7 +655,7 @@ final class Arr {
      * Returns the values of $array not present in any of $others (loose
      * string comparison, like {@see array_diff()}). Keys are preserved.
      *
-     * @template T
+     * @template T of int|string
      * @param array<array-key, T> $array
      * @param array<array-key, mixed> ...$others
      * @return array<array-key, T>
@@ -668,7 +668,7 @@ final class Arr {
      * Returns the values of $array present in every one of $others (loose
      * string comparison, like {@see array_intersect()}). Keys are preserved.
      *
-     * @template T
+     * @template T of int|string
      * @param array<array-key, T> $array
      * @param array<array-key, mixed> ...$others
      * @return array<array-key, T>

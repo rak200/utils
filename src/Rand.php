@@ -223,7 +223,7 @@ final class Rand {
     /**
      * Renders 16 byte values as the canonical 8-4-4-4-12 hex UUID string.
      *
-     * @param list<int> $bytes
+     * @param int[] $bytes
      */
     private static function formatUuid(array $bytes): string {
         $hex = Hex::fromBytes($bytes);

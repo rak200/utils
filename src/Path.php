@@ -215,13 +215,6 @@ final class Path {
     }
 
     /**
-     * @deprecated since 1.14.0, use {@see self::ext()} instead. Will be removed in 2.0.0.
-     */
-    public static function extension(string $path): string {
-        return self::ext($path);
-    }
-
-    /**
      * Returns the basename of $path with its extension removed (or the bare
      * basename when there is no extension).
      */

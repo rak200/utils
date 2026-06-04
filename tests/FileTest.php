@@ -67,7 +67,7 @@ final class FileTest extends TestCase {
     }
 
     public function testPathHelpers(): void {
-        $this->assertSame('txt', File::extension('/some/path/file.txt'));
+        $this->assertSame('txt', File::ext('/some/path/file.txt'));
         $this->assertSame('file.txt', File::basename('/some/path/file.txt'));
         $this->assertSame('file', File::basename('/some/path/file.txt', '.txt'));
         $this->assertSame(
@@ -90,7 +90,7 @@ final class FileTest extends TestCase {
     }
 
     public function testTempFile(): void {
-        $path = File::tempFile('uti');
+        $path = File::temp('uti');
         $this->created[] = $path;
         $this->assertTrue(File::exists($path));
         $this->assertStringStartsWith('uti', basename($path));
@@ -120,7 +120,7 @@ final class FileTest extends TestCase {
         }
         $path = $this->makeTempPath('utils_mime_' . uniqid() . '.txt');
         File::write($path, "hello\n");
-        $this->assertStringStartsWith('text/', File::mimeType($path));
+        $this->assertStringStartsWith('text/', File::mime($path));
     }
 
     public function testIsFileIsDir(): void {
@@ -130,11 +130,6 @@ final class FileTest extends TestCase {
         $this->assertFalse(File::isDir($path));
         $this->assertTrue(File::isDir($this->tempDir));
         $this->assertFalse(File::isFile($this->tempDir));
-    }
-
-    public function testDeprecatedIsDirectoryAliasStillWorks(): void {
-        $this->assertTrue(File::isDirectory($this->tempDir));
-        $this->assertFalse(File::isDirectory($this->makeTempPath('utils_missing_' . uniqid())));
     }
 
     public function testMkdirCreatesAndIsIdempotent(): void {
@@ -228,14 +223,84 @@ final class FileTest extends TestCase {
         File::readCsv($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid() . '.csv');
     }
 
-    public function testRenamedMethodsAndAliases(): void {
-        $path = $this->makeTempPath('utils_alias_' . uniqid() . '.txt');
-        File::write($path, 'x');
-        $this->assertSame(File::mimeType($path), File::mime($path)); // alias forwards
+    public function testRenamedMethods(): void {
         $this->assertSame('txt', File::ext('dir/file.txt'));
-        $this->assertSame(File::extension('dir/file.txt'), File::ext('dir/file.txt'));
         $temp = File::temp();
         $this->created[] = $temp;
         $this->assertTrue(File::isFile($temp));
+    }
+
+    public function testMimeThrowsForMissingFile(): void {
+        $this->expectException(RuntimeException::class);
+        File::mime($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
+    }
+
+    public function testSizeThrowsForMissingFile(): void {
+        $this->expectException(RuntimeException::class);
+        File::size($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
+    }
+
+    public function testLinesThrowsForMissingFile(): void {
+        $this->expectException(RuntimeException::class);
+        iterator_to_array(File::lines($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid()));
+    }
+
+    public function testCopyThrowsForMissingSource(): void {
+        $this->expectException(RuntimeException::class);
+        File::copy(
+            $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid(),
+            $this->makeTempPath('utils_copy_dst_' . uniqid() . '.txt'),
+        );
+    }
+
+    public function testMoveThrowsForMissingSource(): void {
+        $this->expectException(RuntimeException::class);
+        File::move(
+            $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid(),
+            $this->makeTempPath('utils_move_dst_' . uniqid() . '.txt'),
+        );
+    }
+
+    public function testWriteThrowsWhenTargetDirIsMissing(): void {
+        // The parent directory does not exist, so the underlying write fails;
+        // @ suppresses the expected warning while we assert the throw.
+        $this->expectException(RuntimeException::class);
+        @File::write($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt', 'x');
+    }
+
+    public function testAppendThrowsWhenTargetDirIsMissing(): void {
+        $this->expectException(RuntimeException::class);
+        @File::append($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt', 'x');
+    }
+
+    public function testTouchThrowsWhenParentDirIsMissing(): void {
+        $this->expectException(RuntimeException::class);
+        @File::touch($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt');
+    }
+
+    public function testCopyThrowsWhenTargetDirIsMissing(): void {
+        $src = $this->makeTempPath('utils_copy_src_' . uniqid() . '.txt');
+        File::write($src, 'x');
+        $this->expectException(RuntimeException::class);
+        @File::copy($src, $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt');
+    }
+
+    public function testMoveThrowsWhenTargetDirIsMissing(): void {
+        $src = $this->makeTempPath('utils_move_src_' . uniqid() . '.txt');
+        File::write($src, 'x');
+        $this->expectException(RuntimeException::class);
+        @File::move($src, $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt');
+    }
+
+    public function testMkdirThrowsWhenPathIsAnExistingFile(): void {
+        $path = $this->makeTempPath('utils_mkdir_file_' . uniqid() . '.txt');
+        File::write($path, 'x');
+        $this->expectException(RuntimeException::class);
+        @File::mkdir($path);
+    }
+
+    public function testWriteCsvThrowsWhenTargetDirIsMissing(): void {
+        $this->expectException(RuntimeException::class);
+        @File::writeCsv($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'o.csv', [['a', 'b']]);
     }
 }

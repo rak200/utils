@@ -54,9 +54,4 @@ final class JsonTest extends TestCase {
     public function testIs(mixed $value, bool $expected): void {
         $this->assertSame($expected, Json::is($value));
     }
-
-    #[DataProvider('isProvider')]
-    public function testIsValidIsDeprecatedAliasOfIs(mixed $value, bool $expected): void {
-        $this->assertSame(Json::is($value), Json::isValid($value));
-    }
 }

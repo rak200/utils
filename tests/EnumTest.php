@@ -82,6 +82,11 @@ final class EnumTest extends TestCase {
         }
     }
 
+    public function testRandomThrowsOnEmptyEnum(): void {
+        $this->expectException(RuntimeException::class);
+        Enum::random(EnumEmpty::class);
+    }
+
     public function testToArrayBackedReturnsNameToValueMap(): void {
         $this->assertSame(
             ['Active' => 'active', 'Inactive' => 'inactive'],
@@ -155,4 +160,7 @@ enum EnumStatus: string {
 enum EnumPriority: int {
     case Low = 1;
     case High = 10;
+}
+
+enum EnumEmpty {
 }

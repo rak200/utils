@@ -93,13 +93,6 @@ final class File {
     }
 
     /**
-     * @deprecated since 1.2.0, use {@see self::isDir()} instead. Will be removed in 2.0.0.
-     */
-    public static function isDirectory(string $path): bool {
-        return self::isDir($path);
-    }
-
-    /**
      * Deletes the file at $path. No-op when it does not exist.
      *
      * @throws RuntimeException When the file exists but cannot be deleted.
@@ -118,13 +111,6 @@ final class File {
      */
     public static function ext(string $path): string {
         return pathinfo($path, PATHINFO_EXTENSION);
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::ext()} instead. Will be removed in 2.0.0.
-     */
-    public static function extension(string $path): string {
-        return self::ext($path);
     }
 
     /**
@@ -174,13 +160,6 @@ final class File {
             throw new RuntimeException("Cannot determine mime type: $path");
         }
         return $type;
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::mime()} instead. Will be removed in 2.0.0.
-     */
-    public static function mimeType(string $path): string {
-        return self::mime($path);
     }
 
     /**
@@ -235,13 +214,6 @@ final class File {
             throw new RuntimeException('Cannot create temp file.');
         }
         return $path;
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::temp()} instead. Will be removed in 2.0.0.
-     */
-    public static function tempFile(?string $prefix = null): string {
-        return self::temp($prefix);
     }
 
     /**

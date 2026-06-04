@@ -11,7 +11,7 @@ use function array_pop, chr, ctype_alnum, ctype_alpha, ctype_digit, ctype_space,
     mb_strripos, mb_strrpos, mb_strtolower, mb_strtoupper, mb_substr, ord, preg_match_all,
     preg_replace, preg_split, rtrim, similar_text, sscanf, str_contains, str_ends_with, str_ireplace,
     str_repeat, str_replace, str_starts_with, strlen, strpos, strrpos, strspn, strtolower, strtr,
-    substr_count, substr_replace, trigger_error, trim, vsprintf, wordwrap;
+    substr_count, substr_replace, trim, vsprintf, wordwrap;
 
 /**
  * Multibyte-safe string helpers.
@@ -61,18 +61,6 @@ final class Str {
     }
 
     /**
-     * Returns true if $value is a string with at least one character
-     * (whitespace counts). Non-strings always return false.
-     *
-     * @deprecated since 1.14.0, redundant under strict typing — use a typed
-     *             `string` parameter, or `Str::is($v) && $v !== ''` when a
-     *             `mixed` guard is genuinely needed. Will be removed in 2.0.0.
-     */
-    public static function isNonEmptyStr(mixed $value): bool {
-        return is_string($value) && $value !== '';
-    }
-
-    /**
      * Returns true when every character of $value is ASCII whitespace
      * (`[ \t\n\r\v\f]`); false for the empty string. Wraps {@see ctype_space()}.
      */
@@ -115,13 +103,6 @@ final class Str {
     }
 
     /**
-     * @deprecated since 1.14.0, use {@see self::len()} instead. Will be removed in 2.0.0.
-     */
-    public static function length(string $value): int {
-        return self::len($value);
-    }
-
-    /**
      * Returns the number of bytes in the string — its raw byte length, the
      * byte-level counterpart to the character count {@see len()} returns.
      * The two are equal for pure-ASCII input and diverge once multibyte
@@ -129,13 +110,6 @@ final class Str {
      */
     public static function byteLen(string $value): int {
         return strlen($value);
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::byteLen()} instead. Will be removed in 2.0.0.
-     */
-    public static function byteLength(string $value): int {
-        return self::byteLen($value);
     }
 
     /**
@@ -176,7 +150,7 @@ final class Str {
      * Returns the length of the initial segment of $value consisting only of
      * characters present in $chars — optionally limited to the window starting
      * at byte offset $start and spanning $length bytes. Byte-level (via
-     * {@see strspn}); equals {@see length()} exactly when every character of
+     * {@see strspn}); equals {@see len()} exactly when every character of
      * $value is in $chars.
      */
     public static function span(string $value, string $chars, int $start = 0, ?int $length = null): int {
@@ -349,13 +323,6 @@ final class Str {
     }
 
     /**
-     * @deprecated since 1.14.0, use {@see self::sub()} instead. Will be removed in 2.0.0.
-     */
-    public static function substring(string $value, int $start, ?int $length = null): string {
-        return self::sub($value, $start, $length);
-    }
-
-    /**
      * Returns the 0-based character index of the first occurrence of $needle
      * in $haystack starting at $offset, or -1 when not found. Pass
      * $ignoreCase = true for a case-insensitive search.
@@ -441,13 +408,6 @@ final class Str {
     }
 
     /**
-     * @deprecated since 1.14.0, use {@see self::trunc()} instead. Will be removed in 2.0.0.
-     */
-    public static function truncate(string $value, int $length, string $ellipsis = '…'): string {
-        return self::trunc($value, $length, $ellipsis);
-    }
-
-    /**
      * Returns a URL-friendly slug of $value: transliterates to ASCII
      * (best-effort via iconv), lowercases, and collapses runs of non-alphanumerics
      * into $separator.
@@ -481,40 +441,20 @@ final class Str {
     }
 
     /**
-     * Joins iterable items with $separator (default `''` concatenates), like
-     * {@see implode()}. $prefix / $suffix wrap a non-empty result; $lastSeparator
-     * (with 2+ parts) joins the final two elements (Oxford-style).
-     *
-     * Note: the default $skipBlanks = true — silently dropping blank items — is
-     * deprecated since 1.12.0 and will be removed in 2.0.0 (it emits an
-     * `E_USER_DEPRECATED`). Use {@see joinNatural()} to keep that behaviour, or
-     * pass $skipBlanks = false for a plain {@see implode()}-style join.
+     * Joins iterable items into a string, casting each to string and placing
+     * $separator between consecutive items — the iterable-accepting counterpart
+     * of {@see implode()} ($separator defaults to `''`, concatenating). For
+     * dropping blank items, wrapping the result with a prefix/suffix, or an
+     * Oxford-style final separator, see {@see joinNatural()}.
      *
      * @param iterable<int|float|string|bool|\Stringable|null> $items
      */
-    public static function join(
-        iterable $items,
-        string $separator = '',
-        string $prefix = '',
-        string $suffix = '',
-        ?string $lastSeparator = null,
-        bool $skipBlanks = true,
-    ): string {
-        if ($skipBlanks) {
-            trigger_error(
-                'Str::join() with $skipBlanks = true (the default) is deprecated since 1.12.0 and '
-                    . 'will be removed in 2.0.0; use Str::joinNatural() to keep dropping blank items, '
-                    . 'or pass $skipBlanks = false for a plain implode()-style join.',
-                E_USER_DEPRECATED,
-            );
-            return self::joinNatural($items, $separator, $prefix, $suffix, $lastSeparator);
-        }
-
+    public static function join(iterable $items, string $separator = ''): string {
         $parts = [];
         foreach ($items as $item) {
             $parts[] = (string) $item;
         }
-        return self::assembleJoin($parts, $separator, $prefix, $suffix, $lastSeparator);
+        return implode($separator, $parts);
     }
 
     /**
@@ -539,7 +479,14 @@ final class Str {
                 $parts[] = $str;
             }
         }
-        return self::assembleJoin($parts, $separator, $prefix, $suffix, $lastSeparator);
+        if ($parts === []) {
+            return '';
+        }
+        if ($lastSeparator === null || Arr::count($parts) < 2) {
+            return $prefix . implode($separator, $parts) . $suffix;
+        }
+        $last = array_pop($parts);
+        return $prefix . implode($separator, $parts) . $lastSeparator . $last . $suffix;
     }
 
     /**
@@ -648,34 +595,6 @@ final class Str {
     }
 
     /**
-     * @deprecated since 1.2.0, use {@see self::toCamel()} instead. Will be removed in 2.0.0.
-     */
-    public static function toCamelCase(string $value): string {
-        return self::toCamel($value);
-    }
-
-    /**
-     * @deprecated since 1.2.0, use {@see self::toPascal()} instead. Will be removed in 2.0.0.
-     */
-    public static function toPascalCase(string $value): string {
-        return self::toPascal($value);
-    }
-
-    /**
-     * @deprecated since 1.2.0, use {@see self::toSnake()} instead. Will be removed in 2.0.0.
-     */
-    public static function toSnakeCase(string $value): string {
-        return self::toSnake($value);
-    }
-
-    /**
-     * @deprecated since 1.2.0, use {@see self::toKebab()} instead. Will be removed in 2.0.0.
-     */
-    public static function toKebabCase(string $value): string {
-        return self::toKebab($value);
-    }
-
-    /**
      * Wraps $value so no line exceeds $width characters, breaking on spaces with
      * $break. With $cut = true, words longer than $width are split mid-word.
      * Byte-level (via {@see wordwrap()}); reliable for ASCII text.
@@ -739,30 +658,6 @@ final class Str {
         $percentage = 0.0;
         similar_text($a, $b, $percentage);
         return $percentage;
-    }
-
-    /**
-     * Assembles already-collected $parts with $separator, $prefix / $suffix, and
-     * the optional Oxford-style $lastSeparator. Shared by {@see join()} and
-     * {@see joinNatural()}.
-     *
-     * @param list<string> $parts
-     */
-    private static function assembleJoin(
-        array $parts,
-        string $separator,
-        string $prefix,
-        string $suffix,
-        ?string $lastSeparator,
-    ): string {
-        if ($parts === []) {
-            return '';
-        }
-        if ($lastSeparator === null || Arr::count($parts) < 2) {
-            return $prefix . implode($separator, $parts) . $suffix;
-        }
-        $last = array_pop($parts);
-        return $prefix . implode($separator, $parts) . $lastSeparator . $last . $suffix;
     }
 
     /**

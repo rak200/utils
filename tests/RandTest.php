@@ -81,6 +81,11 @@ final class RandTest extends TestCase {
         Rand::masked('', Rand::NUM);
     }
 
+    public function testMaskedRejectsEmptyAlphabet(): void {
+        $this->expectException(RuntimeException::class);
+        Rand::masked('###', '');
+    }
+
     public function testUuidV4Format(): void {
         $uuid = Rand::uuidV4();
         $this->assertMatchesRegularExpression(

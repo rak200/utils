@@ -206,13 +206,6 @@ final class Type {
     }
 
     /**
-     * @deprecated since 1.14.0, use {@see self::isInstance()} instead. Will be removed in 2.0.0.
-     */
-    public static function isInstanceOf(mixed $value, string $class): bool {
-        return $value instanceof $class;
-    }
-
-    /**
      * Returns true if $value is a string naming an existing class
      * (autoload-aware).
      *
@@ -267,16 +260,6 @@ final class Type {
     }
 
     /**
-     * @template T of object
-     * @param class-string<T> $class
-     * @phpstan-assert-if-true T|class-string<T> $value
-     * @deprecated since 1.14.0, use {@see self::isSubclass()} instead. Will be removed in 2.0.0.
-     */
-    public static function isSubclassOf(mixed $value, string $class): bool {
-        return self::isSubclass($value, $class);
-    }
-
-    /**
      * Returns true if $value (an object or class-name string) uses $trait.
      * By default only traits applied directly on the class count; pass
      * $recursive = true to also match traits inherited from parent classes
@@ -313,8 +296,10 @@ final class Type {
     }
 
     /**
-     * @return array<string, string> $class's direct traits plus the traits
-     *                               they themselves use, transitively
+     * Returns the traits $class uses directly, plus — transitively — the traits
+     * those traits themselves use.
+     *
+     * @return array<string, string> trait names keyed by themselves
      */
     private static function traitUses(string $class): array {
         $traits = class_uses($class) ?: [];

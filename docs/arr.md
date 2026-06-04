@@ -12,7 +12,7 @@ use Rak200\Utils\Arr;
 
 - [`is`](#is)
 - [`isEmpty` / `isNotEmpty`](#isempty--isnotempty)
-- [`isList` / `isAssoc` / `isNonEmptyArray`](#islist--isassoc--isnonemptyarray)
+- [`isList` / `isAssoc`](#islist--isassoc)
 - [`count`](#count)
 - [`first` / `firstOrNull`](#first--firstornull)
 - [`last` / `lastOrNull`](#last--lastornull)
@@ -72,7 +72,7 @@ Arr::is(null);           // false
 
 ## `isEmpty` / `isNotEmpty`
 
-Typed `array` input. For a `mixed` guard variant, see [`isNonEmptyArray`](#islist--isassoc--isnonemptyarray).
+Typed `array` input. For a `mixed`-typed value, guard with `Arr::is($v) && $v !== []`.
 
 ```php
 Arr::isEmpty([]);            // true
@@ -84,9 +84,9 @@ Arr::isNotEmpty([1, 2]);     // true
 
 ---
 
-## `isList` / `isAssoc` / `isNonEmptyArray`
+## `isList` / `isAssoc`
 
-`mixed`-typed guards. `isList` mirrors `array_is_list` (sequential `0..n-1` int keys; empty array qualifies). `isAssoc` is the complement on non-empty arrays. `isNonEmptyArray` ignores key shape.
+`mixed`-typed guards. `isList` mirrors `array_is_list` (sequential `0..n-1` int keys; empty array qualifies). `isAssoc` is the complement on non-empty arrays.
 
 ```php
 Arr::isList([1, 2, 3]);              // true
@@ -98,13 +98,7 @@ Arr::isAssoc(['a' => 1]);            // true
 Arr::isAssoc([1 => 'a', 0 => 'b']);  // true   (not 0-indexed)
 Arr::isAssoc([1, 2, 3]);             // false
 Arr::isAssoc([]);                    // false  (ambiguous — choose isList for empty)
-
-Arr::isNonEmptyArray([1]);           // true
-Arr::isNonEmptyArray([]);            // false
-Arr::isNonEmptyArray('a');           // false
 ```
-
-> `isNonEmptyArray` is `@deprecated` since 1.14.0 (redundant under strict typing — use a typed `array` with [`isNotEmpty`](#isempty--isnotempty), or `Arr::is($v) && $v !== []`). Will be removed in 2.0.0.
 
 [↑ Back to top](#arr)
 

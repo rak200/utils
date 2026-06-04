@@ -17,7 +17,6 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`is`](#is)
 - [`isInt` / `isFloat`](#isint--isfloat)
 - [`isPositive` / `isNegative`](#ispositive--isnegative)
-- [`isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`](#ispositiveint--isnegativeint--isnonnegativeint)
 - [`isFinite`](#isfinite)
 - [`isNan` / `isInfinite`](#isnan--isinfinite)
 - [`parseInt` / `parseIntOrNull`](#parseint--parseintornull)
@@ -57,8 +56,6 @@ Num::is('hello');                  // false
 Num::is(null);                     // false
 ```
 
-> The legacy name `isNumeric` remains available as a `@deprecated` alias since 1.8.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#num)
 
 ---
@@ -74,8 +71,6 @@ Num::isInt('42');                         // false
 Num::isFloat(42.0);                       // true
 Num::isFloat(42);                         // false
 ```
-
-> The legacy name `isInteger` remains available as a `@deprecated` alias since 1.2.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#num)
 
@@ -96,30 +91,6 @@ Num::isNegative(-5);                // true
 Num::isNegative(new Number('-0.5'));// true
 Num::isNegative(0);                 // false
 ```
-
-[↑ Back to top](#num)
-
----
-
-## `isPositiveInt` / `isNegativeInt` / `isNonNegativeInt`
-
-Strict — the value must be a native `int` (floats and numeric strings are rejected). Accept `mixed` so they can be used as guards.
-
-```php
-Num::isPositiveInt(1);          // true
-Num::isPositiveInt(0);          // false
-Num::isPositiveInt('1');        // false
-Num::isPositiveInt(1.5);        // false
-
-Num::isNegativeInt(-1);         // true
-Num::isNegativeInt(0);          // false
-
-Num::isNonNegativeInt(0);       // true
-Num::isNonNegativeInt(7);       // true
-Num::isNonNegativeInt(-1);      // false
-```
-
-> All three are `@deprecated` since 1.14.0 (redundant under strict typing). Use [`isPositive`](#ispositive--isnegative) / [`isNegative`](#ispositive--isnegative) for int/float/Number, or `Num::isInt($v) && $v >= 0` for the int-only checks. Note `!isNegative()` is **not** equivalent to `isNonNegativeInt` (it is true for non-ints). Will be removed in 2.0.0.
 
 [↑ Back to top](#num)
 

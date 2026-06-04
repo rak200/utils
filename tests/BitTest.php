@@ -88,6 +88,12 @@ final class BitTest extends TestCase {
         Bit::fromStr('');
     }
 
+    public function testFromStrRejectsValueExceedingIntRange(): void {
+        // one more '1' bit than the platform int width → bindec overflows to a float
+        $this->expectException(RuntimeException::class);
+        Bit::fromStr(str_repeat('1', PHP_INT_SIZE * 8 + 1));
+    }
+
     public function testToFromStrRoundTrip(): void {
         foreach ([0, 1, 5, 255, 1024, PHP_INT_MAX] as $value) {
             $this->assertSame($value, Bit::fromStr(Bit::toStr($value)));

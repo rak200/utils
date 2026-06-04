@@ -88,6 +88,4 @@ Hash::verify('correct horse battery staple', $hash);   // true
 Hash::verify('wrong password', $hash);                 // false
 ```
 
-> The previous name `verifyPassword` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#hash)

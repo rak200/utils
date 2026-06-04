@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-06-03
+
+First major release since 1.0.0. **Breaking** — every `@deprecated` alias accumulated across the 1.x line is removed, and one default is flipped. Each removed name has a drop-in canonical replacement (listed below), so migration is a mechanical rename.
+
+### Removed
+
+All methods previously marked `@deprecated ... will be removed in 2.0.0` are gone. Replace each with its canonical name:
+
+- **`Str`** — `length` → `len`, `byteLength` → `byteLen`, `substring` → `sub`, `truncate` → `trunc`, `toCamelCase` → `toCamel`, `toPascalCase` → `toPascal`, `toSnakeCase` → `toSnake`, `toKebabCase` → `toKebab`, and the redundant `mixed` guard `isNonEmptyStr` (use a typed `string`, or `Str::is($v) && $v !== ''`).
+- **`Num`** — `isInteger` → `isInt`, `isNumeric` → `is`, and the int-only guards `isPositiveInt` / `isNegativeInt` / `isNonNegativeInt` (use `isPositive` / `isNegative` for int/float/`Number`, or `Num::isInt($v) && $v >= 0`).
+- **`Arr`** — `isNonEmptyArray` (use a typed `array` with `isNotEmpty`, or `Arr::is($v) && $v !== []`).
+- **`Dt`** — `diffInDays` → `diffDays`, `diffInSeconds` → `diffSeconds`, `diffInMinutes` → `diffMinutes`, `diffInHours` → `diffHours`.
+- **`File`** — `isDirectory` → `isDir`, `extension` → `ext`, `mimeType` → `mime`, `tempFile` → `temp`.
+- **`Path`** — `extension` → `ext`.
+- **`Filter`** — `collapseWhitespace` → `squish`, `removeControlChars` → `stripControl`, `toString` → `toStr`.
+- **`Json`** — `isValid` → `is`.
+- **`Type`** — `isInstanceOf` → `isInstance`, `isSubclassOf` → `isSubclass`.
+- **`Hash`** — `verifyPassword` → `verify`.
+
+### Changed
+
+- **`Str::join` is now a plain `implode()`-style join.** The signature drops to `join(iterable $items, string $separator = '')` — the `$prefix` / `$suffix` / `$lastSeparator` / `$skipBlanks` parameters are removed (and with `$skipBlanks` goes the deprecated blank-dropping default and its `E_USER_DEPRECATED`). For dropping blank items, prefix/suffix wrapping, or an Oxford-style final separator, use `Str::joinNatural()` (unchanged).
+
 ## [1.16.0] - 2026-06-02
 
 ### Added
@@ -331,6 +354,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[2.0.0]: https://github.com/rak200/utils/compare/1.16.0...2.0.0
 [1.16.0]: https://github.com/rak200/utils/compare/1.15.1...1.16.0
 [1.15.1]: https://github.com/rak200/utils/compare/1.15.0...1.15.1
 [1.15.0]: https://github.com/rak200/utils/compare/1.14.1...1.15.0

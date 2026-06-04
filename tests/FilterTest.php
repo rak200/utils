@@ -58,16 +58,16 @@ final class FilterTest extends TestCase {
         $this->assertSame('', Filter::alnum('!@#$ %^&'));
     }
 
-    public function testCollapseWhitespace(): void {
-        $this->assertSame('a b c', Filter::collapseWhitespace("  a\t\n b   c  "));
-        $this->assertSame('', Filter::collapseWhitespace("   \t\n  "));
-        $this->assertSame('one two', Filter::collapseWhitespace('one two'));
+    public function testSquish(): void {
+        $this->assertSame('a b c', Filter::squish("  a\t\n b   c  "));
+        $this->assertSame('', Filter::squish("   \t\n  "));
+        $this->assertSame('one two', Filter::squish('one two'));
     }
 
-    public function testRemoveControlChars(): void {
-        $this->assertSame('abcd', Filter::removeControlChars("a\tb\nc\0d"));
-        $this->assertSame('café', Filter::removeControlChars("caf\x00é"));
-        $this->assertSame('plain', Filter::removeControlChars('plain'));
+    public function testStripControl(): void {
+        $this->assertSame('abcd', Filter::stripControl("a\tb\nc\0d"));
+        $this->assertSame('café', Filter::stripControl("caf\x00é"));
+        $this->assertSame('plain', Filter::stripControl('plain'));
     }
 
     public function testAscii(): void {
@@ -97,7 +97,7 @@ final class FilterTest extends TestCase {
     /**
      * @return iterable<string, array{mixed, ?string}>
      */
-    public static function toStringProvider(): iterable {
+    public static function toStrProvider(): iterable {
         yield 'string'      => ['hi', 'hi'];
         yield 'empty'       => ['', ''];
         yield 'int'         => [42, '42'];
@@ -114,14 +114,14 @@ final class FilterTest extends TestCase {
         yield 'object'      => [new stdClass(), null];
     }
 
-    #[DataProvider('toStringProvider')]
-    public function testToString(mixed $value, ?string $expected): void {
-        $this->assertSame($expected, Filter::toString($value));
+    #[DataProvider('toStrProvider')]
+    public function testToStr(mixed $value, ?string $expected): void {
+        $this->assertSame($expected, Filter::toStr($value));
     }
 
-    public function testToStringUsesDefault(): void {
-        $this->assertSame('fallback', Filter::toString(null, 'fallback'));
-        $this->assertSame('hi', Filter::toString('hi', 'fallback'));
+    public function testToStrUsesDefault(): void {
+        $this->assertSame('fallback', Filter::toStr(null, 'fallback'));
+        $this->assertSame('hi', Filter::toStr('hi', 'fallback'));
     }
 
     /**
@@ -215,14 +215,5 @@ final class FilterTest extends TestCase {
         $this->assertTrue(Filter::toBool('maybe', true));
         $this->assertFalse(Filter::toBool('on', false) === null);
         $this->assertTrue(Filter::toBool('on', false));
-    }
-
-    public function testRenamedMethodsAndAliases(): void {
-        $this->assertSame('a b c', Filter::squish("  a   b\t\nc  "));
-        $this->assertSame(Filter::collapseWhitespace('a   b'), Filter::squish('a   b'));
-        $this->assertSame('abc', Filter::stripControl("a\x00b\x07c"));
-        $this->assertSame(Filter::removeControlChars("a\x00b"), Filter::stripControl("a\x00b"));
-        $this->assertSame('5', Filter::toStr(5));
-        $this->assertSame(Filter::toString(true), Filter::toStr(true));
     }
 }

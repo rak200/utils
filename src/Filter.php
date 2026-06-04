@@ -87,25 +87,11 @@ final class Filter {
     }
 
     /**
-     * @deprecated since 1.14.0, use {@see self::squish()} instead. Will be removed in 2.0.0.
-     */
-    public static function collapseWhitespace(string $value): string {
-        return self::squish($value);
-    }
-
-    /**
      * Removes ASCII and Unicode control characters (`\p{Cc}` — the C0/C1
      * ranges, including null bytes, escapes, tabs, and newlines) from $value.
      */
     public static function stripControl(string $value): string {
         return preg_replace('/\p{Cc}/u', '', $value) ?? '';
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::stripControl()} instead. Will be removed in 2.0.0.
-     */
-    public static function removeControlChars(string $value): string {
-        return self::stripControl($value);
     }
 
     /**
@@ -155,13 +141,6 @@ final class Filter {
             return (string) $value;
         }
         return $default;
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::toStr()} instead. Will be removed in 2.0.0.
-     */
-    public static function toString(mixed $value, ?string $default = null): ?string {
-        return self::toStr($value, $default);
     }
 
     /**

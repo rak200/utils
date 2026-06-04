@@ -82,6 +82,11 @@ final class DtTest extends TestCase {
         $this->assertSame('1970-01-01 00:00:01.500000', $dt->format('Y-m-d H:i:s.u'));
     }
 
+    public function testFromEpochMsHandlesNegativeMilliseconds(): void {
+        $dt = Dt::fromEpochMs(-500, new DateTimeZone('UTC'));   // 500 ms before the epoch
+        $this->assertSame('1969-12-31 23:59:59.500000', $dt->format('Y-m-d H:i:s.u'));
+    }
+
     public function testFormatters(): void {
         $dt = new DateTimeImmutable('2026-05-23T14:30:45+00:00');
         $this->assertSame('2026-05-23 14:30:45', Dt::sql($dt));
@@ -119,6 +124,11 @@ final class DtTest extends TestCase {
         $c = new DateTimeImmutable('2026-12-01');
         $this->assertEquals($a, Dt::min($b, $a, $c));
         $this->assertEquals($c, Dt::max($b, $a, $c));
+    }
+
+    public function testMaxThrowsOnEmpty(): void {
+        $this->expectException(RuntimeException::class);
+        Dt::max();
     }
 
     public function testMinThrowsOnEmpty(): void {
@@ -177,16 +187,6 @@ final class DtTest extends TestCase {
         $this->assertSame(1, Dt::dayOfYear($jan1));
     }
 
-    public function testDiffInUnits(): void {
-        $a = new DateTimeImmutable('2026-05-23 12:00:00');
-        $b = new DateTimeImmutable('2026-05-25 14:30:00');
-        $this->assertSame(2, Dt::diffInDays($a, $b));
-        $this->assertSame(-2, Dt::diffInDays($b, $a));
-        $this->assertSame(50, Dt::diffInHours($a, $b));
-        $this->assertSame(3030, Dt::diffInMinutes($a, $b));
-        $this->assertSame(181800, Dt::diffInSeconds($a, $b));
-    }
-
     public function testIsValid(): void {
         $this->assertTrue(Dt::isValid(2026, 5, 31));
         $this->assertTrue(Dt::isValid(2024, 2, 29));   // leap year
@@ -196,17 +196,13 @@ final class DtTest extends TestCase {
         $this->assertFalse(Dt::isValid(2026, 0, 10));  // month zero
     }
 
-    public function testDiffRenamedMethodsAndAliases(): void {
+    public function testDiffInUnits(): void {
         $a = new DateTimeImmutable('2026-05-23 12:00:00');
         $b = new DateTimeImmutable('2026-05-25 14:30:00');
         $this->assertSame(2, Dt::diffDays($a, $b));
+        $this->assertSame(-2, Dt::diffDays($b, $a));
         $this->assertSame(50, Dt::diffHours($a, $b));
         $this->assertSame(3030, Dt::diffMinutes($a, $b));
         $this->assertSame(181800, Dt::diffSeconds($a, $b));
-        // deprecated aliases forward to the new names
-        $this->assertSame(Dt::diffDays($a, $b), Dt::diffInDays($a, $b));
-        $this->assertSame(Dt::diffHours($a, $b), Dt::diffInHours($a, $b));
-        $this->assertSame(Dt::diffMinutes($a, $b), Dt::diffInMinutes($a, $b));
-        $this->assertSame(Dt::diffSeconds($a, $b), Dt::diffInSeconds($a, $b));
     }
 }

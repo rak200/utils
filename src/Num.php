@@ -42,13 +42,6 @@ final class Num {
     }
 
     /**
-     * @deprecated since 1.2.0, use {@see self::isInt()} instead. Will be removed in 2.0.0.
-     */
-    public static function isInteger(mixed $value): bool {
-        return self::isInt($value);
-    }
-
-    /**
      * Returns true if $value is a native PHP float.
      *
      * @phpstan-assert-if-true float $value
@@ -73,13 +66,6 @@ final class Num {
     }
 
     /**
-     * @deprecated since 1.8.0, use {@see self::is()} instead. Will be removed in 2.0.0.
-     */
-    public static function isNumeric(mixed $value): bool {
-        return self::is($value);
-    }
-
-    /**
      * Returns true when $value is greater than zero. Accepts int, float, or
      * {@see Number}.
      */
@@ -93,39 +79,6 @@ final class Num {
      */
     public static function isNegative(int|float|Number $value): bool {
         return $value instanceof Number ? $value < new Number('0') : $value < 0;
-    }
-
-    /**
-     * Returns true if $value is an int strictly greater than zero. Floats
-     * and numeric strings are rejected.
-     *
-     * @deprecated since 1.14.0, use {@see self::isPositive()} (int/float/Number)
-     *             or `Num::isInt($v) && $v > 0`. Will be removed in 2.0.0.
-     */
-    public static function isPositiveInt(mixed $value): bool {
-        return is_int($value) && $value > 0;
-    }
-
-    /**
-     * Returns true if $value is an int strictly less than zero. Floats and
-     * numeric strings are rejected.
-     *
-     * @deprecated since 1.14.0, use {@see self::isNegative()} (int/float/Number)
-     *             or `Num::isInt($v) && $v < 0`. Will be removed in 2.0.0.
-     */
-    public static function isNegativeInt(mixed $value): bool {
-        return is_int($value) && $value < 0;
-    }
-
-    /**
-     * Returns true if $value is an int greater than or equal to zero.
-     * Floats and numeric strings are rejected.
-     *
-     * @deprecated since 1.14.0, use `Num::isInt($v) && $v >= 0`. Note `!isNegative()`
-     *             is *not* equivalent (it is true for non-ints). Will be removed in 2.0.0.
-     */
-    public static function isNonNegativeInt(mixed $value): bool {
-        return is_int($value) && $value >= 0;
     }
 
     /**

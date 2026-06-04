@@ -23,6 +23,9 @@ final class NumTest extends TestCase {
         yield 'Number'              => [new Number('123.456'), true];
         yield 'non-numeric string'  => ['abc', false];
         yield 'surrounding spaces'  => [' 42 ', false];
+        yield 'leading space'       => [' 42', false];
+        yield 'trailing newline'    => ["42\n", false];
+        yield 'trailing tab'        => ["1.5\t", false];
         yield 'null'                => [null, false];
         yield 'bool'                => [true, false];
         yield 'array'               => [[], false];
@@ -31,11 +34,6 @@ final class NumTest extends TestCase {
     #[DataProvider('isProvider')]
     public function testIs(mixed $value, bool $expected): void {
         $this->assertSame($expected, Num::is($value));
-    }
-
-    #[DataProvider('isProvider')]
-    public function testIsNumericIsDeprecatedAliasOfIs(mixed $value, bool $expected): void {
-        $this->assertSame(Num::is($value), Num::isNumeric($value));
     }
 
     /**
@@ -66,56 +64,6 @@ final class NumTest extends TestCase {
     #[DataProvider('isFloatProvider')]
     public function testIsFloat(mixed $value, bool $expected): void {
         $this->assertSame($expected, Num::isFloat($value));
-    }
-
-    public function testTypeChecks(): void {
-        $this->assertTrue(Num::isNumeric(5));
-        $this->assertTrue(Num::isNumeric(5.5));
-        $this->assertTrue(Num::isNumeric('5.5'));
-        $this->assertFalse(Num::isNumeric('abc'));
-    }
-
-    public function testTypeChecksRejectSurroundingWhitespace(): void {
-        // Native is_numeric()/(int) tolerate surrounding whitespace; the Num
-        // predicates are strict and reject it (isInt/isFloat covered in their providers).
-        $this->assertFalse(Num::isNumeric(' 42 '));
-        $this->assertFalse(Num::isNumeric(' 42'));
-        $this->assertFalse(Num::isNumeric("42\n"));
-        $this->assertFalse(Num::isNumeric("1.5\t"));
-        $this->assertFalse(Num::isPositiveInt(' 1 '));
-        $this->assertFalse(Num::isNegativeInt(' -1 '));
-        $this->assertFalse(Num::isNonNegativeInt(' 0 '));
-    }
-
-    public function testDeprecatedIsIntegerAliasStillWorks(): void {
-        $this->assertTrue(Num::isInteger(5));
-        $this->assertFalse(Num::isInteger(5.0));
-        $this->assertFalse(Num::isInteger('5'));
-    }
-
-    public function testIsPositiveInt(): void {
-        $this->assertTrue(Num::isPositiveInt(1));
-        $this->assertTrue(Num::isPositiveInt(PHP_INT_MAX));
-        $this->assertFalse(Num::isPositiveInt(0));
-        $this->assertFalse(Num::isPositiveInt(-1));
-        $this->assertFalse(Num::isPositiveInt(1.5));
-        $this->assertFalse(Num::isPositiveInt('1'));
-    }
-
-    public function testIsNegativeInt(): void {
-        $this->assertTrue(Num::isNegativeInt(-1));
-        $this->assertTrue(Num::isNegativeInt(PHP_INT_MIN));
-        $this->assertFalse(Num::isNegativeInt(0));
-        $this->assertFalse(Num::isNegativeInt(1));
-        $this->assertFalse(Num::isNegativeInt(-1.5));
-    }
-
-    public function testIsNonNegativeInt(): void {
-        $this->assertTrue(Num::isNonNegativeInt(0));
-        $this->assertTrue(Num::isNonNegativeInt(7));
-        $this->assertFalse(Num::isNonNegativeInt(-1));
-        $this->assertFalse(Num::isNonNegativeInt(0.0));
-        $this->assertFalse(Num::isNonNegativeInt('0'));
     }
 
     public function testParseInt(): void {
@@ -316,10 +264,6 @@ final class NumTest extends TestCase {
         Num::parseNumber('xyz');
     }
 
-    public function testIsNumericRecognisesBcMathNumber(): void {
-        $this->assertTrue(Num::isNumeric(new Number('1.5')));
-    }
-
     public function testSumWidensToNumber(): void {
         $result = Num::sum([1, 2, new Number('0.5')]);
         $this->assertInstanceOf(Number::class, $result);
@@ -366,6 +310,42 @@ final class NumTest extends TestCase {
     public function testModWithNumber(): void {
         $this->assertEquals(new Number('1'), Num::mod(new Number('7'), new Number('3')));
         $this->assertEquals(new Number('-1'), Num::mod(new Number('-7'), new Number('3')));
+    }
+
+    public function testModByZeroNumberThrows(): void {
+        $this->expectException(RuntimeException::class);
+        Num::mod(new Number('5'), new Number('0'));
+    }
+
+    public function testSqrtRejectsNegativeNumber(): void {
+        $this->expectException(RuntimeException::class);
+        Num::sqrt(new Number('-1'));
+    }
+
+    public function testFloorCeilWithNumberAndNegativePrecision(): void {
+        $this->assertEquals(new Number('1200'), Num::floor(new Number('1234.5'), -2));
+        $this->assertEquals(new Number('1300'), Num::ceil(new Number('1234.5'), -2));
+    }
+
+    public function testFormatNumberWholeWithoutThousandsSeparator(): void {
+        $this->assertSame('1234', Num::format(new Number('1234'), 0, '.', ''));
+    }
+
+    public function testParseIntOrNullRejectsSignOnly(): void {
+        $this->assertNull(Num::parseIntOrNull('-'));
+        $this->assertNull(Num::parseIntOrNull('+'));
+    }
+
+    public function testAggregationsAcceptAnyIterable(): void {
+        // the aggregations take iterable, not just array — exercise a Generator
+        $gen = static function (): \Generator {
+            yield from [1, 2, 3, 4];
+        };
+        $this->assertSame(10, Num::sum($gen()));
+        $this->assertSame(24, Num::product($gen()));
+        $this->assertSame(2.5, Num::avg($gen()));
+        $this->assertSame(1, Num::min($gen()));
+        $this->assertSame(4, Num::max($gen()));
     }
 
     public function testRoundPreservesNumber(): void {

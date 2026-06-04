@@ -53,14 +53,6 @@ final class ArrTest extends TestCase {
         $this->assertFalse(Arr::isAssoc(new \stdClass()));
     }
 
-    public function testIsNonEmptyArray(): void {
-        $this->assertTrue(Arr::isNonEmptyArray([1]));
-        $this->assertTrue(Arr::isNonEmptyArray(['a' => 1]));
-        $this->assertFalse(Arr::isNonEmptyArray([]));
-        $this->assertFalse(Arr::isNonEmptyArray('a'));
-        $this->assertFalse(Arr::isNonEmptyArray(null));
-    }
-
     public function testFirstReturnsFirstElement(): void {
         $this->assertSame(1, Arr::first([1, 2, 3]));
         $this->assertSame('a', Arr::first(['x' => 'a', 'y' => 'b']));
@@ -91,6 +83,11 @@ final class ArrTest extends TestCase {
         /** @var array<int, int> $empty */
         $empty = [];
         $this->assertNull(Arr::lastOrNull($empty));
+    }
+
+    public function testLastOrNullReturnsLastElement(): void {
+        $this->assertSame(3, Arr::lastOrNull([1, 2, 3]));
+        $this->assertSame('z', Arr::lastOrNull(['a' => 'x', 'b' => 'z']));
     }
 
     public function testFindReturnsMatchingValue(): void {
@@ -200,6 +197,10 @@ final class ArrTest extends TestCase {
         );
     }
 
+    public function testZipWithNoArrays(): void {
+        $this->assertSame([], Arr::zip());
+    }
+
     public function testRangeAscending(): void {
         $this->assertSame([1, 2, 3], Arr::range(1, 3));
     }
@@ -211,6 +212,11 @@ final class ArrTest extends TestCase {
     public function testRangeRejectsZeroStep(): void {
         $this->expectException(RuntimeException::class);
         Arr::range(1, 10, 0);
+    }
+
+    public function testRangeReturnsEmptyWhenDirectionCannotReachEnd(): void {
+        $this->assertSame([], Arr::range(5, 1));       // ascending step, start > end
+        $this->assertSame([], Arr::range(1, 5, -1));   // descending step, start < end
     }
 
     public function testContains(): void {
@@ -269,6 +275,11 @@ final class ArrTest extends TestCase {
     public function testKeyByThrowsWhenColumnMissing(): void {
         $this->expectException(RuntimeException::class);
         Arr::keyBy([['x' => 1]], 'missing');
+    }
+
+    public function testKeyByThrowsWhenResolvedKeyIsNotIntOrString(): void {
+        $this->expectException(RuntimeException::class);
+        Arr::keyBy([['id' => 1.5]], 'id');   // a float is not a valid array key
     }
 
     public function testSort(): void {

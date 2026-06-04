@@ -133,8 +133,6 @@ Path::ext('README');                   // ''
 Path::ext('.hidden');                  // ''
 ```
 
-> The previous name `extension` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#path)
 
 ---

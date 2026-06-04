@@ -10,9 +10,9 @@ use Rak200\Utils\Type;
 
 Every domain class also exposes a bare **`is`** as its canonical "is a member of this domain?" predicate; the predicates on `Type` that mirror a domain (`isStr`, `isInt`, `isFloat`, `isArray`, `isEnum`, `isNumeric`) are aliases. Use whichever location reads better at the call site.
 
-- **String** — [`Str::is`](str.md#is) (=`Type::isStr`), plus shape predicates [`Str::isBlank`](str.md#isblank--isnotblank--isempty--isnonemptystr), [`Str::isNonEmptyStr`](str.md#isblank--isnotblank--isempty--isnonemptystr).
-- **Array** — [`Arr::is`](arr.md#is) (=`Type::isArray`), plus shape predicates [`Arr::isList`](arr.md#islist--isassoc--isnonemptyarray), [`Arr::isAssoc`](arr.md#islist--isassoc--isnonemptyarray), [`Arr::isNonEmptyArray`](arr.md#islist--isassoc--isnonemptyarray).
-- **Number** — [`Num::is`](num.md#is) (=`Type::isNumeric`), [`Num::isInt`](num.md#isint--isfloat) (=`Type::isInt`), [`Num::isFloat`](num.md#isint--isfloat) (=`Type::isFloat`), plus sign predicates [`Num::isPositiveInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint), [`Num::isNegativeInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint), [`Num::isNonNegativeInt`](num.md#ispositiveint--isnegativeint--isnonnegativeint).
+- **String** — [`Str::is`](str.md#is) (=`Type::isStr`), plus shape predicates [`Str::isBlank`](str.md#isblank--isnotblank--isempty), [`Str::isNotBlank`](str.md#isblank--isnotblank--isempty).
+- **Array** — [`Arr::is`](arr.md#is) (=`Type::isArray`), plus shape predicates [`Arr::isList`](arr.md#islist--isassoc), [`Arr::isAssoc`](arr.md#islist--isassoc).
+- **Number** — [`Num::is`](num.md#is) (=`Type::isNumeric`), [`Num::isInt`](num.md#isint--isfloat) (=`Type::isInt`), [`Num::isFloat`](num.md#isint--isfloat) (=`Type::isFloat`), plus sign predicates [`Num::isPositive`](num.md#ispositive--isnegative), [`Num::isNegative`](num.md#ispositive--isnegative).
 - **Enum** — [`Enum::is`](enum.md#is) (=`Type::isEnum`).
 - **Date/time** — [`Dt::is`](dt.md#is).
 - **JSON / Base64 / Regex / URL** — [`Json::is`](json.md#is), [`Base64::is`](base64.md#is), [`Regex::is`](regex.md#is), [`Url::is`](url.md#is).
@@ -171,8 +171,6 @@ Type::isSubclass(ArrayIterator::class, Countable::class);    // true   (implemen
 Type::isSubclass(ArrayIterator::class, ArrayIterator::class);// false  (same class, not a subclass)
 Type::isA(ArrayIterator::class, ArrayIterator::class);       // true   (isA accepts the same class)
 ```
-
-> The previous names `isInstanceOf` / `isSubclassOf` remain as `@deprecated` aliases since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#type)
 

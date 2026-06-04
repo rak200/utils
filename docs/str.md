@@ -11,7 +11,7 @@ use Rak200\Utils\Str;
 ## Contents
 
 - [`is`](#is)
-- [`isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`](#isblank--isnotblank--isempty--isnonemptystr)
+- [`isBlank` / `isNotBlank` / `isEmpty`](#isblank--isnotblank--isempty)
 - [`isWhitespace`](#iswhitespace)
 - [`isDigits` / `isAlpha` / `isAlnum`](#isdigits--isalpha--isalnum)
 - [`len` / `byteLen`](#len--bytelen)
@@ -65,9 +65,9 @@ Str::is([]);        // false
 
 ---
 
-## `isBlank` / `isNotBlank` / `isEmpty` / `isNonEmptyStr`
+## `isBlank` / `isNotBlank` / `isEmpty`
 
-`isBlank` and `isNotBlank` accept `mixed` so they double as type guards: `isBlank` is true for `null`, empty strings, and whitespace-only strings; `isNotBlank` is true only for strings that have at least one non-whitespace character (non-strings → false). `isEmpty` is string-typed and checks literal length zero. `isNonEmptyStr` accepts `mixed` and is true for any string with at least one character (whitespace counts).
+`isBlank` and `isNotBlank` accept `mixed` so they double as type guards: `isBlank` is true for `null`, empty strings, and whitespace-only strings; `isNotBlank` is true only for strings that have at least one non-whitespace character (non-strings → false). `isEmpty` is string-typed and checks literal length zero.
 
 ```php
 Str::isBlank('   ');         // true
@@ -82,14 +82,7 @@ Str::isNotBlank(null);       // false
 
 Str::isEmpty('');            // true
 Str::isEmpty(' ');           // false
-
-Str::isNonEmptyStr('a');     // true
-Str::isNonEmptyStr(' ');     // true
-Str::isNonEmptyStr('');      // false
-Str::isNonEmptyStr(null);    // false
 ```
-
-> `isNonEmptyStr` is `@deprecated` since 1.14.0 (redundant under strict typing — use a typed `string`, or `Str::is($v) && $v !== ''`). Will be removed in 2.0.0.
 
 [↑ Back to top](#str)
 
@@ -139,8 +132,6 @@ Str::len('ação');          // 4
 Str::byteLen('hello');     // 5
 Str::byteLen('ação');      // 6   ('ç' and 'ã' are two bytes each in UTF-8)
 ```
-
-> The previous names `length` / `byteLength` remain as `@deprecated` aliases since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#str)
 
@@ -320,8 +311,6 @@ Str::sub('ação', 1);            // 'ção'
 Str::sub('hello', -3);          // 'llo'
 ```
 
-> The previous name `substring` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#str)
 
 ---
@@ -400,15 +389,13 @@ Str::split('abcdef', '', 2);      // ['ab', 'cd', 'ef']
 
 ## `join`
 
-Join iterable items with `$separator`, like `implode()`. `$prefix` / `$suffix` wrap a non-empty result; `$lastSeparator` (with 2+ parts) joins the final two parts (Oxford-comma style).
-
-> **Deprecation:** the default `$skipBlanks = true` (silently dropping blank items) is deprecated since 1.12.0 and will be removed in 2.0.0 — it emits an `E_USER_DEPRECATED`. Use [`joinNatural`](#joinnatural) to keep that behaviour, or pass `skipBlanks: false` for a plain `implode()`-style join.
+Join iterable items into a string with `$separator` between them, like `implode()` — but accepting any iterable, not just an array. `$separator` defaults to `''` (concatenate). For dropping blank items, wrapping with a prefix/suffix, or an Oxford-style final separator, use [`joinNatural`](#joinnatural).
 
 ```php
-Str::join(['a', 'b', 'c'], skipBlanks: false);                         // 'abc'   (default '' separator = concat)
-Str::join(['a', '', 'b'], ',', skipBlanks: false);                     // 'a,,b'  (mirrors implode)
-Str::join(['a', 'b', 'c'], ', ', '[', ']', skipBlanks: false);         // '[a, b, c]'
-Str::join(['a', 'b', 'c'], ', ', '', '', ' and ', skipBlanks: false);  // 'a, b and c'
+Str::join(['a', 'b', 'c']);          // 'abc'   (default '' separator = concat)
+Str::join(['a', 'b', 'c'], ',');     // 'a,b,c'
+Str::join(['a', '', 'b'], ',');      // 'a,,b'  (blanks kept, mirrors implode)
+Str::join([], ',');                  // ''
 ```
 
 [↑ Back to top](#str)
@@ -539,8 +526,6 @@ Str::trunc('hello', 2);               // 'h…'
 Str::trunc('hello world', 5, '...');  // 'he...'
 ```
 
-> The previous name `truncate` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#str)
 
 ---
@@ -607,7 +592,5 @@ Str::toSnake('HTMLParser');      // 'html_parser'
 Str::toSnake('óÁgua');           // 'ó_água'        (unicode boundary)
 Str::toKebab('HelloWorld');      // 'hello-world'
 ```
-
-> The legacy names `toCamelCase` / `toPascalCase` / `toSnakeCase` / `toKebabCase` remain available as `@deprecated` aliases since 1.2.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#str)

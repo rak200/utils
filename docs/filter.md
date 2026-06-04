@@ -83,8 +83,6 @@ Filter::squish("  a\t\n b   c  ");   // 'a b c'
 Filter::squish("   \t\n  ");         // ''
 ```
 
-> The previous name `collapseWhitespace` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#filter)
 
 ---
@@ -97,8 +95,6 @@ Removes ASCII and Unicode control characters (`\p{Cc}` — the C0/C1 ranges, inc
 Filter::stripControl("a\tb\nc\0d");   // 'abcd'
 Filter::stripControl("caf\x00é");     // 'café'
 ```
-
-> The previous name `removeControlChars` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#filter)
 
@@ -144,8 +140,6 @@ Filter::toStr(null);               // null
 Filter::toStr(null, 'fallback');   // 'fallback'
 Filter::toStr(['a']);              // null
 ```
-
-> The previous name `toString` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#filter)
 

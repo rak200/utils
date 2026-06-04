@@ -45,11 +45,4 @@ final class Json {
     public static function is(mixed $value): bool {
         return Str::is($value) && json_validate($value);
     }
-
-    /**
-     * @deprecated since 1.8.0, use {@see self::is()} instead. Will be removed in 2.0.0.
-     */
-    public static function isValid(mixed $json): bool {
-        return self::is($json);
-    }
 }

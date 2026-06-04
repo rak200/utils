@@ -66,19 +66,6 @@ final class Arr {
     }
 
     /**
-     * Returns true if $value is an array with at least one element. Accepts
-     * `mixed` (unlike {@see isNotEmpty()}, which requires an `array`).
-     *
-     * @deprecated since 1.14.0, redundant under strict typing — use a typed
-     *             `array` parameter with {@see isNotEmpty()}, or
-     *             `Arr::is($v) && $v !== []` when a `mixed` guard is needed.
-     *             Will be removed in 2.0.0.
-     */
-    public static function isNonEmptyArray(mixed $value): bool {
-        return is_array($value) && $value !== [];
-    }
-
-    /**
      * Returns the first element of the array.
      *
      * @template T
@@ -266,7 +253,7 @@ final class Arr {
      * @template TCarry
      * @param array<K, T> $array
      * @param callable(TCarry, T, K): TCarry $callback Receives the accumulator, current value, and key.
-     * @param TCarry $initial
+     * @param TCarry $initial Starting accumulator value, passed to the first $callback call.
      * @return TCarry
      */
     public static function reduce(array $array, callable $callback, mixed $initial = null): mixed {

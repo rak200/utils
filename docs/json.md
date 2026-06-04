@@ -73,6 +73,4 @@ Json::is(['ok' => true]);          // false  (an array is not a JSON string)
 Json::is(null);                    // false
 ```
 
-> The legacy name `isValid` remains available as a `@deprecated` alias since 1.8.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#json)

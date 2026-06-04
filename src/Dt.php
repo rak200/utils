@@ -403,34 +403,6 @@ final class Dt {
     }
 
     /**
-     * @deprecated since 1.14.0, use {@see self::diffDays()} instead. Will be removed in 2.0.0.
-     */
-    public static function diffInDays(DateTimeInterface $a, DateTimeInterface $b): int {
-        return self::diffDays($a, $b);
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::diffSeconds()} instead. Will be removed in 2.0.0.
-     */
-    public static function diffInSeconds(DateTimeInterface $a, DateTimeInterface $b): int {
-        return self::diffSeconds($a, $b);
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::diffMinutes()} instead. Will be removed in 2.0.0.
-     */
-    public static function diffInMinutes(DateTimeInterface $a, DateTimeInterface $b): int {
-        return self::diffMinutes($a, $b);
-    }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::diffHours()} instead. Will be removed in 2.0.0.
-     */
-    public static function diffInHours(DateTimeInterface $a, DateTimeInterface $b): int {
-        return self::diffHours($a, $b);
-    }
-
-    /**
      * Normalises any {@see DateTimeInterface} to {@see DateTimeImmutable} —
      * returns $dt as-is when already immutable, otherwise converts mutable
      * inputs without mutating them.

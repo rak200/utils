@@ -28,6 +28,30 @@ final class RegexTest extends TestCase {
         $this->assertFalse(Regex::matches('/baz/', 'foobar'));
     }
 
+    public function testThrowsOnInvalidPattern(): void {
+        // An invalid pattern makes the underlying preg_* emit a warning and
+        // return false/null; @ suppresses that expected warning while we assert
+        // every throwing helper turns it into a RuntimeException.
+        $bad = '/[/';
+        $calls = [
+            'matches'         => static fn(): mixed => @Regex::matches($bad, 'x'),
+            'matchOrNull'     => static fn(): mixed => @Regex::matchOrNull($bad, 'x'),
+            'matchAll'        => static fn(): mixed => @Regex::matchAll($bad, 'x'),
+            'replace'         => static fn(): mixed => @Regex::replace($bad, 'r', 'x'),
+            'replaceCallback' => static fn(): mixed => @Regex::replaceCallback($bad, static fn(array $m): string => '', 'x'),
+            'split'           => static fn(): mixed => @Regex::split($bad, 'x'),
+            'grep'            => static fn(): mixed => @Regex::grep($bad, ['x']),
+        ];
+        foreach ($calls as $name => $call) {
+            try {
+                $call();
+                $this->fail("Regex::$name should throw on an invalid pattern.");
+            } catch (RuntimeException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
     public function testMatchReturnsCapturedGroups(): void {
         $result = Regex::match('/(\w+)@(\w+)/', 'hello user@host more');
         $this->assertSame('user@host', $result[0]);

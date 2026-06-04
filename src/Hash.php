@@ -80,11 +80,4 @@ final class Hash {
     public static function verify(string $password, string $hash): bool {
         return password_verify($password, $hash);
     }
-
-    /**
-     * @deprecated since 1.14.0, use {@see self::verify()} instead. Will be removed in 2.0.0.
-     */
-    public static function verifyPassword(string $password, string $hash): bool {
-        return self::verify($password, $hash);
-    }
 }

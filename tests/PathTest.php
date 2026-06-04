@@ -99,6 +99,14 @@ final class PathTest extends TestCase {
         $this->assertSame('../d', Path::relative('a/b/c', 'a/b/d'));
     }
 
+    public function testRelativeFromFilesystemRoot(): void {
+        $this->assertSame('x', Path::relative('/', '/x'));
+    }
+
+    public function testNormalizeEmptyStringReturnsEmpty(): void {
+        $this->assertSame('', Path::normalize(''));
+    }
+
     public function testRelativeRejectsMixedAnchors(): void {
         $this->expectException(RuntimeException::class);
         Path::relative('/a/b', 'c/d');
@@ -138,13 +146,13 @@ final class PathTest extends TestCase {
         $this->assertSame('C:', Path::dirname('C:file.txt'));
     }
 
-    public function testExtension(): void {
-        $this->assertSame('txt', Path::extension('/a/file.txt'));
-        $this->assertSame('gz', Path::extension('archive.tar.gz'));
-        $this->assertSame('', Path::extension('README'));
-        $this->assertSame('', Path::extension('.hidden'));
-        $this->assertSame('', Path::extension(''));
-        $this->assertSame('', Path::extension('/a/'));
+    public function testExt(): void {
+        $this->assertSame('txt', Path::ext('/a/file.txt'));
+        $this->assertSame('gz', Path::ext('archive.tar.gz'));
+        $this->assertSame('', Path::ext('README'));
+        $this->assertSame('', Path::ext('.hidden'));
+        $this->assertSame('', Path::ext(''));
+        $this->assertSame('', Path::ext('/a/'));
     }
 
     public function testFilename(): void {
@@ -153,11 +161,5 @@ final class PathTest extends TestCase {
         $this->assertSame('README', Path::filename('README'));
         $this->assertSame('.hidden', Path::filename('.hidden'));
         $this->assertSame('', Path::filename(''));
-    }
-
-    public function testExtRenamedAndAlias(): void {
-        $this->assertSame('gz', Path::ext('a.tar.gz'));
-        $this->assertSame('', Path::ext('README'));
-        $this->assertSame(Path::extension('dir/file.txt'), Path::ext('dir/file.txt')); // alias forwards
     }
 }

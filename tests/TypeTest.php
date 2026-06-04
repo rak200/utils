@@ -339,7 +339,6 @@ final class TypeTest extends TestCase {
     #[DataProvider('isInstanceOfProvider')]
     public function testIsInstance(mixed $value, string $class, bool $expected): void {
         $this->assertSame($expected, Type::isInstance($value, $class));
-        $this->assertSame($expected, Type::isInstanceOf($value, $class)); // deprecated alias forwards
     }
 
     /**
@@ -425,7 +424,6 @@ final class TypeTest extends TestCase {
     #[DataProvider('isSubclassOfProvider')]
     public function testIsSubclass(mixed $value, string $class, bool $expected): void {
         $this->assertSame($expected, Type::isSubclass($value, $class));
-        $this->assertSame($expected, Type::isSubclassOf($value, $class)); // deprecated alias forwards
     }
 }
 

@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Str;
 use RuntimeException;
+use Stringable;
 
 final class StrTest extends TestCase {
     /**
@@ -56,14 +57,6 @@ final class StrTest extends TestCase {
         $this->assertFalse(Str::isEmpty(' '));
     }
 
-    public function testIsNonEmptyStr(): void {
-        $this->assertTrue(Str::isNonEmptyStr('a'));
-        $this->assertTrue(Str::isNonEmptyStr(' '));
-        $this->assertFalse(Str::isNonEmptyStr(''));
-        $this->assertFalse(Str::isNonEmptyStr(null));
-        $this->assertFalse(Str::isNonEmptyStr(0));
-    }
-
     public function testIsWhitespace(): void {
         $this->assertTrue(Str::isWhitespace(' '));
         $this->assertTrue(Str::isWhitespace("\t"));
@@ -78,16 +71,16 @@ final class StrTest extends TestCase {
     }
 
     public function testLengthCountsMultibyteCharacters(): void {
-        $this->assertSame(5, Str::length('hello'));
-        $this->assertSame(3, Str::length('açú'));
+        $this->assertSame(5, Str::len('hello'));
+        $this->assertSame(3, Str::len('açú'));
     }
 
     public function testByteLengthCountsBytes(): void {
-        $this->assertSame(5, Str::byteLength('hello'));
-        $this->assertSame(0, Str::byteLength(''));
+        $this->assertSame(5, Str::byteLen('hello'));
+        $this->assertSame(0, Str::byteLen(''));
         // "açú" is 3 characters but 5 bytes in UTF-8 (ç and ú are two bytes each)
-        $this->assertSame(5, Str::byteLength('açú'));
-        $this->assertSame(3, Str::length('açú'));
+        $this->assertSame(5, Str::byteLen('açú'));
+        $this->assertSame(3, Str::len('açú'));
     }
 
     public function testCapitalizeUppersFirstCharOnly(): void {
@@ -156,29 +149,66 @@ final class StrTest extends TestCase {
         $this->assertSame('', Str::joinNatural(['', '   '], ','));
     }
 
-    public function testJoinWithoutSkipBlanksMirrorsImplode(): void {
-        $items = ['a', '', 'b', '   ', 'c'];
-        $this->assertSame(implode(',', $items), Str::join($items, ',', skipBlanks: false));
-        $this->assertSame('a,,b', Str::join(['a', '', 'b'], ',', skipBlanks: false));
-        $this->assertSame('abc', Str::join(['a', 'b', 'c'], skipBlanks: false));   // default '' separator = concat
-        // prefix/suffix/lastSeparator still apply; blanks just are not dropped
-        $this->assertSame('[a, , b]', Str::join(['a', '', 'b'], ', ', '[', ']', skipBlanks: false));
-        $this->assertSame('a, b and c', Str::join(['a', 'b', 'c'], ', ', '', '', ' and ', skipBlanks: false));
+    public function testJoinNaturalCastsStringableObjects(): void {
+        $hello = new class implements Stringable {
+            public function __toString(): string {
+                return 'hello';
+            }
+        };
+        $blank = new class implements Stringable {
+            public function __toString(): string {
+                return '   ';
+            }
+        };
+        // a Stringable item is cast via __toString() and joined like any other
+        $this->assertSame('hello, world', Str::joinNatural([$hello, 'world'], ', '));
+        // ...including with the Oxford-style last separator
+        $this->assertSame('a, b and hello', Str::joinNatural(['a', 'b', $hello], ', ', '', '', ' and '));
+        // a Stringable whose __toString() is blank is dropped, like a blank string
+        $this->assertSame('a, b', Str::joinNatural(['a', $blank, 'b'], ', '));
     }
 
-    public function testJoinWithSkipBlanksDefaultTriggersDeprecation(): void {
-        $captured = '';
-        set_error_handler(static function (int $errno, string $errstr) use (&$captured): bool {
-            $captured = $errstr;
-            return true;
-        }, E_USER_DEPRECATED);
-        try {
-            Str::join(['a', 'b'], ',');
-        } finally {
-            restore_error_handler();
-        }
-        $this->assertStringContainsString('joinNatural', $captured);
-        $this->assertStringContainsString('deprecated', $captured);
+    public function testJoinNaturalAcceptsAnyIterable(): void {
+        // a fresh Generator each call (generators are single-use), not just an array
+        $items = static function () {
+            yield 'a';
+            yield '';
+            yield 'b';
+            yield '   ';
+            yield 'c';
+        };
+        // blanks are still dropped when the items come from a Generator
+        $this->assertSame('a, b, c', Str::joinNatural($items(), ', '));
+        // ...and the Oxford-style last separator still applies
+        $this->assertSame('a, b and c', Str::joinNatural($items(), ', ', '', '', ' and '));
+    }
+
+    public function testJoinMirrorsImplode(): void {
+        $items = ['a', '', 'b', '   ', 'c'];
+        $this->assertSame(implode(',', $items), Str::join($items, ','));
+        $this->assertSame('a,,b', Str::join(['a', '', 'b'], ','));   // blanks kept
+        $this->assertSame('abc', Str::join(['a', 'b', 'c']));        // default '' separator = concat
+        $this->assertSame('', Str::join([], ','));
+        // accepts any iterable, not just arrays (unlike native implode)
+        $gen = (static function () { yield 'a'; yield 'b'; yield 'c'; })();
+        $this->assertSame('a-b-c', Str::join($gen, '-'));
+    }
+
+    public function testJoinCastsStringableObjects(): void {
+        $hello = new class implements Stringable {
+            public function __toString(): string {
+                return 'hello';
+            }
+        };
+        $blank = new class implements Stringable {
+            public function __toString(): string {
+                return '   ';
+            }
+        };
+        // a Stringable item is cast via __toString() and joined like any other
+        $this->assertSame('hello, world', Str::join([$hello, 'world'], ', '));
+        // unlike joinNatural, a blank __toString() is kept (mirrors implode)
+        $this->assertSame(implode(', ', ['a', '   ', 'b']), Str::join(['a', $blank, 'b'], ', '));
     }
 
     public function testWrapReturnsEmptyForBlank(): void {
@@ -198,6 +228,11 @@ final class StrTest extends TestCase {
     public function testPadRejectsEmptyPad(): void {
         $this->expectException(RuntimeException::class);
         Str::padStart('abc', 5, '');
+    }
+
+    public function testPadEndRejectsEmptyPad(): void {
+        $this->expectException(RuntimeException::class);
+        Str::padEnd('abc', 5, '');
     }
 
     public function testRepeat(): void {
@@ -231,17 +266,10 @@ final class StrTest extends TestCase {
         $this->assertSame('ó-água', Str::toKebab('óÁgua'));
     }
 
-    public function testDeprecatedCaseConversionAliasesStillWork(): void {
-        $this->assertSame(Str::toCamel('hello_world'), Str::toCamelCase('hello_world'));
-        $this->assertSame(Str::toPascal('hello world'), Str::toPascalCase('hello world'));
-        $this->assertSame(Str::toSnake('HelloWorld'), Str::toSnakeCase('HelloWorld'));
-        $this->assertSame(Str::toKebab('HelloWorld'), Str::toKebabCase('HelloWorld'));
-    }
-
     public function testSubstringMultibyte(): void {
-        $this->assertSame('ell', Str::substring('hello', 1, 3));
-        $this->assertSame('ção', Str::substring('ação', 1));
-        $this->assertSame('', Str::substring('hello', 0, 0));
+        $this->assertSame('ell', Str::sub('hello', 1, 3));
+        $this->assertSame('ção', Str::sub('ação', 1));
+        $this->assertSame('', Str::sub('hello', 0, 0));
     }
 
     public function testIndexOfAndLastIndexOf(): void {
@@ -250,6 +278,7 @@ final class StrTest extends TestCase {
         $this->assertSame(-1, Str::indexOf('hello', ''));
         $this->assertSame(5, Str::lastIndexOf('abcabc', 'c'));
         $this->assertSame(-1, Str::lastIndexOf('abc', 'z'));
+        $this->assertSame(-1, Str::lastIndexOf('abc', ''));   // empty needle
     }
 
     public function testCountSubstring(): void {
@@ -259,17 +288,17 @@ final class StrTest extends TestCase {
     }
 
     public function testTruncate(): void {
-        $this->assertSame('hello', Str::truncate('hello', 10));
-        $this->assertSame('hel…', Str::truncate('hello world', 4));
-        $this->assertSame('h…', Str::truncate('hello', 2));
-        $this->assertSame('…', Str::truncate('hello', 1));
-        $this->assertSame('', Str::truncate('hello', 0));
-        $this->assertSame('hello…', Str::truncate('hello world', 6));
+        $this->assertSame('hello', Str::trunc('hello', 10));
+        $this->assertSame('hel…', Str::trunc('hello world', 4));
+        $this->assertSame('h…', Str::trunc('hello', 2));
+        $this->assertSame('…', Str::trunc('hello', 1));
+        $this->assertSame('', Str::trunc('hello', 0));
+        $this->assertSame('hello…', Str::trunc('hello world', 6));
     }
 
     public function testTruncateRejectsNegativeLength(): void {
         $this->expectException(RuntimeException::class);
-        Str::truncate('x', -1);
+        Str::trunc('x', -1);
     }
 
     public function testReplaceFirstAndLast(): void {
@@ -277,6 +306,8 @@ final class StrTest extends TestCase {
         $this->assertSame('foo-foo-xyz', Str::replaceLast('foo-foo-foo', 'foo', 'xyz'));
         $this->assertSame('hello', Str::replaceFirst('hello', 'x', 'y'));
         $this->assertSame('hello', Str::replaceFirst('hello', '', 'y'));
+        $this->assertSame('hello', Str::replaceLast('hello', 'x', 'y'));   // not found
+        $this->assertSame('hello', Str::replaceLast('hello', '', 'y'));    // empty search
     }
 
     public function testSlug(): void {
@@ -490,14 +521,10 @@ final class StrTest extends TestCase {
         Str::fromBytes([0, 256]);
     }
 
-    public function testRenamedMethodsAndAliases(): void {
+    public function testRenamedMethods(): void {
         $this->assertSame(3, Str::len('abc'));
-        $this->assertSame(Str::length('açú'), Str::len('açú'));         // alias forwards
         $this->assertSame(2, Str::byteLen('é'));
-        $this->assertSame(Str::byteLength('héllo'), Str::byteLen('héllo'));
         $this->assertSame('ell', Str::sub('hello', 1, 3));
-        $this->assertSame(Str::substring('héllo', 1), Str::sub('héllo', 1));
         $this->assertSame('he…', Str::trunc('hello world', 3));
-        $this->assertSame(Str::truncate('hello world', 6), Str::trunc('hello world', 6));
     }
 }

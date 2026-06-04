@@ -315,6 +315,4 @@ Dt::diffSeconds($a, $b);     // 613800
 Dt::diffDays($b, $a);        // -7       (signed)
 ```
 
-> The previous names `diffInDays` / `diffInSeconds` / `diffInMinutes` / `diffInHours` remain as `@deprecated` aliases since 1.14.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#dt)

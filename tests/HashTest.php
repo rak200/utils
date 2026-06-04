@@ -46,6 +46,5 @@ final class HashTest extends TestCase {
         $hash = Hash::password('s3cret');
         $this->assertTrue(Hash::verify('s3cret', $hash));
         $this->assertFalse(Hash::verify('wrong', $hash));
-        $this->assertTrue(Hash::verifyPassword('s3cret', $hash)); // deprecated alias forwards
     }
 }

@@ -79,8 +79,6 @@ File::isDir('/tmp');                   // true
 File::isDir('/tmp/greeting.txt');      // false
 ```
 
-> The legacy name `isDirectory` remains available as a `@deprecated` alias since 1.2.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#file)
 
 ---
@@ -138,8 +136,6 @@ File::basename('/var/log/app.log', '.log');      // 'app'
 File::dirname('/var/log/app.log');               // '/var/log'
 ```
 
-> The previous name `extension` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
-
 [↑ Back to top](#file)
 
 ---
@@ -166,8 +162,6 @@ Detected via `fileinfo`.
 File::mime('/path/to/photo.png');     // 'image/png'
 File::mime('/path/to/script.sh');     // 'text/x-shellscript'
 ```
-
-> The previous name `mimeType` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#file)
 
@@ -230,8 +224,6 @@ Creates an empty temp file in the system temp dir and returns its absolute path.
 File::temp();              // e.g. '/tmp/utlAB1cD2'
 File::temp('report-');     // e.g. '/tmp/report-XyZ123'
 ```
-
-> The previous name `tempFile` remains as a `@deprecated` alias since 1.14.0 and will be removed in 2.0.0.
 
 [↑ Back to top](#file)
 

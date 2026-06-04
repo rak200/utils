@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Dev dependencies:
 - `phpunit/phpunit ^13.1` for the test suite
+- `phpstan/phpstan ^2.1` for static analysis (level max)
+- `friendsofphp/php-cs-fixer ^3.75` for code style (see [Code style](#code-style))
 
 ## Structure
 
@@ -51,7 +53,23 @@ Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes 
 - **Every native function a class still calls is imported via `use function`.** The `use function` block at the top of each file is the auditable inventory of the natives deliberately kept under the rule above — reviewable at a glance, and (with first-class callables, below) the only place a native name appears. Functions only; constants stay unqualified.
 - **Pass callables with first-class syntax, never as strings.** When handing a function or method to be invoked (callbacks for `array_map` / `usort` / `array_filter` / …), use `func(...)` / `self::method(...)` — not `'func'` or `['Class', 'method']`. This keeps the reference statically checked, IDE-navigable, and bound by `use function`. Does **not** apply to APIs that take a function *name as data* (`function_exists`, `is_callable`) or when the symbol is computed at runtime.
 - **Naming — the shortest name that stays unambiguous and discoverable** (brevity is the tie-breaker, not the goal). Apply in order of precedence: **(1)** existing conventions/families are invariant and outrank brevity — the `*OrNull` suffix, the `is*` predicate prefix, and verb families (`parse*` / `to*`) are never shortened away; **(2)** prefer a consolidated cross-language synonym to the PHP-specific name (`join` over `implode`, `slice` over `array_slice`), and keep a word whole when the full form *is* the consolidated one (`toString` / `toInt` / `toBool`, not `toStr`); **(3)** prefer a widely-recognised abbreviation (`Str` / `Num` / `Arr` / `Dt` / `Id` / `Url` / `Dir` / `Tmp` — `fooBarStr` over `fooBarString`), never an obscure one (`fmt` / `cnt` / `lvl`); **(4)** drop a word the qualified name already carries (`File::mimeType` → `File::mime`; a hypothetical `Dt::checkDate` → `Dt::check`) — *but rule 1 wins*, so a boolean check keeps its `is*` form (the calendar validator is `Dt::isValid`, not `Dt::check`), and a type suffix that disambiguates a `mixed`-accepting guard from a typed predicate stays (`Str::isNonEmptyStr` vs `Str::isEmpty(string)`; `Arr::isNonEmptyArray` vs `Arr::isNotEmpty(array)`). API-breaking renames land only on a major bump and ship a `@deprecated` alias kept for one major cycle (as `toCamelCase`→`toCamel` and `isNumeric`→`is` already do).
-- **Member order within a class:** constants → properties → constructor → non-magic methods → magic methods. Don't drop a constant beside its first use mid-class.
+- **Member order within a class:** constants → properties → constructor → non-magic methods → magic methods. Don't drop a constant beside its first use mid-class. (Enforced by php-cs-fixer's `ordered_class_elements`, configured magic-last — see [Code style](#code-style).)
+
+## Code style
+
+Formatting is enforced by **PHP-CS-Fixer** (`friendsofphp/php-cs-fixer`) with the `@PhpCsFixer` ruleset — the strictest preset — over `src/` and `tests/`, configured in [.php-cs-fixer.dist.php](.php-cs-fixer.dist.php). Run:
+
+- `composer cs-check` — report violations (`--dry-run --diff`); CI runs this on the PHP 8.4 job and fails on any deviation
+- `composer cs-fix` — apply fixes in place
+
+The preset chose the consolidated/rigid layout deliberately (e.g. class/method braces on their own line, one `use` per statement). A small set of rules is **deliberately overridden** so the strict preset doesn't fight the conventions above — these overrides are intentional and load-bearing, not oversights; removing them would silently reintroduce the conflicts:
+
+- `global_namespace_import` → `import_functions: true` — keeps the `use function` inventory; the preset's default deletes it and FQN-prefixes every native with `\` (killing the "auditable native inventory" rule and the point of first-class callables).
+- `ordered_class_elements` ordered **magic-last** — matches the member order above (the preset default places magic methods *before* non-magic ones).
+- `phpdoc_to_comment` (`ignored_tags: ['var']`) **and** `return_assignment: false` — both protect the inline `@var` idiom that documents a known-true type where a native stub is deficient: the first stops the docblock being demoted to a plain comment, the second stops `$x = …; return $x;` being collapsed into `return …;` (which orphans the `/** @var $x */` above it, breaking PHPStan).
+- `yoda_style: false` — natural comparison order (`$x === null`), not Yoda (`null === $x`).
+
+Run PHP-CS-Fixer on PHP 8.4 to match the project floor; on a newer runtime it prints a version warning (and needs `PHP_CS_FIXER_IGNORE_ENV=1`), harmless but noisy.
 
 ## Testing
 

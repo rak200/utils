@@ -768,8 +768,7 @@ final class Num
         int $decimals,
         string $decimalSeparator,
         string $thousandsSeparator,
-    ): string 
-    {
+    ): string {
         $str = (string) $value->round($decimals, RoundingMode::HalfAwayFromZero);
         $negative = Str::startsWith($str, '-');
         if ($negative) {

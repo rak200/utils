@@ -168,6 +168,8 @@ final class Type {
      * Returns true if $value is a string in numeric format (decimals, leading
      * sign, exponent notation; no surrounding whitespace).
      *
+     * @deprecated since 2.1.0, use `Type::isStr($v) && Type::isNumeric($v)`
+     *             instead. Will be removed in 3.0.0.
      * @phpstan-assert-if-true numeric-string $value
      */
     public static function isNumericStr(mixed $value): bool {
@@ -180,6 +182,9 @@ final class Type {
      * an integer (optional leading sign, digits only — no decimal point,
      * exponent, or surrounding whitespace).
      *
+     * @deprecated since 2.1.0, use `Type::isInt($v) || (Type::isStr($v) &&
+     *             Regex::matches('/^[+-]?\d+$/', $v))` instead.
+     *             Will be removed in 3.0.0.
      * @phpstan-assert-if-true int|numeric-string $value
      */
     public static function isIntLike(mixed $value): bool {

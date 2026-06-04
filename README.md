@@ -1,5 +1,7 @@
 # rak200/utils
 
+[![Latest tag](https://img.shields.io/github/v/tag/rak200/utils?sort=semver)](https://github.com/rak200/utils/tags)
+
 General-purpose static utility helpers for PHP 8.4+.
 
 PHP's standard library is broad but inconsistent in naming, type-strictness and multibyte handling. This package groups commonly-used helpers into a small set of final, stateless classes with short Laravel-style names.
@@ -11,6 +13,18 @@ PHP's standard library is broad but inconsistent in naming, type-strictness and 
 - No Composer runtime dependencies.
 
 ## Installation
+
+Not published on Packagist — install straight from the GitHub repository as a Composer VCS package. Add the repository to the consuming project's `composer.json`:
+
+```json
+{
+    "repositories": [
+        { "type": "vcs", "url": "https://github.com/rak200/utils" }
+    ]
+}
+```
+
+then require it as usual:
 
 ```bash
 composer require rak200/utils
@@ -37,7 +51,7 @@ composer require rak200/utils
 - **`Dt`** — `DateTimeImmutable` helpers: construction, `isValid` calendar check, formatting (incl. `Dt::sql()`), arithmetic, comparison, period boundaries, diff in integer units.
 - **`Url`** — URL parsing/building and query-string encode/decode: `parse`/`parseOrNull`/`build`, `encode`/`decode`, `encodeQuery`/`decodeQuery`, `is`/`isAbsolute`.
 - **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, `basename`, `dirname`, `extension`, `filename`. Normalises to `/`; preserves Windows drive prefixes.
-- **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike`), class/trait checks (`isInstance`/`isA`/`isSubclass`/`isClassName`/`isInterfaceName`/`usesTrait`). Domain-mirroring predicates (`isStr`/`isInt`/`isFloat`/`isArray`/`isEnum`/`isNumeric`) are aliases of the canonical `is` on each domain class (`Str::is`, `Num::isInt`/`Num::isFloat`/`Num::is`, `Arr::is`, `Enum::is`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNotBlank`, `Arr::isList`/`Arr::isAssoc`, `Num::isPositive`/`Num::isNegative`.
+- **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike` — both `@deprecated` since 2.1.0, removed in 3.0.0), class/trait checks (`isInstance`/`isA`/`isSubclass`/`isClassName`/`isInterfaceName`/`usesTrait`). Domain-mirroring predicates (`isStr`/`isInt`/`isFloat`/`isArray`/`isEnum`/`isNumeric`) are aliases of the canonical `is` on each domain class (`Str::is`, `Num::isInt`/`Num::isFloat`/`Num::is`, `Arr::is`, `Enum::is`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNotBlank`, `Arr::isList`/`Arr::isAssoc`, `Num::isPositive`/`Num::isNegative`.
 - **`Enum`** — class-level operations on enums: `names`/`values`, name lookup (`fromName`/`tryFromName` — the gap PHP leaves open), `random`, `[name => value]` map via `toArray`, plus the `is`/`isBacked` predicates.
 - **`Filter`** — input sanitisation and lenient coercion of untrusted values: `escapeHtml`/`unescapeHtml`, `stripTags`, character whitelists (`digits`/`alpha`/`alnum`), `squish`/`stripControl`/`ascii`, `email`/`url`, and `mixed`-to-typed coercers with a default (`toStr`/`toInt`/`toFloat`/`toBool`).
 

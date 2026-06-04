@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-06-04
+
+### Deprecated
+
+- **`Type::isNumericStr` / `Type::isIntLike`** — both `@deprecated since 2.1.0`, to be removed in 3.0.0. They still work unchanged for now. Replace `isNumericStr($v)` with `Type::isStr($v) && Type::isNumeric($v)` (`Num::is` already requires a strict numeric string — no surrounding whitespace), and `isIntLike($v)` with `Type::isInt($v) || (Type::isStr($v) && Regex::matches('/^[+-]?\d+$/', $v))`.
+
 ## [2.0.0] - 2026-06-03
 
 First major release since 1.0.0. **Breaking** — every `@deprecated` alias accumulated across the 1.x line is removed, and one default is flipped. Each removed name has a drop-in canonical replacement (listed below), so migration is a mechanical rename.
@@ -354,6 +360,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[2.1.0]: https://github.com/rak200/utils/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/rak200/utils/compare/1.16.0...2.0.0
 [1.16.0]: https://github.com/rak200/utils/compare/1.15.1...1.16.0
 [1.15.1]: https://github.com/rak200/utils/compare/1.15.0...1.15.1

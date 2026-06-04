@@ -150,6 +150,8 @@ Type::isIntLike('1e3');        // false
 Type::isIntLike(' 42 ');       // false
 ```
 
+> Both are `@deprecated` since 2.1.0 and will be removed in 3.0.0. Replace `isNumericStr($v)` with `Type::isStr($v) && Type::isNumeric($v)`, and `isIntLike($v)` with `Type::isInt($v) || (Type::isStr($v) && Regex::matches('/^[+-]?\d+$/', $v))`.
+
 [↑ Back to top](#type)
 
 ---

@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function base64_decode, base64_encode;
+
+use function base64_decode;
+use function base64_encode;
 
 /**
  * Base64 helpers, including the URL-safe variant (RFC 4648 §5) without padding.
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class Base64 {
+final class Base64
+{
     private function __construct() {}
 
     /**
@@ -20,19 +23,22 @@ final class Base64 {
      * alphabet, strict) or {@see decodeUrl()} (URL-safe alphabet, missing
      * padding restored). The empty string is a valid encoding.
      */
-    public static function is(string $value): bool {
+    public static function is(string $value): bool
+    {
         if (base64_decode($value, true) !== false) {
             return true;
         }
         $encoded = Str::translate($value, '-_', '+/');
-        $padded = $encoded . Str::repeat('=', (4 - Str::len($encoded) % 4) % 4);
+        $padded = $encoded.Str::repeat('=', (4 - Str::len($encoded) % 4) % 4);
+
         return base64_decode($padded, true) !== false;
     }
 
     /**
      * Encodes $value as standard Base64.
      */
-    public static function encode(string $value): string {
+    public static function encode(string $value): string
+    {
         return base64_encode($value);
     }
 
@@ -40,13 +46,15 @@ final class Base64 {
      * Decodes a standard Base64 string. Strict: rejects any non-alphabet
      * character.
      *
-     * @throws RuntimeException When $value is not valid Base64.
+     * @throws RuntimeException when $value is not valid Base64
      */
-    public static function decode(string $value): string {
+    public static function decode(string $value): string
+    {
         $result = base64_decode($value, true);
         if ($result === false) {
             throw new RuntimeException('Invalid base64 input.');
         }
+
         return $result;
     }
 
@@ -54,23 +62,26 @@ final class Base64 {
      * Encodes $value as URL-safe Base64 (replaces '+/' with '-_') with the
      * trailing '=' padding stripped.
      */
-    public static function encodeUrl(string $value): string {
+    public static function encodeUrl(string $value): string
+    {
         return Str::trimEnd(Str::translate(base64_encode($value), '+/', '-_'), '=');
     }
- 
+
     /**
      * Decodes a URL-safe Base64 string. Missing '=' padding is restored before
      * decoding.
      *
-     * @throws RuntimeException When $value is not valid URL-safe Base64.
+     * @throws RuntimeException when $value is not valid URL-safe Base64
      */
-    public static function decodeUrl(string $value): string {
+    public static function decodeUrl(string $value): string
+    {
         $encoded = Str::translate($value, '-_', '+/');
-        $padded = $encoded . Str::repeat('=', (4 - Str::len($encoded) % 4) % 4);
+        $padded = $encoded.Str::repeat('=', (4 - Str::len($encoded) % 4) % 4);
         $result = base64_decode($padded, true);
         if ($result === false) {
             throw new RuntimeException('Invalid base64url input.');
         }
+
         return $result;
     }
 }

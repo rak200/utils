@@ -8,159 +8,205 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Enum;
 use RuntimeException;
+use stdClass;
 use UnitEnum;
 
-final class EnumTest extends TestCase {
-    /**
-     * @return iterable<string, array{mixed, bool}>
-     */
-    public static function isProvider(): iterable {
-        yield 'pure case'    => [EnumSuit::Hearts, true];
-        yield 'backed case'  => [EnumStatus::Active, true];
-        yield 'class-string' => [EnumSuit::class, false];
-        yield 'string'       => ['Hearts', false];
-        yield 'null'         => [null, false];
-        yield 'int'          => [0, false];
-        yield 'object'       => [new \stdClass(), false];
-    }
-
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
+final class EnumTest extends TestCase
+{
     #[DataProvider('isProvider')]
-    public function testIs(mixed $value, bool $expected): void {
+    public function testIs(mixed $value, bool $expected): void
+    {
         $this->assertSame($expected, Enum::is($value));
     }
 
     /**
      * @return iterable<string, array{mixed, bool}>
      */
-    public static function isBackedProvider(): iterable {
-        yield 'int-backed'    => [EnumPriority::Low, true];
-        yield 'string-backed' => [EnumStatus::Active, true];
-        yield 'pure case'     => [EnumSuit::Hearts, false];
-        yield 'class-string'  => [EnumStatus::class, false];
-        yield 'null'          => [null, false];
+    public static function isProvider(): iterable
+    {
+        yield 'pure case' => [EnumSuit::Hearts, true];
+
+        yield 'backed case' => [EnumStatus::Active, true];
+
+        yield 'class-string' => [EnumSuit::class, false];
+
+        yield 'string' => ['Hearts', false];
+
+        yield 'null' => [null, false];
+
+        yield 'int' => [0, false];
+
+        yield 'object' => [new stdClass(), false];
     }
 
     #[DataProvider('isBackedProvider')]
-    public function testIsBacked(mixed $value, bool $expected): void {
+    public function testIsBacked(mixed $value, bool $expected): void
+    {
         $this->assertSame($expected, Enum::isBacked($value));
     }
 
-    public function testNames(): void {
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isBackedProvider(): iterable
+    {
+        yield 'int-backed' => [EnumPriority::Low, true];
+
+        yield 'string-backed' => [EnumStatus::Active, true];
+
+        yield 'pure case' => [EnumSuit::Hearts, false];
+
+        yield 'class-string' => [EnumStatus::class, false];
+
+        yield 'null' => [null, false];
+    }
+
+    public function testNames(): void
+    {
         $this->assertSame(['Hearts', 'Spades'], Enum::names(EnumSuit::class));
         $this->assertSame(['Active', 'Inactive'], Enum::names(EnumStatus::class));
     }
 
-    public function testValues(): void {
+    public function testValues(): void
+    {
         $this->assertSame(['active', 'inactive'], Enum::values(EnumStatus::class));
     }
 
-    public function testValuesThrowsOnPureEnum(): void {
+    public function testValuesThrowsOnPureEnum(): void
+    {
         $this->expectException(RuntimeException::class);
         Enum::values(EnumSuit::class);
     }
 
-    public function testFromName(): void {
+    public function testFromName(): void
+    {
         $this->assertSame(EnumSuit::Hearts, Enum::fromName(EnumSuit::class, 'Hearts'));
         $this->assertSame(EnumStatus::Active, Enum::fromName(EnumStatus::class, 'Active'));
     }
 
-    public function testFromNameThrowsOnMiss(): void {
+    public function testFromNameThrowsOnMiss(): void
+    {
         $this->expectException(RuntimeException::class);
         Enum::fromName(EnumSuit::class, 'Clubs');
     }
 
-    public function testTryFromName(): void {
+    public function testTryFromName(): void
+    {
         $this->assertSame(EnumSuit::Spades, Enum::tryFromName(EnumSuit::class, 'Spades'));
         $this->assertNull(Enum::tryFromName(EnumSuit::class, 'Clubs'));
         $this->assertNull(Enum::tryFromName(EnumStatus::class, 'Unknown'));
     }
 
-    public function testRandomReturnsAValidCase(): void {
+    public function testRandomReturnsAValidCase(): void
+    {
         $cases = EnumSuit::cases();
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $this->assertContains(Enum::random(EnumSuit::class), $cases);
         }
     }
 
-    public function testRandomThrowsOnEmptyEnum(): void {
+    public function testRandomThrowsOnEmptyEnum(): void
+    {
         $this->expectException(RuntimeException::class);
         Enum::random(EnumEmpty::class);
     }
 
-    public function testToArrayBackedReturnsNameToValueMap(): void {
+    public function testToArrayBackedReturnsNameToValueMap(): void
+    {
         $this->assertSame(
             ['Active' => 'active', 'Inactive' => 'inactive'],
             Enum::toArray(EnumStatus::class),
         );
     }
 
-    public function testToArrayPureReturnsNameToNameMap(): void {
+    public function testToArrayPureReturnsNameToNameMap(): void
+    {
         $this->assertSame(
             ['Hearts' => 'Hearts', 'Spades' => 'Spades'],
             Enum::toArray(EnumSuit::class),
         );
     }
 
-    public function testScalarReturnsNameForPureCase(): void {
+    public function testScalarReturnsNameForPureCase(): void
+    {
         $this->assertSame('Hearts', Enum::scalar(EnumSuit::Hearts));
         $this->assertSame('Spades', Enum::scalar(EnumSuit::Spades));
     }
 
-    public function testScalarReturnsValueForStringBackedCase(): void {
+    public function testScalarReturnsValueForStringBackedCase(): void
+    {
         $this->assertSame('active', Enum::scalar(EnumStatus::Active));
         $this->assertSame('inactive', Enum::scalar(EnumStatus::Inactive));
     }
 
-    public function testScalarReturnsValueForIntBackedCase(): void {
+    public function testScalarReturnsValueForIntBackedCase(): void
+    {
         $this->assertSame(1, Enum::scalar(EnumPriority::Low));
         $this->assertSame(10, Enum::scalar(EnumPriority::High));
     }
 
-    /**
-     * @return iterable<string, array{UnitEnum, bool}>
-     */
-    public static function isBackedIntProvider(): iterable {
-        yield 'int Low'       => [EnumPriority::Low, true];
-        yield 'int High'      => [EnumPriority::High, true];
-        yield 'string-backed' => [EnumStatus::Active, false];
-        yield 'pure'          => [EnumSuit::Hearts, false];
-    }
-
     #[DataProvider('isBackedIntProvider')]
-    public function testIsBackedInt(UnitEnum $case, bool $expected): void {
+    public function testIsBackedInt(UnitEnum $case, bool $expected): void
+    {
         $this->assertSame($expected, Enum::isBackedInt($case));
     }
 
     /**
      * @return iterable<string, array{UnitEnum, bool}>
      */
-    public static function isBackedStrProvider(): iterable {
-        yield 'string Active'   => [EnumStatus::Active, true];
-        yield 'string Inactive' => [EnumStatus::Inactive, true];
-        yield 'int-backed'      => [EnumPriority::Low, false];
-        yield 'pure'            => [EnumSuit::Hearts, false];
+    public static function isBackedIntProvider(): iterable
+    {
+        yield 'int Low' => [EnumPriority::Low, true];
+
+        yield 'int High' => [EnumPriority::High, true];
+
+        yield 'string-backed' => [EnumStatus::Active, false];
+
+        yield 'pure' => [EnumSuit::Hearts, false];
     }
 
     #[DataProvider('isBackedStrProvider')]
-    public function testIsBackedStr(UnitEnum $case, bool $expected): void {
+    public function testIsBackedStr(UnitEnum $case, bool $expected): void
+    {
         $this->assertSame($expected, Enum::isBackedStr($case));
+    }
+
+    /**
+     * @return iterable<string, array{UnitEnum, bool}>
+     */
+    public static function isBackedStrProvider(): iterable
+    {
+        yield 'string Active' => [EnumStatus::Active, true];
+
+        yield 'string Inactive' => [EnumStatus::Inactive, true];
+
+        yield 'int-backed' => [EnumPriority::Low, false];
+
+        yield 'pure' => [EnumSuit::Hearts, false];
     }
 }
 
-enum EnumSuit {
+enum EnumSuit
+{
     case Hearts;
     case Spades;
 }
 
-enum EnumStatus: string {
+enum EnumStatus: string
+{
     case Active = 'active';
     case Inactive = 'inactive';
 }
 
-enum EnumPriority: int {
+enum EnumPriority: int
+{
     case Low = 1;
     case High = 10;
 }
 
-enum EnumEmpty {
-}
+enum EnumEmpty {}

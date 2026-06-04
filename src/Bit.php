@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function bindec, decbin;
+
+use function bindec;
+use function decbin;
 
 /**
  * Bit-manipulation helpers operating on the native PHP int (platform-sized,
@@ -13,7 +15,8 @@ use function bindec, decbin;
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class Bit {
+final class Bit
+{
     private const int BITS = PHP_INT_SIZE * 8;
 
     private function __construct() {}
@@ -21,53 +24,63 @@ final class Bit {
     /**
      * Returns $value with the bit at index $bit set to 1.
      *
-     * @throws RuntimeException When $bit is out of range [0, PHP_INT_SIZE*8 - 1].
+     * @throws RuntimeException when $bit is out of range [0, PHP_INT_SIZE*8 - 1]
      */
-    public static function set(int $value, int $bit): int {
+    public static function set(int $value, int $bit): int
+    {
         self::checkBitIndex($bit);
+
         return $value | (1 << $bit);
     }
 
     /**
      * Returns $value with the bit at index $bit cleared to 0.
      *
-     * @throws RuntimeException When $bit is out of range.
+     * @throws RuntimeException when $bit is out of range
      */
-    public static function unset(int $value, int $bit): int {
+    public static function unset(int $value, int $bit): int
+    {
         self::checkBitIndex($bit);
+
         return $value & ~(1 << $bit);
     }
 
     /**
      * Returns $value with the bit at index $bit flipped.
      *
-     * @throws RuntimeException When $bit is out of range.
+     * @throws RuntimeException when $bit is out of range
      */
-    public static function toggle(int $value, int $bit): int {
+    public static function toggle(int $value, int $bit): int
+    {
         self::checkBitIndex($bit);
+
         return $value ^ (1 << $bit);
     }
 
     /**
      * Returns true when the bit at index $bit is set.
      *
-     * @throws RuntimeException When $bit is out of range.
+     * @throws RuntimeException when $bit is out of range
      */
-    public static function has(int $value, int $bit): bool {
+    public static function has(int $value, int $bit): bool
+    {
         self::checkBitIndex($bit);
+
         return ($value & (1 << $bit)) !== 0;
     }
 
     /**
      * Returns the population count (number of bits set to 1) of $value.
      */
-    public static function count(int $value): int {
+    public static function count(int $value): int
+    {
         $count = 0;
-        for ($i = 0; $i < self::BITS; $i++) {
+        for ($i = 0; $i < self::BITS; ++$i) {
             if ((($value >> $i) & 1) === 1) {
-                $count++;
+                ++$count;
             }
         }
+
         return $count;
     }
 
@@ -75,15 +88,17 @@ final class Bit {
      * Returns the number of leading zero bits in $value. Returns PHP_INT_SIZE*8
      * when $value is 0.
      */
-    public static function leadingZeros(int $value): int {
+    public static function leadingZeros(int $value): int
+    {
         if ($value === 0) {
             return self::BITS;
         }
-        for ($i = self::BITS - 1; $i >= 0; $i--) {
+        for ($i = self::BITS - 1; $i >= 0; --$i) {
             if ((($value >> $i) & 1) === 1) {
                 return self::BITS - 1 - $i;
             }
         }
+
         return self::BITS;
     }
 
@@ -91,15 +106,17 @@ final class Bit {
      * Returns the number of trailing zero bits in $value. Returns PHP_INT_SIZE*8
      * when $value is 0.
      */
-    public static function trailingZeros(int $value): int {
+    public static function trailingZeros(int $value): int
+    {
         if ($value === 0) {
             return self::BITS;
         }
-        for ($i = 0; $i < self::BITS; $i++) {
+        for ($i = 0; $i < self::BITS; ++$i) {
             if ((($value >> $i) & 1) === 1) {
                 return $i;
             }
         }
+
         return self::BITS;
     }
 
@@ -108,8 +125,10 @@ final class Bit {
      * platform two's-complement form (PHP_INT_SIZE*8 bits). When $width is given,
      * the result is left-padded with '0' to at least $width characters.
      */
-    public static function toStr(int $value, int $width = 0): string {
+    public static function toStr(int $value, int $width = 0): string
+    {
         $bits = decbin($value);
+
         return $width > 0 ? Str::padStart($bits, $width, '0') : $bits;
     }
 
@@ -118,11 +137,13 @@ final class Bit {
      * full {@see PHP_INT_SIZE}*8-bit width — bits shifted off the top re-enter at
      * the bottom). $by is taken modulo the bit width, so any integer is accepted.
      */
-    public static function rotateLeft(int $value, int $by): int {
+    public static function rotateLeft(int $value, int $by): int
+    {
         $by = ($by % self::BITS + self::BITS) % self::BITS;
         if ($by === 0) {
             return $value;
         }
+
         return ($value << $by) | self::uShr($value, self::BITS - $by);
     }
 
@@ -131,21 +152,24 @@ final class Bit {
      * full {@see PHP_INT_SIZE}*8-bit width — bits shifted off the bottom re-enter
      * at the top). $by is taken modulo the bit width, so any integer is accepted.
      */
-    public static function rotateRight(int $value, int $by): int {
+    public static function rotateRight(int $value, int $by): int
+    {
         $by = ($by % self::BITS + self::BITS) % self::BITS;
         if ($by === 0) {
             return $value;
         }
+
         return self::uShr($value, $by) | ($value << (self::BITS - $by));
     }
 
     /**
      * Returns the integer value of the base-2 string $bits.
      *
-     * @throws RuntimeException When $bits is empty, contains characters other than
-     *                          '0'/'1', or denotes a value larger than PHP_INT_MAX.
+     * @throws RuntimeException when $bits is empty, contains characters other than
+     *                          '0'/'1', or denotes a value larger than PHP_INT_MAX
      */
-    public static function fromStr(string $bits): int {
+    public static function fromStr(string $bits): int
+    {
         if ($bits === '' || Str::span($bits, '01') !== Str::len($bits)) {
             throw new RuntimeException('Invalid binary string.');
         }
@@ -153,15 +177,17 @@ final class Bit {
         if (!Num::isInt($value)) {
             throw new RuntimeException('Binary string exceeds the integer range.');
         }
+
         return $value;
     }
 
     /**
      * Throws when $bit is outside the valid range [0, PHP_INT_SIZE*8 - 1].
      */
-    private static function checkBitIndex(int $bit): void {
+    private static function checkBitIndex(int $bit): void
+    {
         if ($bit < 0 || $bit >= self::BITS) {
-            throw new RuntimeException('Bit index must be between 0 and ' . (self::BITS - 1) . '.');
+            throw new RuntimeException('Bit index must be between 0 and '.(self::BITS - 1).'.');
         }
     }
 
@@ -170,7 +196,8 @@ final class Bit {
      * the sign-extension of PHP's arithmetic `>>`. Used by the rotate helpers;
      * $shift is expected in the range [1, BITS - 1].
      */
-    private static function uShr(int $value, int $shift): int {
+    private static function uShr(int $value, int $shift): int
+    {
         return ($value >> $shift) & ~(-1 << (self::BITS - $shift));
     }
 }

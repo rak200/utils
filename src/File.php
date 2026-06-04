@@ -6,9 +6,33 @@ namespace Rak200\Utils;
 
 use Generator;
 use RuntimeException;
-use function basename, copy, dirname, fclose, fgetcsv, fgets, file_exists, file_get_contents,
-    file_put_contents, filesize, finfo_file, finfo_open, fopen, fputcsv, glob, is_dir, is_file,
-    mkdir, pathinfo, realpath, rename, sys_get_temp_dir, tempnam, touch, unlink;
+use Stringable;
+
+use function basename;
+use function copy;
+use function dirname;
+use function fclose;
+use function fgetcsv;
+use function fgets;
+use function file_exists;
+use function file_get_contents;
+use function file_put_contents;
+use function filesize;
+use function finfo_file;
+use function finfo_open;
+use function fopen;
+use function fputcsv;
+use function glob;
+use function is_dir;
+use function is_file;
+use function mkdir;
+use function pathinfo;
+use function realpath;
+use function rename;
+use function sys_get_temp_dir;
+use function tempnam;
+use function touch;
+use function unlink;
 
 /**
  * Filesystem helpers — every operation throws on failure instead of returning
@@ -16,44 +40,49 @@ use function basename, copy, dirname, fclose, fgetcsv, fgets, file_exists, file_
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class File {
+final class File
+{
     private function __construct() {}
 
     /**
      * Returns the full contents of the file at $path.
      *
-     * @throws RuntimeException When the file does not exist or cannot be read.
+     * @throws RuntimeException when the file does not exist or cannot be read
      */
-    public static function read(string $path): string {
+    public static function read(string $path): string
+    {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: $path");
+            throw new RuntimeException("File not found: {$path}");
         }
         $contents = file_get_contents($path);
         if ($contents === false) {
-            throw new RuntimeException("Cannot read file: $path");
+            throw new RuntimeException("Cannot read file: {$path}");
         }
+
         return $contents;
     }
 
     /**
      * Writes $content to $path, creating or overwriting as needed.
      *
-     * @throws RuntimeException When the file cannot be written.
+     * @throws RuntimeException when the file cannot be written
      */
-    public static function write(string $path, string $content): void {
+    public static function write(string $path, string $content): void
+    {
         if (file_put_contents($path, $content) === false) {
-            throw new RuntimeException("Cannot write file: $path");
+            throw new RuntimeException("Cannot write file: {$path}");
         }
     }
 
     /**
      * Appends $content to the file at $path, creating the file when missing.
      *
-     * @throws RuntimeException When the file cannot be appended to.
+     * @throws RuntimeException when the file cannot be appended to
      */
-    public static function append(string $path, string $content): void {
+    public static function append(string $path, string $content): void
+    {
         if (file_put_contents($path, $content, FILE_APPEND) === false) {
-            throw new RuntimeException("Cannot append to file: $path");
+            throw new RuntimeException("Cannot append to file: {$path}");
         }
     }
 
@@ -61,55 +90,62 @@ final class File {
      * Sets the modification (and access) time of $path to $time, defaulting to
      * now. Creates an empty file when $path does not exist.
      *
-     * @param int|null $time Unix timestamp; null uses the current time.
-     * @throws RuntimeException When the file cannot be touched.
+     * @param null|int $time unix timestamp; null uses the current time
+     *
+     * @throws RuntimeException when the file cannot be touched
      */
-    public static function touch(string $path, ?int $time = null): void {
+    public static function touch(string $path, ?int $time = null): void
+    {
         $ok = $time === null ? touch($path) : touch($path, $time);
         if (!$ok) {
-            throw new RuntimeException("Cannot touch file: $path");
+            throw new RuntimeException("Cannot touch file: {$path}");
         }
     }
 
     /**
      * Returns true when $path exists (file, directory, or symlink).
      */
-    public static function exists(string $path): bool {
+    public static function exists(string $path): bool
+    {
         return file_exists($path);
     }
 
     /**
      * Returns true when $path is an existing regular file.
      */
-    public static function isFile(string $path): bool {
+    public static function isFile(string $path): bool
+    {
         return is_file($path);
     }
 
     /**
      * Returns true when $path is an existing directory.
      */
-    public static function isDir(string $path): bool {
+    public static function isDir(string $path): bool
+    {
         return is_dir($path);
     }
 
     /**
      * Deletes the file at $path. No-op when it does not exist.
      *
-     * @throws RuntimeException When the file exists but cannot be deleted.
+     * @throws RuntimeException when the file exists but cannot be deleted
      */
-    public static function delete(string $path): void {
+    public static function delete(string $path): void
+    {
         if (!file_exists($path)) {
             return;
         }
         if (!unlink($path)) {
-            throw new RuntimeException("Cannot delete file: $path");
+            throw new RuntimeException("Cannot delete file: {$path}");
         }
     }
 
     /**
      * Returns the extension of $path (without the leading dot) or '' when none.
      */
-    public static function ext(string $path): string {
+    public static function ext(string $path): string
+    {
         return pathinfo($path, PATHINFO_EXTENSION);
     }
 
@@ -117,14 +153,16 @@ final class File {
      * Returns the trailing name component of $path, optionally stripping the
      * given $suffix.
      */
-    public static function basename(string $path, string $suffix = ''): string {
+    public static function basename(string $path, string $suffix = ''): string
+    {
         return basename($path, $suffix);
     }
 
     /**
      * Returns the parent-directory portion of $path.
      */
-    public static function dirname(string $path): string {
+    public static function dirname(string $path): string
+    {
         return dirname($path);
     }
 
@@ -132,24 +170,27 @@ final class File {
      * Returns the canonical absolute path of $path, resolving symlinks and
      * `.`/`..` segments. The path must exist on disk.
      *
-     * @throws RuntimeException When $path does not exist or cannot be resolved.
+     * @throws RuntimeException when $path does not exist or cannot be resolved
      */
-    public static function realpath(string $path): string {
+    public static function realpath(string $path): string
+    {
         $resolved = realpath($path);
         if ($resolved === false) {
-            throw new RuntimeException("Cannot resolve path: $path");
+            throw new RuntimeException("Cannot resolve path: {$path}");
         }
+
         return $resolved;
     }
 
     /**
      * Returns the MIME type of $path (e.g. "image/png"), detected via fileinfo.
      *
-     * @throws RuntimeException When the file is missing or the type cannot be determined.
+     * @throws RuntimeException when the file is missing or the type cannot be determined
      */
-    public static function mime(string $path): string {
+    public static function mime(string $path): string
+    {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: $path");
+            throw new RuntimeException("File not found: {$path}");
         }
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         if ($finfo === false) {
@@ -157,24 +198,27 @@ final class File {
         }
         $type = finfo_file($finfo, $path);
         if ($type === false) {
-            throw new RuntimeException("Cannot determine mime type: $path");
+            throw new RuntimeException("Cannot determine mime type: {$path}");
         }
+
         return $type;
     }
 
     /**
      * Returns the size of the file at $path in bytes.
      *
-     * @throws RuntimeException When the file is missing or its size cannot be read.
+     * @throws RuntimeException when the file is missing or its size cannot be read
      */
-    public static function size(string $path): int {
+    public static function size(string $path): int
+    {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: $path");
+            throw new RuntimeException("File not found: {$path}");
         }
         $size = filesize($path);
         if ($size === false) {
-            throw new RuntimeException("Cannot determine file size: $path");
+            throw new RuntimeException("Cannot determine file size: {$path}");
         }
+
         return $size;
     }
 
@@ -182,17 +226,20 @@ final class File {
      * Lazily yields each line of the file at $path, stripped of trailing CR/LF.
      * The file handle is closed automatically when iteration ends or aborts.
      *
-     * @throws RuntimeException When the file is missing or cannot be opened.
      * @return Generator<int, string>
+     *
+     * @throws RuntimeException when the file is missing or cannot be opened
      */
-    public static function lines(string $path): Generator {
+    public static function lines(string $path): Generator
+    {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: $path");
+            throw new RuntimeException("File not found: {$path}");
         }
         $handle = fopen($path, 'rb');
         if ($handle === false) {
-            throw new RuntimeException("Cannot open file: $path");
+            throw new RuntimeException("Cannot open file: {$path}");
         }
+
         try {
             while (($line = fgets($handle)) !== false) {
                 yield Str::trimEnd($line, "\r\n");
@@ -206,41 +253,45 @@ final class File {
      * Creates a new empty temporary file in the system temp dir and returns its
      * absolute path. $prefix defaults to "utl".
      *
-     * @throws RuntimeException When the temp file cannot be created.
+     * @throws RuntimeException when the temp file cannot be created
      */
-    public static function temp(?string $prefix = null): string {
+    public static function temp(?string $prefix = null): string
+    {
         $path = tempnam(sys_get_temp_dir(), $prefix ?? 'utl');
         if ($path === false) {
             throw new RuntimeException('Cannot create temp file.');
         }
+
         return $path;
     }
 
     /**
      * Copies $source to $target, overwriting an existing $target.
      *
-     * @throws RuntimeException When $source is missing or the copy fails.
+     * @throws RuntimeException when $source is missing or the copy fails
      */
-    public static function copy(string $source, string $target): void {
+    public static function copy(string $source, string $target): void
+    {
         if (!is_file($source)) {
-            throw new RuntimeException("Source file not found: $source");
+            throw new RuntimeException("Source file not found: {$source}");
         }
         if (!copy($source, $target)) {
-            throw new RuntimeException("Cannot copy $source to $target.");
+            throw new RuntimeException("Cannot copy {$source} to {$target}.");
         }
     }
 
     /**
      * Moves $source to $target (atomic rename when on the same filesystem).
      *
-     * @throws RuntimeException When $source is missing or the move fails.
+     * @throws RuntimeException when $source is missing or the move fails
      */
-    public static function move(string $source, string $target): void {
+    public static function move(string $source, string $target): void
+    {
         if (!is_file($source)) {
-            throw new RuntimeException("Source file not found: $source");
+            throw new RuntimeException("Source file not found: {$source}");
         }
         if (!rename($source, $target)) {
-            throw new RuntimeException("Cannot move $source to $target.");
+            throw new RuntimeException("Cannot move {$source} to {$target}.");
         }
     }
 
@@ -248,14 +299,15 @@ final class File {
      * Creates the directory at $path. Recursive by default. No-op when the
      * directory already exists.
      *
-     * @throws RuntimeException When the directory cannot be created.
+     * @throws RuntimeException when the directory cannot be created
      */
-    public static function mkdir(string $path, bool $recursive = true, int $mode = 0777): void {
+    public static function mkdir(string $path, bool $recursive = true, int $mode = 0777): void
+    {
         if (is_dir($path)) {
             return;
         }
         if (!mkdir($path, $mode, $recursive) && !is_dir($path)) {
-            throw new RuntimeException("Cannot create directory: $path");
+            throw new RuntimeException("Cannot create directory: {$path}");
         }
     }
 
@@ -263,17 +315,20 @@ final class File {
      * Returns the entries in $dir matching the glob $pattern (default '*' —
      * everything except dotfiles), as a 0-indexed list of absolute paths.
      *
-     * @throws RuntimeException When $dir is not a directory or cannot be listed.
      * @return list<string>
+     *
+     * @throws RuntimeException when $dir is not a directory or cannot be listed
      */
-    public static function list(string $dir, string $pattern = '*'): array {
+    public static function list(string $dir, string $pattern = '*'): array
+    {
         if (!is_dir($dir)) {
-            throw new RuntimeException("Directory not found: $dir");
+            throw new RuntimeException("Directory not found: {$dir}");
         }
-        $result = glob(Str::trimEnd($dir, '/\\') . DIRECTORY_SEPARATOR . $pattern);
+        $result = glob(Str::trimEnd($dir, '/\\').DIRECTORY_SEPARATOR.$pattern);
         if ($result === false) {
-            throw new RuntimeException("Cannot list directory: $dir");
+            throw new RuntimeException("Cannot list directory: {$dir}");
         }
+
         return $result;
     }
 
@@ -282,8 +337,9 @@ final class File {
      * strings. Fully blank lines are skipped. $escape defaults to '' (no escape
      * character), matching the modern CSV behaviour PHP 8.4 recommends.
      *
-     * @throws RuntimeException When the file is missing or cannot be opened.
-     * @return list<list<string|null>>
+     * @return list<list<null|string>>
+     *
+     * @throws RuntimeException when the file is missing or cannot be opened
      */
     public static function readCsv(
         string $path,
@@ -292,12 +348,13 @@ final class File {
         string $escape = '',
     ): array {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: $path");
+            throw new RuntimeException("File not found: {$path}");
         }
         $handle = fopen($path, 'rb');
         if ($handle === false) {
-            throw new RuntimeException("Cannot open file: $path");
+            throw new RuntimeException("Cannot open file: {$path}");
         }
+
         try {
             $rows = [];
             while (($row = fgetcsv($handle, null, $separator, $enclosure, $escape)) !== false) {
@@ -306,6 +363,7 @@ final class File {
                 }
                 $rows[] = $row;
             }
+
             return $rows;
         } finally {
             fclose($handle);
@@ -317,8 +375,9 @@ final class File {
      * row is an array of fields cast to string. $escape defaults to '' (no escape
      * character), matching the modern CSV behaviour PHP 8.4 recommends.
      *
-     * @param iterable<array<array-key, string|int|float|bool|null|\Stringable>> $rows
-     * @throws RuntimeException When the file cannot be opened or a row cannot be written.
+     * @param iterable<array<array-key, null|bool|float|int|string|Stringable>> $rows
+     *
+     * @throws RuntimeException when the file cannot be opened or a row cannot be written
      */
     public static function writeCsv(
         string $path,
@@ -329,12 +388,13 @@ final class File {
     ): void {
         $handle = fopen($path, 'wb');
         if ($handle === false) {
-            throw new RuntimeException("Cannot open file for writing: $path");
+            throw new RuntimeException("Cannot open file for writing: {$path}");
         }
+
         try {
             foreach ($rows as $row) {
                 if (fputcsv($handle, $row, $separator, $enclosure, $escape, "\n") === false) {
-                    throw new RuntimeException("Cannot write CSV row to: $path");
+                    throw new RuntimeException("Cannot write CSV row to: {$path}");
                 }
             }
         } finally {

@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function array_pop, implode, min, strrpos, substr;
+
+use function array_pop;
+use function implode;
+use function min;
+use function strrpos;
+use function substr;
 
 /**
  * Logical path manipulation — pure string operations that never touch the disk.
@@ -17,20 +22,23 @@ use function array_pop, implode, min, strrpos, substr;
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class Path {
+final class Path
+{
     private function __construct() {}
 
     /**
      * Returns true when $path is absolute: starts with `/` or `\` (POSIX / UNC),
      * or with a Windows drive letter (e.g. `C:`, `c:/users`).
      */
-    public static function isAbsolute(string $path): bool {
+    public static function isAbsolute(string $path): bool
+    {
         if ($path === '') {
             return false;
         }
         if ($path[0] === '/' || $path[0] === '\\') {
             return true;
         }
+
         return Str::byteLen($path) >= 2 && $path[1] === ':' && Str::isAlpha($path[0]);
     }
 
@@ -40,7 +48,8 @@ final class Path {
      * (not as an absolute reset). Only the first part decides whether the
      * result is absolute.
      */
-    public static function join(string ...$parts): string {
+    public static function join(string ...$parts): string
+    {
         $segments = [];
         foreach ($parts as $part) {
             if ($part === '') {
@@ -52,9 +61,10 @@ final class Path {
             return '';
         }
         $joined = $segments[0];
-        for ($i = 1, $n = Arr::count($segments); $i < $n; $i++) {
-            $joined = Str::trimEnd($joined, '/') . '/' . Str::trimStart($segments[$i], '/');
+        for ($i = 1, $n = Arr::count($segments); $i < $n; ++$i) {
+            $joined = Str::trimEnd($joined, '/').'/'.Str::trimStart($segments[$i], '/');
         }
+
         return self::normalize($joined);
     }
 
@@ -63,7 +73,8 @@ final class Path {
      * converts every `\` to `/`. An absolute path that walks past its root
      * stays at the root; a relative path may keep leading `..` segments.
      */
-    public static function normalize(string $path): string {
+    public static function normalize(string $path): string
+    {
         if ($path === '') {
             return '';
         }
@@ -72,7 +83,7 @@ final class Path {
         $drive = '';
         $driveMatch = Regex::matchOrNull('#^([a-zA-Z]):#', $unified);
         if ($driveMatch !== null) {
-            $drive = Str::upper($driveMatch[1]) . ':';
+            $drive = Str::upper($driveMatch[1]).':';
             $unified = substr($unified, 2);
         }
 
@@ -89,6 +100,7 @@ final class Path {
                 } elseif (!$isAbsolute && $drive === '') {
                     $stack[] = '..';
                 }
+
                 continue;
             }
             $stack[] = $segment;
@@ -96,11 +108,12 @@ final class Path {
 
         $joined = implode('/', $stack);
         if ($drive !== '') {
-            return $drive . ($isAbsolute || $joined !== '' ? '/' : '') . $joined;
+            return $drive.($isAbsolute || $joined !== '' ? '/' : '').$joined;
         }
         if ($isAbsolute) {
-            return '/' . $joined;
+            return '/'.$joined;
         }
+
         return $joined === '' ? '.' : $joined;
     }
 
@@ -109,10 +122,11 @@ final class Path {
      * paths must be either both absolute or both relative; on Windows, the
      * drive letters must match.
      *
-     * @throws RuntimeException When $from and $to cannot be related (mismatched
-     *                          anchors or drives).
+     * @throws RuntimeException when $from and $to cannot be related (mismatched
+     *                          anchors or drives)
      */
-    public static function relative(string $from, string $to): string {
+    public static function relative(string $from, string $to): string
+    {
         $fromNorm = self::normalize($from);
         $toNorm = self::normalize($to);
         if (self::isAbsolute($fromNorm) !== self::isAbsolute($toNorm)) {
@@ -123,7 +137,8 @@ final class Path {
         if ($fromDrive !== $toDrive) {
             $fromLabel = $fromDrive ?: '(none)';
             $toLabel = $toDrive ?: '(none)';
-            throw new RuntimeException("Cannot compute relative path across drives $fromLabel and $toLabel.");
+
+            throw new RuntimeException("Cannot compute relative path across drives {$fromLabel} and {$toLabel}.");
         }
 
         $fromBody = $fromDrive !== '' ? substr($fromNorm, Str::byteLen($fromDrive)) : $fromNorm;
@@ -135,18 +150,19 @@ final class Path {
         $common = 0;
         $max = min(Arr::count($fromParts), Arr::count($toParts));
         while ($common < $max && $fromParts[$common] === $toParts[$common]) {
-            $common++;
+            ++$common;
         }
 
         $up = Arr::count($fromParts) - $common;
         $down = Arr::slice($toParts, $common);
         $result = [];
-        for ($i = 0; $i < $up; $i++) {
+        for ($i = 0; $i < $up; ++$i) {
             $result[] = '..';
         }
         foreach ($down as $segment) {
             $result[] = $segment;
         }
+
         return $result === [] ? '.' : implode('/', $result);
     }
 
@@ -154,7 +170,8 @@ final class Path {
      * Returns the trailing name component of $path (the part after the last
      * separator), optionally stripping the given $suffix.
      */
-    public static function basename(string $path, string $suffix = ''): string {
+    public static function basename(string $path, string $suffix = ''): string
+    {
         $unified = Str::replace($path, '\\', '/');
         $unified = Str::trimEnd($unified, '/');
         if ($unified === '') {
@@ -168,6 +185,7 @@ final class Path {
                 $base = substr($base, 0, -$suffixLen);
             }
         }
+
         return $base;
     }
 
@@ -175,7 +193,8 @@ final class Path {
      * Returns the parent-directory portion of $path. For a bare basename
      * (no separator), returns `.`. For the root, returns the root itself.
      */
-    public static function dirname(string $path): string {
+    public static function dirname(string $path): string
+    {
         if ($path === '') {
             return '.';
         }
@@ -183,18 +202,19 @@ final class Path {
         $drive = '';
         $driveMatch = Regex::matchOrNull('#^([a-zA-Z]):#', $unified);
         if ($driveMatch !== null) {
-            $drive = Str::upper($driveMatch[1]) . ':';
+            $drive = Str::upper($driveMatch[1]).':';
             $unified = substr($unified, 2);
         }
         $trimmed = Str::trimEnd($unified, '/');
         $pos = strrpos($trimmed, '/');
         if ($pos === false) {
-            return $drive !== '' ? ($unified !== '' && $unified[0] === '/' ? $drive . '/' : $drive) : '.';
+            return $drive !== '' ? ($unified !== '' && $unified[0] === '/' ? $drive.'/' : $drive) : '.';
         }
         if ($pos === 0) {
-            return $drive . '/';
+            return $drive.'/';
         }
-        return $drive . substr($trimmed, 0, $pos);
+
+        return $drive.substr($trimmed, 0, $pos);
     }
 
     /**
@@ -202,7 +222,8 @@ final class Path {
      * basename), without the leading dot. Returns `''` when the basename has
      * no `.` or starts with `.` (dotfile with no further dot).
      */
-    public static function ext(string $path): string {
+    public static function ext(string $path): string
+    {
         $base = self::basename($path);
         if ($base === '' || $base === '.' || $base === '..') {
             return '';
@@ -211,6 +232,7 @@ final class Path {
         if ($pos === false || $pos === 0) {
             return '';
         }
+
         return substr($base, $pos + 1);
     }
 
@@ -218,7 +240,8 @@ final class Path {
      * Returns the basename of $path with its extension removed (or the bare
      * basename when there is no extension).
      */
-    public static function filename(string $path): string {
+    public static function filename(string $path): string
+    {
         $base = self::basename($path);
         if ($base === '' || $base === '.' || $base === '..') {
             return $base;
@@ -227,16 +250,19 @@ final class Path {
         if ($pos === false || $pos === 0) {
             return $base;
         }
+
         return substr($base, 0, $pos);
     }
 
     /**
      * Extracts the Windows drive prefix (e.g. `C:`) from $path, or returns `''`.
      */
-    private static function driveOf(string $path): string {
+    private static function driveOf(string $path): string
+    {
         if (Str::byteLen($path) >= 2 && $path[1] === ':' && Str::isAlpha($path[0])) {
-            return Str::upper($path[0]) . ':';
+            return Str::upper($path[0]).':';
         }
+
         return '';
     }
 
@@ -246,7 +272,8 @@ final class Path {
      *
      * @return list<string>
      */
-    private static function splitBody(string $body): array {
+    private static function splitBody(string $body): array
+    {
         if ($body === '' || $body === '/' || $body === '.') {
             return [];
         }
@@ -260,6 +287,7 @@ final class Path {
                 $parts[] = $segment;
             }
         }
+
         return $parts;
     }
 }

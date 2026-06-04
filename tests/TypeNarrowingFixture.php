@@ -19,8 +19,10 @@ use Rak200\Utils\Type;
  * or runs it — `PHPStan\Testing\assertType()` has no runtime definition
  * (it is resolved only during static analysis).
  */
-final class TypeNarrowingFixture {
-    public function scalars(mixed $value): void {
+final class TypeNarrowingFixture
+{
+    public function scalars(mixed $value): void
+    {
         if (Type::isStr($value)) {
             \PHPStan\Testing\assertType('string', $value);
         }
@@ -39,13 +41,15 @@ final class TypeNarrowingFixture {
     }
 
     /** Mirrors Caster::toNumber(): the int|float branch must cast to numeric-string. */
-    public function numberConstruction(mixed $value): void {
+    public function numberConstruction(mixed $value): void
+    {
         if (Type::isInt($value) || Type::isFloat($value)) {
             \PHPStan\Testing\assertType('float|int', $value);
         }
     }
 
-    public function instanceOf(mixed $value): void {
+    public function instanceOf(mixed $value): void
+    {
         if (Type::isInstance($value, ArrayIterator::class)) {
             \PHPStan\Testing\assertType(ArrayIterator::class, $value);
         }

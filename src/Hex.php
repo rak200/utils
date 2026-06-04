@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use RuntimeException;
-use function bin2hex, ctype_xdigit, dechex, hex2bin, hexdec;
+
+use function bin2hex;
+use function ctype_xdigit;
+use function dechex;
+use function hex2bin;
+use function hexdec;
 
 /**
  * Hexadecimal encoding of binary strings — the byte-string ↔ hex-string
@@ -13,7 +18,8 @@ use function bin2hex, ctype_xdigit, dechex, hex2bin, hexdec;
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class Hex {
+final class Hex
+{
     private function __construct() {}
 
     /**
@@ -21,17 +27,20 @@ final class Hex {
      * of hexadecimal digits (`0-9`, `a-f`, `A-F`). The empty string is a valid
      * encoding (decodes to ``).
      */
-    public static function is(string $value): bool {
+    public static function is(string $value): bool
+    {
         if ($value === '') {
             return true;
         }
+
         return Str::len($value) % 2 === 0 && ctype_xdigit($value);
     }
 
     /**
      * Encodes a binary string as lowercase hexadecimal (two digits per byte).
      */
-    public static function encode(string $value): string {
+    public static function encode(string $value): string
+    {
         return bin2hex($value);
     }
 
@@ -39,13 +48,15 @@ final class Hex {
      * Decodes a hexadecimal string back to its binary form. Accepts upper- and
      * lowercase digits.
      *
-     * @throws RuntimeException When $value is not valid hex (odd length or a
-     *                          non-hex character).
+     * @throws RuntimeException when $value is not valid hex (odd length or a
+     *                          non-hex character)
      */
-    public static function decode(string $value): string {
+    public static function decode(string $value): string
+    {
         if (!self::is($value) || ($result = hex2bin($value)) === false) {
             throw new RuntimeException('Invalid hex input.');
         }
+
         return $result;
     }
 
@@ -54,10 +65,12 @@ final class Hex {
      * Accepts upper- and lowercase digits; the empty string yields `[]`.
      *
      * @return list<int>
-     * @throws RuntimeException When $value is not valid hex (odd length or a
-     *                          non-hex character).
+     *
+     * @throws RuntimeException when $value is not valid hex (odd length or a
+     *                          non-hex character)
      */
-    public static function toBytes(string $value): array {
+    public static function toBytes(string $value): array
+    {
         if (!self::is($value)) {
             throw new RuntimeException('Invalid hex input.');
         }
@@ -65,6 +78,7 @@ final class Hex {
         foreach (Str::split($value, limit: 2) as $pair) {
             $bytes[] = (int) hexdec($pair);
         }
+
         return $bytes;
     }
 
@@ -73,16 +87,19 @@ final class Hex {
      * digits per byte). The empty array yields ``.
      *
      * @param array<int> $bytes
-     * @throws RuntimeException When a value is outside the 0–255 byte range.
+     *
+     * @throws RuntimeException when a value is outside the 0–255 byte range
      */
-    public static function fromBytes(array $bytes): string {
+    public static function fromBytes(array $bytes): string
+    {
         $hex = '';
         foreach ($bytes as $byte) {
             if ($byte < 0 || $byte > 255) {
-                throw new RuntimeException("Byte value out of range (0-255): $byte.");
+                throw new RuntimeException("Byte value out of range (0-255): {$byte}.");
             }
             $hex .= Str::padStart(dechex($byte), 2, '0');
         }
+
         return $hex;
     }
 }

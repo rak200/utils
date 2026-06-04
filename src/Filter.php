@@ -5,8 +5,14 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use Stringable;
-use function filter_var, function_exists, htmlspecialchars, htmlspecialchars_decode,
-    iconv, preg_replace, strip_tags;
+
+use function filter_var;
+use function function_exists;
+use function htmlspecialchars;
+use function htmlspecialchars_decode;
+use function iconv;
+use function preg_replace;
+use function strip_tags;
 
 /**
  * Input sanitisation and lenient coercion of untrusted values.
@@ -27,7 +33,8 @@ use function filter_var, function_exists, htmlspecialchars, htmlspecialchars_dec
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class Filter {
+final class Filter
+{
     private function __construct() {}
 
     /**
@@ -36,7 +43,8 @@ final class Filter {
      * `ENT_QUOTES | ENT_SUBSTITUTE`, UTF-8). Pass $doubleEncode = false to leave
      * existing entities (e.g. `&amp;`) untouched.
      */
-    public static function escapeHtml(string $value, bool $doubleEncode = true): string {
+    public static function escapeHtml(string $value, bool $doubleEncode = true): string
+    {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', $doubleEncode);
     }
 
@@ -44,7 +52,8 @@ final class Filter {
      * Reverses {@see escapeHtml()}: turns HTML entities back into the literal
      * `& < > " '` characters.
      */
-    public static function unescapeHtml(string $value): string {
+    public static function unescapeHtml(string $value): string
+    {
         return htmlspecialchars_decode($value, ENT_QUOTES | ENT_SUBSTITUTE);
     }
 
@@ -52,21 +61,24 @@ final class Filter {
      * Strips HTML and PHP tags from $value. $allowedTags is a list of tags to
      * keep, in the legacy string form (e.g. `'<p><a>'`).
      */
-    public static function stripTags(string $value, string $allowedTags = ''): string {
+    public static function stripTags(string $value, string $allowedTags = ''): string
+    {
         return strip_tags($value, $allowedTags);
     }
 
     /**
      * Removes every character of $value that is not an ASCII digit (`0-9`).
      */
-    public static function digits(string $value): string {
+    public static function digits(string $value): string
+    {
         return preg_replace('/[^0-9]+/', '', $value) ?? '';
     }
 
     /**
      * Removes every character of $value that is not a Unicode letter (`\p{L}`).
      */
-    public static function alpha(string $value): string {
+    public static function alpha(string $value): string
+    {
         return preg_replace('/[^\p{L}]+/u', '', $value) ?? '';
     }
 
@@ -74,7 +86,8 @@ final class Filter {
      * Removes every character of $value that is not a Unicode letter (`\p{L}`)
      * or number (`\p{N}`).
      */
-    public static function alnum(string $value): string {
+    public static function alnum(string $value): string
+    {
         return preg_replace('/[^\p{L}\p{N}]+/u', '', $value) ?? '';
     }
 
@@ -82,7 +95,8 @@ final class Filter {
      * Collapses every run of whitespace in $value into a single space and trims
      * the ends.
      */
-    public static function squish(string $value): string {
+    public static function squish(string $value): string
+    {
         return Str::trim(preg_replace('/\s+/u', ' ', $value) ?? '');
     }
 
@@ -90,7 +104,8 @@ final class Filter {
      * Removes ASCII and Unicode control characters (`\p{Cc}` — the C0/C1
      * ranges, including null bytes, escapes, tabs, and newlines) from $value.
      */
-    public static function stripControl(string $value): string {
+    public static function stripControl(string $value): string
+    {
         return preg_replace('/\p{Cc}/u', '', $value) ?? '';
     }
 
@@ -100,13 +115,15 @@ final class Filter {
      * untranslatable characters are dropped. Returns $value unchanged when the
      * iconv extension is unavailable or transliteration fails.
      */
-    public static function ascii(string $value): string {
+    public static function ascii(string $value): string
+    {
         if (function_exists('iconv')) {
             $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
             if ($transliterated !== false) {
                 return $transliterated;
             }
         }
+
         return $value;
     }
 
@@ -115,7 +132,8 @@ final class Filter {
      * ({@see FILTER_SANITIZE_EMAIL}). Sanitisation only — it does not validate;
      * use {@see Type} guards or PHP's validation filters for that.
      */
-    public static function email(string $value): string {
+    public static function email(string $value): string
+    {
         return (string) filter_var($value, FILTER_SANITIZE_EMAIL);
     }
 
@@ -123,7 +141,8 @@ final class Filter {
      * Removes characters not allowed in a URL ({@see FILTER_SANITIZE_URL}).
      * Sanitisation only — it does not validate; see {@see Url::is()} for that.
      */
-    public static function url(string $value): string {
+    public static function url(string $value): string
+    {
         return (string) filter_var($value, FILTER_SANITIZE_URL);
     }
 
@@ -133,13 +152,15 @@ final class Filter {
      * objects yield $default. Note the native bool cast — `true → "1"`,
      * `false → ""`.
      */
-    public static function toStr(mixed $value, ?string $default = null): ?string {
+    public static function toStr(mixed $value, ?string $default = null): ?string
+    {
         if (Str::is($value)) {
             return $value;
         }
         if (Num::isInt($value) || Num::isFloat($value) || Type::isBool($value) || Type::isA($value, Stringable::class)) {
             return (string) $value;
         }
+
         return $default;
     }
 
@@ -150,7 +171,8 @@ final class Filter {
      * non-integral floats, bools, and numeric strings with a decimal point —
      * yields $default.
      */
-    public static function toInt(mixed $value, ?int $default = null): ?int {
+    public static function toInt(mixed $value, ?int $default = null): ?int
+    {
         if (Num::isInt($value)) {
             return $value;
         }
@@ -160,6 +182,7 @@ final class Filter {
         if (Num::isFloat($value) && Num::isFinite($value) && Num::floor($value) === $value) {
             return (int) $value;
         }
+
         return $default;
     }
 
@@ -168,13 +191,15 @@ final class Filter {
      * and parsed (via {@see Num::parseFloatOrNull()}). Anything else yields
      * $default.
      */
-    public static function toFloat(mixed $value, ?float $default = null): ?float {
+    public static function toFloat(mixed $value, ?float $default = null): ?float
+    {
         if (Num::isInt($value) || Num::isFloat($value)) {
             return (float) $value;
         }
         if (Str::is($value)) {
             return Num::parseFloatOrNull(Str::trim($value)) ?? $default;
         }
+
         return $default;
     }
 
@@ -184,7 +209,8 @@ final class Filter {
      * `"true"`, `"on"`, `"yes"` are true and `"0"`, `"false"`, `"off"`, `"no"`,
      * `""` are false. Anything else yields $default.
      */
-    public static function toBool(mixed $value, ?bool $default = null): ?bool {
+    public static function toBool(mixed $value, ?bool $default = null): ?bool
+    {
         if (Type::isBool($value)) {
             return $value;
         }
@@ -202,6 +228,7 @@ final class Filter {
                 default => $default,
             };
         }
+
         return $default;
     }
 }

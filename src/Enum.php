@@ -19,7 +19,8 @@ use UnitEnum;
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class Enum {
+final class Enum
+{
     private function __construct() {}
 
     /**
@@ -27,9 +28,11 @@ final class Enum {
      * Domain predicate for {@see Enum}; {@see Type::isEnum()} is an alias.
      *
      * @phpstan-assert-if-true UnitEnum $value
+     *
      * @phpstan-assert-if-false !UnitEnum $value
      */
-    public static function is(mixed $value): bool {
+    public static function is(mixed $value): bool
+    {
         return $value instanceof UnitEnum;
     }
 
@@ -39,9 +42,11 @@ final class Enum {
      * and {@see isBackedStr()}.
      *
      * @phpstan-assert-if-true BackedEnum $value
+     *
      * @phpstan-assert-if-false !BackedEnum $value
      */
-    public static function isBacked(mixed $value): bool {
+    public static function isBacked(mixed $value): bool
+    {
         return $value instanceof BackedEnum;
     }
 
@@ -49,13 +54,16 @@ final class Enum {
      * Returns the names of every case in $enumClass, in declaration order.
      *
      * @param class-string<UnitEnum> $enumClass
+     *
      * @return list<string>
      */
-    public static function names(string $enumClass): array {
+    public static function names(string $enumClass): array
+    {
         $names = [];
         foreach ($enumClass::cases() as $case) {
             $names[] = $case->name;
         }
+
         return $names;
     }
 
@@ -63,17 +71,21 @@ final class Enum {
      * Returns the backed values of every case in $enumClass, in declaration order.
      *
      * @param class-string<UnitEnum> $enumClass
+     *
      * @return list<int|string>
-     * @throws RuntimeException When $enumClass is not a backed enum.
+     *
+     * @throws RuntimeException when $enumClass is not a backed enum
      */
-    public static function values(string $enumClass): array {
+    public static function values(string $enumClass): array
+    {
         if (!Type::isSubclass($enumClass, BackedEnum::class)) {
-            throw new RuntimeException("$enumClass is not a backed enum.");
+            throw new RuntimeException("{$enumClass} is not a backed enum.");
         }
         $values = [];
         foreach ($enumClass::cases() as $case) {
             $values[] = $case->value;
         }
+
         return $values;
     }
 
@@ -81,15 +93,20 @@ final class Enum {
      * Returns the case of $enumClass whose name is $name.
      *
      * @template T of UnitEnum
+     *
      * @param class-string<T> $enumClass
+     *
      * @return T
-     * @throws RuntimeException When no case has that name.
+     *
+     * @throws RuntimeException when no case has that name
      */
-    public static function fromName(string $enumClass, string $name): UnitEnum {
+    public static function fromName(string $enumClass, string $name): UnitEnum
+    {
         $case = self::tryFromName($enumClass, $name);
         if ($case === null) {
-            throw new RuntimeException("$enumClass has no case named \"$name\".");
+            throw new RuntimeException("{$enumClass} has no case named \"{$name}\".");
         }
+
         return $case;
     }
 
@@ -98,15 +115,19 @@ final class Enum {
      * matches.
      *
      * @template T of UnitEnum
+     *
      * @param class-string<T> $enumClass
-     * @return T|null
+     *
+     * @return null|T
      */
-    public static function tryFromName(string $enumClass, string $name): ?UnitEnum {
+    public static function tryFromName(string $enumClass, string $name): ?UnitEnum
+    {
         foreach ($enumClass::cases() as $case) {
             if ($case->name === $name) {
                 return $case;
             }
         }
+
         return null;
     }
 
@@ -114,15 +135,20 @@ final class Enum {
      * Returns a cryptographically-secure random case of $enumClass.
      *
      * @template T of UnitEnum
+     *
      * @param class-string<T> $enumClass
+     *
      * @return T
-     * @throws RuntimeException When $enumClass has no cases.
+     *
+     * @throws RuntimeException when $enumClass has no cases
      */
-    public static function random(string $enumClass): UnitEnum {
+    public static function random(string $enumClass): UnitEnum
+    {
         $cases = $enumClass::cases();
         if ($cases === []) {
-            throw new RuntimeException("$enumClass has no cases.");
+            throw new RuntimeException("{$enumClass} has no cases.");
         }
+
         return Rand::choice($cases);
     }
 
@@ -131,13 +157,16 @@ final class Enum {
      * for a pure enum. Useful for form/select option lists.
      *
      * @param class-string<UnitEnum> $enumClass
+     *
      * @return array<string, int|string>
      */
-    public static function toArray(string $enumClass): array {
+    public static function toArray(string $enumClass): array
+    {
         $map = [];
         foreach ($enumClass::cases() as $case) {
-            $map[$case->name] = static::scalar($case);
+            $map[$case->name] = self::scalar($case);
         }
+
         return $map;
     }
 
@@ -145,8 +174,9 @@ final class Enum {
      * Returns a single scalar representation of $case — the backed value for a
      * backed enum case, or the name for a pure enum case.
      */
-    public static function scalar(UnitEnum $case): int|string {
-        return static::isBacked($case) ? $case->value : $case->name;
+    public static function scalar(UnitEnum $case): int|string
+    {
+        return self::isBacked($case) ? $case->value : $case->name;
     }
 
     /**
@@ -154,8 +184,9 @@ final class Enum {
      *
      * @phpstan-assert-if-true BackedEnum $case && int $case->value
      */
-    public static function isBackedInt(UnitEnum $case): bool {
-        return static::isBacked($case) && Num::isInt($case->value);
+    public static function isBackedInt(UnitEnum $case): bool
+    {
+        return self::isBacked($case) && Num::isInt($case->value);
     }
 
     /**
@@ -163,7 +194,8 @@ final class Enum {
      *
      * @phpstan-assert-if-true BackedEnum $case && string $case->value
      */
-    public static function isBackedStr(UnitEnum $case): bool {
-        return static::isBacked($case) && Type::isStr($case->value);
+    public static function isBackedStr(UnitEnum $case): bool
+    {
+        return self::isBacked($case) && Type::isStr($case->value);
     }
 }

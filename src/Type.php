@@ -6,9 +6,24 @@ namespace Rak200\Utils;
 
 use BcMath\Number;
 use UnitEnum;
-use function class_exists, class_parents, class_uses, get_debug_type, interface_exists,
-    is_a, is_bool, is_callable, is_int, is_iterable, is_numeric,
-    is_object, is_resource, is_scalar, is_string, is_subclass_of, trait_exists;
+
+use function class_exists;
+use function class_parents;
+use function class_uses;
+use function get_debug_type;
+use function interface_exists;
+use function is_a;
+use function is_bool;
+use function is_callable;
+use function is_int;
+use function is_iterable;
+use function is_numeric;
+use function is_object;
+use function is_resource;
+use function is_scalar;
+use function is_string;
+use function is_subclass_of;
+use function trait_exists;
 
 /**
  * Type-checking predicates. Every method accepts `mixed` so it can be used as
@@ -21,7 +36,8 @@ use function class_exists, class_parents, class_uses, get_debug_type, interface_
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
-final class Type {
+final class Type
+{
     private function __construct() {}
 
     /**
@@ -31,7 +47,8 @@ final class Type {
      * label for an open resource, or — for objects — the fully-qualified
      * class name (`Closure` and `stdClass` for anonymous values).
      */
-    public static function of(mixed $value): string {
+    public static function of(mixed $value): string
+    {
         return get_debug_type($value);
     }
 
@@ -39,9 +56,11 @@ final class Type {
      * Alias of {@see Str::is()}.
      *
      * @phpstan-assert-if-true string $value
+     *
      * @phpstan-assert-if-false !string $value
      */
-    public static function isStr(mixed $value): bool {
+    public static function isStr(mixed $value): bool
+    {
         return Str::is($value);
     }
 
@@ -49,9 +68,11 @@ final class Type {
      * Returns true if $value is a bool.
      *
      * @phpstan-assert-if-true bool $value
+     *
      * @phpstan-assert-if-false !bool $value
      */
-    public static function isBool(mixed $value): bool {
+    public static function isBool(mixed $value): bool
+    {
         return is_bool($value);
     }
 
@@ -59,9 +80,11 @@ final class Type {
      * Alias of {@see Num::isInt()}.
      *
      * @phpstan-assert-if-true int $value
+     *
      * @phpstan-assert-if-false !int $value
      */
-    public static function isInt(mixed $value): bool {
+    public static function isInt(mixed $value): bool
+    {
         return Num::isInt($value);
     }
 
@@ -69,9 +92,11 @@ final class Type {
      * Alias of {@see Num::isFloat()}.
      *
      * @phpstan-assert-if-true float $value
+     *
      * @phpstan-assert-if-false !float $value
      */
-    public static function isFloat(mixed $value): bool {
+    public static function isFloat(mixed $value): bool
+    {
         return Num::isFloat($value);
     }
 
@@ -79,9 +104,11 @@ final class Type {
      * Alias of {@see Arr::is()}.
      *
      * @phpstan-assert-if-true array<mixed> $value
+     *
      * @phpstan-assert-if-false !array<mixed> $value
      */
-    public static function isArray(mixed $value): bool {
+    public static function isArray(mixed $value): bool
+    {
         return Arr::is($value);
     }
 
@@ -89,20 +116,24 @@ final class Type {
      * Returns true if $value is an object.
      *
      * @phpstan-assert-if-true object $value
+     *
      * @phpstan-assert-if-false !object $value
      */
-    public static function isObject(mixed $value): bool {
+    public static function isObject(mixed $value): bool
+    {
         return is_object($value);
     }
 
     /**
      * Alias of {@see Enum::is()}. Enum class-name strings are not accepted —
-     * use {@see isA()} with {@see \UnitEnum} for that.
+     * use {@see isA()} with {@see UnitEnum} for that.
      *
      * @phpstan-assert-if-true UnitEnum $value
+     *
      * @phpstan-assert-if-false !UnitEnum $value
      */
-    public static function isEnum(mixed $value): bool {
+    public static function isEnum(mixed $value): bool
+    {
         return Enum::is($value);
     }
 
@@ -112,7 +143,8 @@ final class Type {
      *
      * @phpstan-assert-if-true callable $value
      */
-    public static function isCallable(mixed $value): bool {
+    public static function isCallable(mixed $value): bool
+    {
         return is_callable($value);
     }
 
@@ -120,9 +152,11 @@ final class Type {
      * Returns true if $value is iterable (array or {@see \Traversable}).
      *
      * @phpstan-assert-if-true iterable<mixed> $value
+     *
      * @phpstan-assert-if-false !iterable<mixed> $value
      */
-    public static function isIterable(mixed $value): bool {
+    public static function isIterable(mixed $value): bool
+    {
         return is_iterable($value);
     }
 
@@ -130,9 +164,11 @@ final class Type {
      * Returns true if $value is null.
      *
      * @phpstan-assert-if-true null $value
+     *
      * @phpstan-assert-if-false !null $value
      */
-    public static function isNull(mixed $value): bool {
+    public static function isNull(mixed $value): bool
+    {
         return $value === null;
     }
 
@@ -140,9 +176,11 @@ final class Type {
      * Returns true if $value is a scalar (int, float, string, or bool).
      *
      * @phpstan-assert-if-true scalar $value
+     *
      * @phpstan-assert-if-false !scalar $value
      */
-    public static function isScalar(mixed $value): bool {
+    public static function isScalar(mixed $value): bool
+    {
         return is_scalar($value);
     }
 
@@ -151,7 +189,8 @@ final class Type {
      *
      * @phpstan-assert-if-true int|float|numeric-string|Number $value
      */
-    public static function isNumeric(mixed $value): bool {
+    public static function isNumeric(mixed $value): bool
+    {
         return Num::is($value);
     }
 
@@ -160,7 +199,8 @@ final class Type {
      *
      * @phpstan-assert-if-true resource $value
      */
-    public static function isResource(mixed $value): bool {
+    public static function isResource(mixed $value): bool
+    {
         return is_resource($value);
     }
 
@@ -170,9 +210,11 @@ final class Type {
      *
      * @deprecated since 2.1.0, use `Type::isStr($v) && Type::isNumeric($v)`
      *             instead. Will be removed in 3.0.0.
+     *
      * @phpstan-assert-if-true numeric-string $value
      */
-    public static function isNumericStr(mixed $value): bool {
+    public static function isNumericStr(mixed $value): bool
+    {
         return is_string($value) && is_numeric($value)
             && !Str::isWhitespace($value[0]) && !Str::isWhitespace($value[-1]);
     }
@@ -185,15 +227,18 @@ final class Type {
      * @deprecated since 2.1.0, use `Type::isInt($v) || (Type::isStr($v) &&
      *             Regex::matches('/^[+-]?\d+$/', $v))` instead.
      *             Will be removed in 3.0.0.
+     *
      * @phpstan-assert-if-true int|numeric-string $value
      */
-    public static function isIntLike(mixed $value): bool {
+    public static function isIntLike(mixed $value): bool
+    {
         if (is_int($value)) {
             return true;
         }
         if (!is_string($value)) {
             return false;
         }
+
         return Regex::matches('/^[+-]?\d+$/', $value);
     }
 
@@ -203,10 +248,13 @@ final class Type {
      * interface). Class-name strings are not accepted — use {@see isA()}.
      *
      * @template T of object
+     *
      * @param class-string<T> $class
+     *
      * @phpstan-assert-if-true T $value
      */
-    public static function isInstance(mixed $value, string $class): bool {
+    public static function isInstance(mixed $value, string $class): bool
+    {
         return $value instanceof $class;
     }
 
@@ -216,7 +264,8 @@ final class Type {
      *
      * @phpstan-assert-if-true class-string $value
      */
-    public static function isClassName(mixed $value): bool {
+    public static function isClassName(mixed $value): bool
+    {
         return is_string($value) && class_exists($value);
     }
 
@@ -226,7 +275,8 @@ final class Type {
      *
      * @phpstan-assert-if-true class-string $value
      */
-    public static function isInterfaceName(mixed $value): bool {
+    public static function isInterfaceName(mixed $value): bool
+    {
         return is_string($value) && interface_exists($value);
     }
 
@@ -236,13 +286,17 @@ final class Type {
      * string naming a class that is or extends/implements $class.
      *
      * @template T of object
+     *
      * @param class-string<T> $class
+     *
      * @phpstan-assert-if-true T|class-string<T> $value
      */
-    public static function isA(mixed $value, string $class): bool {
+    public static function isA(mixed $value, string $class): bool
+    {
         if (!is_object($value) && !is_string($value)) {
             return false;
         }
+
         return is_a($value, $class, true);
     }
 
@@ -254,13 +308,17 @@ final class Type {
      * {@see is_subclass_of()} with `$allow_string = true`.
      *
      * @template T of object
+     *
      * @param class-string<T> $class
+     *
      * @phpstan-assert-if-true T|class-string<T> $value
      */
-    public static function isSubclass(mixed $value, string $class): bool {
+    public static function isSubclass(mixed $value, string $class): bool
+    {
         if (!is_object($value) && !is_string($value)) {
             return false;
         }
+
         return is_subclass_of($value, $class, true);
     }
 
@@ -271,7 +329,8 @@ final class Type {
      * and traits used by other traits (nested). A string naming no existing
      * class or trait yields false.
      */
-    public static function usesTrait(mixed $value, string $trait, bool $recursive = false): bool {
+    public static function usesTrait(mixed $value, string $trait, bool $recursive = false): bool
+    {
         if (is_string($value)) {
             if (!class_exists($value) && !trait_exists($value)) {
                 return false;
@@ -280,6 +339,7 @@ final class Type {
             return false;
         }
         $traits = $recursive ? self::allTraits($value) : (class_uses($value) ?: []);
+
         return isset($traits[$trait]);
     }
 
@@ -290,13 +350,15 @@ final class Type {
      *
      * @return array<string, string> trait names keyed by themselves
      */
-    private static function allTraits(object|string $value): array {
+    private static function allTraits(object|string $value): array
+    {
         $name = is_object($value) ? $value::class : $value;
         $classes = [$name => $name] + (class_parents($value) ?: []);
         $traits = [];
         foreach ($classes as $class) {
             $traits += self::traitUses($class);
         }
+
         return $traits;
     }
 
@@ -306,11 +368,13 @@ final class Type {
      *
      * @return array<string, string> trait names keyed by themselves
      */
-    private static function traitUses(string $class): array {
+    private static function traitUses(string $class): array
+    {
         $traits = class_uses($class) ?: [];
         foreach ($traits as $used) {
             $traits += self::traitUses($used);
         }
+
         return $traits;
     }
 }

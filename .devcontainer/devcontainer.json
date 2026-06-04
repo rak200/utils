@@ -1,0 +1,10 @@
+{
+    "name": "rak200/utils",
+    "image": "mcr.microsoft.com/devcontainers/php:8.4",
+    "postCreateCommand": "composer install",
+    "customizations": {
+        "vscode": {
+            "extensions": ["bmewburn.vscode-intelephense-client"]
+        }
+    }
+}

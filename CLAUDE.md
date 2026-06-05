@@ -62,12 +62,7 @@ Formatting is enforced by **PHP-CS-Fixer** (`friendsofphp/php-cs-fixer`) with th
 - `composer cs-check` — report violations (`--dry-run --diff`); CI runs this on the PHP 8.4 job and fails on any deviation
 - `composer cs-fix` — apply fixes in place
 
-The preset chose the consolidated/rigid layout deliberately (e.g. class/method braces on their own line, one `use` per statement). A small set of rules is **deliberately overridden** so the strict preset doesn't fight the conventions above — these overrides are intentional and load-bearing, not oversights; removing them would silently reintroduce the conflicts:
-
-- `global_namespace_import` → `import_functions: true` — keeps the `use function` inventory; the preset's default deletes it and FQN-prefixes every native with `\` (killing the "auditable native inventory" rule and the point of first-class callables).
-- `ordered_class_elements` ordered **magic-last** — matches the member order above (the preset default places magic methods *before* non-magic ones).
-- `phpdoc_to_comment` (`ignored_tags: ['var']`) **and** `return_assignment: false` — both protect the inline `@var` idiom that documents a known-true type where a native stub is deficient: the first stops the docblock being demoted to a plain comment, the second stops `$x = …; return $x;` being collapsed into `return …;` (which orphans the `/** @var $x */` above it, breaking PHPStan).
-- `yoda_style: false` — natural comparison order (`$x === null`), not Yoda (`null === $x`).
+The preset is used as-is except for a few **deliberate, load-bearing overrides** that stop it fighting the conventions above (chiefly the `use function` inventory and the member order). Each override carries its rationale inline in [.php-cs-fixer.dist.php](.php-cs-fixer.dist.php) — don't drop one without reading why it's there.
 
 Run PHP-CS-Fixer on PHP 8.4 to match the project floor; on a newer runtime it prints a version warning (and needs `PHP_CS_FIXER_IGNORE_ENV=1`), harmless but noisy.
 
@@ -85,7 +80,7 @@ Tests assert exact behaviour for the contract — return values, thrown exceptio
 
 ## Versioning
 
-Follows [Semantic Versioning](https://semver.org). The public API is stable from `1.0.0` onwards: breaking changes require a major bump. The current version lives in `composer.json`; the README surfaces it via an auto-updating GitHub-tag badge (no manual sync).
+Follows [Semantic Versioning](https://semver.org). The public API is stable from `1.0.0` onwards: breaking changes require a major bump. The current version lives in `composer.json`.
 
 When releasing a new version:
 1. Update `"version"` in `composer.json`
@@ -93,6 +88,19 @@ When releasing a new version:
 3. README needs no version edit — its GitHub-tag version badge updates automatically once the new tag is pushed
 4. Update the `/docs/`
 5. Commit, then `git tag x.y.z` and `git push origin master && git push origin x.y.z`.
+
+### README badges
+
+Badges must stay honest — each one is a claim the repo has to back up. Three categories by how that honesty is maintained:
+
+- **Live (self-honest — never hand-edit):** `CI`, `Coverage`, `Latest tag` — driven by GitHub Actions / Codecov / the GitHub tag API, so they can't drift.
+- **Static, mirror a source of truth (update the badge whenever that source changes):**
+  - PHP-version badge ⇄ `composer.json` `"php"` constraint
+  - PHPStan-level badge ⇄ `phpstan.neon.dist` `level`
+  - License badge ⇄ `composer.json` `"license"` + `LICENSE`
+- **Static, stable claims (revisit only if the practice itself changes):** Code style (PHP-CS-Fixer), SemVer, Keep a Changelog.
+
+Before adding a badge, prefer one that is *verifiable* — backed by a file in the repo or a live service — over a vanity/activity metric.
 
 ## Roadmap
 

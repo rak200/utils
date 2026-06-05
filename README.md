@@ -7,7 +7,8 @@
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%20max-brightgreen?logo=php&logoColor=white)](https://phpstan.org/)
 [![Code style](https://img.shields.io/badge/code%20style-PHP--CS--Fixer-blue?logo=php&logoColor=white)](.php-cs-fixer.dist.php)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Open in GitHub Codespaces](https://img.shields.io/badge/Codespaces-open-blue?logo=github&logoColor=white)](https://codespaces.new/rak200/utils?quickstart=1)
+[![SemVer](https://img.shields.io/badge/semver-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
+[![Keep a Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange)](CHANGELOG.md)
 
 General-purpose static utility helpers for PHP 8.4+.
 

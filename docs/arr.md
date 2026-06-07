@@ -27,7 +27,10 @@ use Rak200\Utils\Arr;
 - [`partition`](#partition)
 - [`chunk`](#chunk)
 - [`unique`](#unique)
-- [`has`](#has)
+- [`has` / `hasKey`](#has--haskey)
+- [`get` / `getOrNull`](#get--getornull)
+- [`set` / `forget`](#set--forget)
+- [`dot` / `undot`](#dot--undot)
 - [`contains`](#contains)
 - [`keys`](#keys)
 - [`values`](#values)
@@ -283,14 +286,65 @@ Arr::unique(['a', 'b', 'a', 'c']);   // ['a', 'b', 'c']
 
 ---
 
-## `has`
+## `has` / `hasKey`
 
-True when `$key` exists (even with a `null` value).
+`has` resolves a **dot-path** `'a.b.c'`, checking a literal key first (so existing literal-key checks, even keys that contain a dot, keep working). `hasKey` is the pure literal-key check (the pre-dot-path behaviour). Both treat a `null` value as present.
+
+> The literal-first fallback in `has` is transitional — in 3.0.0 `has` becomes a pure dot-path lookup. Use `hasKey` for a literal-key check that stays stable across that change.
 
 ```php
-Arr::has(['name' => 'rak'], 'name');     // true
-Arr::has(['name' => 'rak'], 'email');    // false
-Arr::has([null], 0);                     // true
+Arr::has(['user' => ['name' => 'rak']], 'user.name');  // true   (nested)
+Arr::has(['user' => ['name' => 'rak']], 'user.age');   // false
+Arr::has(['name' => 'rak'], 'name');                   // true
+Arr::has(['a.b' => 1], 'a.b');                         // true   (literal key, checked first)
+Arr::has([null], 0);                                   // true
+
+Arr::hasKey(['a' => ['b' => 1]], 'a.b');               // false  (no literal 'a.b' key)
+Arr::hasKey(['a.b' => 1], 'a.b');                      // true
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `get` / `getOrNull`
+
+Read a value by dot-path (literal key checked first, like [`has`](#has--haskey)). Bare throws when the path does not resolve; `getOrNull` returns `null`.
+
+```php
+$data = ['user' => ['name' => 'rak', 'roles' => ['admin']]];
+Arr::get($data, 'user.name');            // 'rak'
+Arr::get($data, 'user.roles.0');         // 'admin'
+Arr::getOrNull($data, 'user.email');     // null
+Arr::get($data, 'user.email');           // throws RuntimeException
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `set` / `forget`
+
+Immutable nested writes — both return a **new** array, leaving the input untouched. `set` creates intermediate arrays as needed (overwriting a non-array value met along the path); `forget` removes a nested key (an unresolved path yields an unchanged copy).
+
+```php
+Arr::set([], 'a.b.c', 1);                        // ['a' => ['b' => ['c' => 1]]]
+Arr::set(['a' => ['x' => 1]], 'a.y', 2);         // ['a' => ['x' => 1, 'y' => 2]]
+Arr::forget(['a' => ['b' => 1, 'c' => 2]], 'a.b'); // ['a' => ['c' => 2]]
+Arr::forget(['a' => 1], 'x.y');                  // ['a' => 1]   (unchanged copy)
+```
+
+[↑ Back to top](#arr)
+
+---
+
+## `dot` / `undot`
+
+`dot` flattens a nested array into a single level keyed by the dot-path to each leaf; `undot` is the inverse. Empty arrays are kept as leaves by `dot`.
+
+```php
+Arr::dot(['a' => ['b' => ['c' => 1]], 'x' => 2]);   // ['a.b.c' => 1, 'x' => 2]
+Arr::undot(['a.b' => 1, 'a.c' => 2]);               // ['a' => ['b' => 1, 'c' => 2]]
 ```
 
 [↑ Back to top](#arr)

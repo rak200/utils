@@ -2,7 +2,7 @@
 
 [← Reference](README.md)
 
-Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators.
+Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators and UUID/ULID inspection.
 
 ```php
 use Rak200\Utils\Rand;
@@ -23,6 +23,9 @@ use Rak200\Utils\Rand;
 - [`uuidV7`](#uuidv7)
 - [`ulid`](#ulid)
 - [`nanoid`](#nanoid)
+- [`isUuid` / `isUlid`](#isuuid--isulid)
+- [`uuidV7Time` / `uuidV7TimeOrNull`](#uuidv7time--uuidv7timeornull)
+- [`ulidTime` / `ulidTimeOrNull`](#ulidtime--ulidtimeornull)
 
 ---
 
@@ -187,6 +190,54 @@ URL-safe NanoID using the standard 64-character alphabet (`A-Z a-z 0-9 _ -`). De
 ```php
 Rand::nanoid();       // e.g. 'V1StGXR8_Z5jdHi6B-myT'
 Rand::nanoid(10);     // e.g. 'aB3xK9mQzL'
+```
+
+[↑ Back to top](#rand)
+
+---
+
+## `isUuid` / `isUlid`
+
+Validate identifier strings (case-insensitive). `isUuid` checks the canonical 8-4-4-4-12 hex form; pass `$version` (1-8) to also require that version nibble and an RFC 4122 variant. `isUlid` checks the 26-character Crockford Base32 form (first character `0`-`7`).
+
+```php
+Rand::isUuid(Rand::uuidV4());        // true
+Rand::isUuid(Rand::uuidV7(), 7);     // true
+Rand::isUuid(Rand::uuidV4(), 7);     // false  (wrong version)
+Rand::isUuid('not-a-uuid');          // false
+Rand::isUlid(Rand::ulid());          // true
+Rand::isUlid('01HXP2K8FJM5E7R3Q6Y2N0V1WB'); // true
+Rand::isUlid('nope');                // false
+```
+
+[↑ Back to top](#rand)
+
+---
+
+## `uuidV7Time` / `uuidV7TimeOrNull`
+
+Extracts the millisecond timestamp embedded in a UUID v7 as a UTC `DateTimeImmutable`. The bare method throws when the input is not a valid UUID v7; `*OrNull` returns `null`.
+
+```php
+$id = Rand::uuidV7();
+Rand::uuidV7Time($id);               // DateTimeImmutable @ the instant $id was generated
+Rand::uuidV7TimeOrNull(Rand::uuidV4()); // null  (v4 has no embedded timestamp)
+Rand::uuidV7Time('not-a-uuid');      // throws RuntimeException
+```
+
+[↑ Back to top](#rand)
+
+---
+
+## `ulidTime` / `ulidTimeOrNull`
+
+Extracts the millisecond timestamp embedded in a ULID as a UTC `DateTimeImmutable`. The bare method throws when the input is not a valid ULID; `*OrNull` returns `null`.
+
+```php
+$id = Rand::ulid();
+Rand::ulidTime($id);                 // DateTimeImmutable @ the instant $id was generated
+Rand::ulidTimeOrNull('nope');        // null
+Rand::ulidTime('nope');              // throws RuntimeException
 ```
 
 [↑ Back to top](#rand)

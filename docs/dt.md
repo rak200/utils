@@ -24,8 +24,10 @@ use DateTimeZone;
 - [`addDays` / `addHours` / `addMinutes` / `addSeconds` / `addMonths` / `addYears`](#adddays--addhours--addminutes--addseconds--addmonths--addyears)
 - [`isBefore` / `isAfter` / `isEqual`](#isbefore--isafter--isequal)
 - [`isWeekend` / `isWeekday`](#isweekend--isweekday)
+- [`isPast` / `isFuture`](#ispast--isfuture)
 - [`dayOfWeek` / `dayOfYear` / `weekOfYear`](#dayofweek--dayofyear--weekofyear)
 - [`min` / `max`](#min--max)
+- [`period`](#period)
 - [`startOfDay` / `endOfDay`](#startofday--endofday)
 - [`startOfWeek` / `endOfWeek`](#startofweek--endofweek)
 - [`startOfMonth` / `endOfMonth`](#startofmonth--endofmonth)
@@ -221,6 +223,20 @@ Dt::isWeekday(Dt::of(2026, 5, 25));    // true
 
 ---
 
+## `isPast` / `isFuture`
+
+Compared against the current instant (`now`), so the timezone of the argument does not matter. Strict — exactly "now" is neither.
+
+```php
+Dt::isPast(Dt::of(2000, 1, 1));      // true
+Dt::isFuture(Dt::of(2099, 1, 1));    // true
+Dt::isPast(Dt::of(2099, 1, 1));      // false
+```
+
+[↑ Back to top](#dt)
+
+---
+
 ## `dayOfWeek` / `dayOfYear` / `weekOfYear`
 
 ISO-8601 numbering. `dayOfWeek` returns 1 (Monday) through 7 (Sunday); `dayOfYear` is 1-based.
@@ -245,6 +261,30 @@ $b = Dt::of(2026, 6, 1);
 $c = Dt::of(2026, 3, 15);
 Dt::min($a, $b, $c);     // 2026-01-01
 Dt::max($a, $b, $c);     // 2026-06-01
+```
+
+[↑ Back to top](#dt)
+
+---
+
+## `period`
+
+Lazily yields `DateTimeImmutable` instants from `$start` to `$end`, advancing by `$step` (default one day, a `DateInterval`). Ascending only — `$end` is included unless `$inclusive: false`; nothing is yielded when `$start` is after `$end`. Throws if `$step` does not move the date forward (a zero or inverted interval would loop forever).
+
+```php
+use DateInterval;
+
+foreach (Dt::period(Dt::of(2026, 1, 1), Dt::of(2026, 1, 4)) as $d) {
+    echo Dt::date($d), ' ';            // 2026-01-01 2026-01-02 2026-01-03 2026-01-04
+}
+
+iterator_to_array(Dt::period(Dt::of(2026, 1, 1), Dt::of(2026, 1, 4), inclusive: false));
+// [2026-01-01, 2026-01-02, 2026-01-03]
+
+Dt::period(Dt::of(2026, 1, 1), Dt::of(2026, 4, 1), new DateInterval('P1M'));
+// yields 2026-01-01, 2026-02-01, 2026-03-01, 2026-04-01
+
+iterator_to_array(Dt::period(Dt::of(2026, 1, 4), Dt::of(2026, 1, 1)));   // [] (start after end)
 ```
 
 [↑ Back to top](#dt)

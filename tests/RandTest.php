@@ -216,4 +216,66 @@ final class RandTest extends TestCase
     {
         $this->assertSame([], Rand::shuffle([]));
     }
+
+    public function testIsUuid(): void
+    {
+        $this->assertTrue(Rand::isUuid(Rand::uuidV4()));
+        $this->assertTrue(Rand::isUuid(Rand::uuidV7()));
+        $this->assertTrue(Rand::isUuid(Rand::uuidV4(), 4));
+        $this->assertTrue(Rand::isUuid(Rand::uuidV7(), 7));
+        $this->assertFalse(Rand::isUuid(Rand::uuidV4(), 7));
+        $this->assertFalse(Rand::isUuid('not-a-uuid'));
+        $this->assertFalse(Rand::isUuid(''));
+        $this->assertTrue(Rand::isUuid('550E8400-E29B-41D4-A716-446655440000'));   // uppercase
+    }
+
+    public function testIsUlid(): void
+    {
+        $this->assertTrue(Rand::isUlid(Rand::ulid()));
+        $this->assertTrue(Rand::isUlid('01HXP2K8FJM5E7R3Q6Y2N0V1WB'));
+        $this->assertFalse(Rand::isUlid('nope'));
+        $this->assertFalse(Rand::isUlid('81HXP2K8FJM5E7R3Q6Y2N0V1WB'));   // first char > 7
+        $this->assertFalse(Rand::isUlid('01HXP2K8FJM5E7R3Q6Y2N0V1WI'));   // 'I' not in alphabet
+    }
+
+    public function testUuidV7Time(): void
+    {
+        $before = time();
+        $dt = Rand::uuidV7Time(Rand::uuidV7());
+        $after = time();
+        $this->assertGreaterThanOrEqual($before, $dt->getTimestamp());
+        $this->assertLessThanOrEqual($after + 1, $dt->getTimestamp());
+    }
+
+    public function testUuidV7TimeOrNullReturnsNullForNonV7(): void
+    {
+        $this->assertNull(Rand::uuidV7TimeOrNull(Rand::uuidV4()));
+        $this->assertNull(Rand::uuidV7TimeOrNull('not-a-uuid'));
+    }
+
+    public function testUuidV7TimeThrowsOnInvalid(): void
+    {
+        $this->expectException(RuntimeException::class);
+        Rand::uuidV7Time(Rand::uuidV4());
+    }
+
+    public function testUlidTime(): void
+    {
+        $before = time();
+        $dt = Rand::ulidTime(Rand::ulid());
+        $after = time();
+        $this->assertGreaterThanOrEqual($before, $dt->getTimestamp());
+        $this->assertLessThanOrEqual($after + 1, $dt->getTimestamp());
+    }
+
+    public function testUlidTimeOrNullReturnsNullForInvalid(): void
+    {
+        $this->assertNull(Rand::ulidTimeOrNull('nope'));
+    }
+
+    public function testUlidTimeThrowsOnInvalid(): void
+    {
+        $this->expectException(RuntimeException::class);
+        Rand::ulidTime('nope');
+    }
 }

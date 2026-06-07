@@ -25,6 +25,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`parseNumber` / `parseNumberOrNull`](#parsenumber--parsenumberornull)
 - [`clamp`](#clamp)
 - [`inRange`](#inrange)
+- [`lerp` / `remap`](#lerp--remap)
 - [`round`](#round)
 - [`format`](#format)
 - [`sum`](#sum)
@@ -38,6 +39,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`floor` / `ceil`](#floor--ceil)
 - [`mod`](#mod)
 - [`intDiv`](#intdiv)
+- [`add` / `sub` / `mul` / `div`](#add--sub--mul--div)
 
 ---
 
@@ -236,6 +238,25 @@ Num::inRange(new Number('5.5'), new Number('5'), new Number('6'));
 
 ---
 
+## `lerp` / `remap`
+
+`lerp` interpolates linearly between `$a` and `$b` by `$t` (`a + (b - a) * t`); `$t` in `[0, 1]` interpolates, outside it extrapolates. `remap` maps a value from one range to another linearly. Neither clamps — compose with [`clamp`](#clamp) to bound. `remap` throws when `$inMin` equals `$inMax`. Both widen to `BcMath\Number` when any operand is one.
+
+```php
+Num::lerp(0, 10, 0.5);                          // 5.0
+Num::lerp(10, 20, 0.25);                        // 12.5
+Num::lerp(0, 10, 1.5);                          // 15.0  (extrapolates)
+Num::remap(5, 0, 10, 0, 100);                   // 50    (int — all-int, evenly divisible)
+Num::remap(0.5, 0, 1, -100, 100);               // 0.0
+Num::remap(120, 0, 100, 0, 1);                  // 1.2   (no clamp)
+Num::lerp(new Number('0'), new Number('10'), new Number('0.5')); // BcMath\Number('5')
+Num::remap(5, 0, 0, 0, 100);                    // throws RuntimeException
+```
+
+[↑ Back to top](#num)
+
+---
+
 ## `round`
 
 Defaults to `RoundingMode::HalfAwayFromZero`. For `BcMath\Number` input, returns a `Number` at the requested precision (no float-precision loss).
@@ -417,6 +438,25 @@ Num::intDiv(7, 2);       // 3
 Num::intDiv(-7, 2);      // -3   (truncates toward zero)
 Num::intDiv(7, -2);      // -3
 Num::intDiv(1, 0);       // throws RuntimeException
+```
+
+[↑ Back to top](#num)
+
+---
+
+## `add` / `sub` / `mul` / `div`
+
+The four basic operations over `int|float|BcMath\Number`, widening to `Number` when any operand is one — so mixed-type arithmetic needs no manual `instanceof Number` branching. `div` follows PHP's `/` (an int when both operands are ints and evenly divisible, a float otherwise) and throws on a zero divisor.
+
+```php
+Num::add(2, 3);        // 5
+Num::sub(5, 2);        // 3
+Num::mul(4, 2.5);      // 10.0
+Num::div(7, 2);        // 3.5
+Num::div(6, 3);        // 2     (int, evenly divisible)
+Num::div(1, 0);        // throws RuntimeException
+Num::add(new Number('0.1'), new Number('0.2'));   // BcMath\Number('0.3')
+Num::mul(new Number('2'), 3);                      // BcMath\Number('6')
 ```
 
 [↑ Back to top](#num)

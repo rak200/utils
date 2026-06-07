@@ -219,6 +219,78 @@ final class ArrTest extends TestCase
         $this->assertTrue(Arr::has(['a' => 1], 'a'));
         $this->assertFalse(Arr::has(['a' => 1], 'b'));
         $this->assertTrue(Arr::has(['a' => null], 'a'));
+        $this->assertTrue(Arr::has([null], 0));
+    }
+
+    public function testHasDotPath(): void
+    {
+        $data = ['user' => ['name' => 'rak', 'meta' => ['age' => 30]]];
+        $this->assertTrue(Arr::has($data, 'user.name'));
+        $this->assertTrue(Arr::has($data, 'user.meta.age'));
+        $this->assertFalse(Arr::has($data, 'user.email'));
+        $this->assertFalse(Arr::has($data, 'user.name.x'));   // descends into a non-array
+        // literal-first fallback keeps a key that contains a dot resolvable
+        $this->assertTrue(Arr::has(['a.b' => 1], 'a.b'));
+    }
+
+    public function testHasKey(): void
+    {
+        $this->assertTrue(Arr::hasKey(['a.b' => 1], 'a.b'));
+        $this->assertFalse(Arr::hasKey(['a' => ['b' => 1]], 'a.b'));   // pure literal, no traversal
+        $this->assertTrue(Arr::hasKey(['a' => null], 'a'));
+        $this->assertTrue(Arr::hasKey([null], 0));
+    }
+
+    public function testGetSetForget(): void
+    {
+        $data = ['user' => ['name' => 'rak', 'roles' => ['admin']]];
+        $this->assertSame('rak', Arr::get($data, 'user.name'));
+        $this->assertSame('admin', Arr::get($data, 'user.roles.0'));
+        $this->assertSame(1, Arr::get(['a.b' => 1], 'a.b'));           // literal-first
+
+        $this->assertSame(['a' => ['b' => ['c' => 1]]], Arr::set([], 'a.b.c', 1));
+        $this->assertSame(['a' => ['x' => 1, 'y' => 2]], Arr::set(['a' => ['x' => 1]], 'a.y', 2));
+        // overwrites a non-array value met along the path
+        $this->assertSame(['a' => ['b' => 1]], Arr::set(['a' => 5], 'a.b', 1));
+
+        $this->assertSame(['a' => ['c' => 2]], Arr::forget(['a' => ['b' => 1, 'c' => 2]], 'a.b'));
+        $this->assertSame(['a' => 1], Arr::forget(['a' => 1], 'x.y'));   // unresolved → unchanged copy
+    }
+
+    public function testSetForgetAreImmutable(): void
+    {
+        $original = ['a' => ['b' => 1]];
+        Arr::set($original, 'a.c', 2);
+        Arr::forget($original, 'a.b');
+        $this->assertSame(['a' => ['b' => 1]], $original);
+    }
+
+    public function testGetOrNull(): void
+    {
+        $this->assertNull(Arr::getOrNull(['a' => 1], 'x.y'));
+        $this->assertSame(1, Arr::getOrNull(['a' => 1], 'a'));
+        $this->assertNull(Arr::getOrNull(['a' => null], 'a.b'));
+    }
+
+    public function testGetThrowsWhenMissing(): void
+    {
+        $this->expectException(RuntimeException::class);
+        Arr::get(['a' => 1], 'x.y');
+    }
+
+    public function testDotUndot(): void
+    {
+        $this->assertSame(
+            ['a.b.c' => 1, 'x' => 2],
+            Arr::dot(['a' => ['b' => ['c' => 1]], 'x' => 2]),
+        );
+        $this->assertSame(
+            ['a' => ['b' => 1, 'c' => 2]],
+            Arr::undot(['a.b' => 1, 'a.c' => 2]),
+        );
+        // round-trip
+        $nested = ['user' => ['name' => 'rak', 'roles' => ['admin', 'editor']]];
+        $this->assertSame($nested, Arr::undot(Arr::dot($nested)));
     }
 
     public function testKeysValues(): void

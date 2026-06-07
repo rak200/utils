@@ -529,6 +529,42 @@ final class Str
     }
 
     /**
+     * Masks part of $value for safe display of PII (card numbers, e-mails, …).
+     * Within the window starting at character index $start and spanning $length
+     * characters, every character not present in $keep is replaced by the first
+     * character of $mask, preserving length; characters in $keep (e.g. formatting
+     * separators) pass through unchanged. A negative $start counts from the end;
+     * a null $length runs to the end; a negative $length leaves that many
+     * characters untouched at the end. Multibyte-aware.
+     *
+     * Non-contiguous patterns (e.g. masking the 1st and 3rd groups but not the
+     * 2nd) are produced by composing two calls.
+     *
+     * @throws RuntimeException when $mask is empty
+     */
+    public static function mask(string $value, int $start = 0, ?int $length = null, string $mask = '*', string $keep = ''): string
+    {
+        if ($mask === '') {
+            throw new RuntimeException('Mask string cannot be empty.');
+        }
+        $total = mb_strlen($value);
+        $from = $start < 0 ? max(0, $total + $start) : min($start, $total);
+        $to = $length === null
+            ? $total
+            : ($length < 0 ? max($from, $total + $length) : min($total, $from + $length));
+        if ($from >= $to) {
+            return $value;
+        }
+        $maskChar = mb_substr($mask, 0, 1);
+        $masked = '';
+        foreach (mb_str_split(mb_substr($value, $from, $to - $from)) as $char) {
+            $masked .= str_contains($keep, $char) ? $char : $maskChar;
+        }
+
+        return mb_substr($value, 0, $from).$masked.mb_substr($value, $to);
+    }
+
+    /**
      * Splits the string on $separator (default `''`). An empty separator yields
      * individual characters, in which case $limit (if given) controls the chunk
      * size; otherwise $limit caps the number of pieces (the final piece keeps the

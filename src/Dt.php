@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
+use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use Exception;
+use Generator;
 use RuntimeException;
 
 use function checkdate;
@@ -314,6 +316,34 @@ final class Dt
     }
 
     /**
+     * Lazily yields each instant from $start to $end, advancing by $step (default
+     * one day). Ascending only: $end is included when $inclusive, excluded
+     * otherwise; nothing is yielded when $start is after $end. Values are always
+     * {@see DateTimeImmutable}.
+     *
+     * @return Generator<int, DateTimeImmutable>
+     *
+     * @throws RuntimeException when $step does not move the date forward (a zero
+     *                          or inverted interval), which would loop forever
+     */
+    public static function period(
+        DateTimeInterface $start,
+        DateTimeInterface $end,
+        ?DateInterval $step = null,
+        bool $inclusive = true,
+    ): Generator {
+        $step ??= new DateInterval('P1D');
+        $current = self::immutable($start);
+        if ($current->add($step) <= $current) {
+            throw new RuntimeException('Period step must move the date forward.');
+        }
+        while ($inclusive ? $current <= $end : $current < $end) {
+            yield $current;
+            $current = $current->add($step);
+        }
+    }
+
+    /**
      * Returns $dt at 00:00:00 on the same calendar day.
      */
     public static function startOfDay(DateTimeInterface $dt): DateTimeImmutable
@@ -406,6 +436,24 @@ final class Dt
     public static function isWeekday(DateTimeInterface $dt): bool
     {
         return !self::isWeekend($dt);
+    }
+
+    /**
+     * Returns true when $dt is strictly before the current instant. Compares
+     * absolute instants, so the timezone of $dt does not matter.
+     */
+    public static function isPast(DateTimeInterface $dt): bool
+    {
+        return $dt < self::now();
+    }
+
+    /**
+     * Returns true when $dt is strictly after the current instant. Compares
+     * absolute instants, so the timezone of $dt does not matter.
+     */
+    public static function isFuture(DateTimeInterface $dt): bool
+    {
+        return $dt > self::now();
     }
 
     /**

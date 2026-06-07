@@ -42,10 +42,10 @@ composer require rak200/utils
 
 ### Tier 1 — scalars and core structures
 
-- **`Str`** — string operations (multibyte-safe by default): blank/`ctype` checks, case helpers (`title`/`toCamel`/`toSnake`/...), search, `before`/`after`, trim, split/join, `replace`/`replaceAt`, padding/wrapping (`wordWrap`/`wordCount`), `format`/`scan`, `levenshtein`/`similarity`.
-- **`Arr`** — array operations: emptiness, count, first/last (value and key) lookup, find/search, filter/map/reduce, flatten, groupBy, partition, chunk, unique, reverse/slice/flip/combine, diff/intersect, countValues, append/prepend, immutable shift/pop (`[element, rest]`), fill, sort/sortKeys, zip, range.
-- **`Num`** — number operations: type checks (incl. `isFinite`/`isNan`/`isInfinite`), parsing (incl. `parseNumber` returning `BcMath\Number`) and `toBase`, clamp/inRange, rounding, formatting, aggregates (`sum`/`product`/`avg`/...), sign, arithmetic (`pow`, `sqrt`, `floor`, `ceil`, `mod`). Aggregation and per-element methods accept and propagate `BcMath\Number` alongside `int|float`.
-- **`Rand`** — randomness in one place: int/float/bytes/string, masked patterns, UUID v4 / UUID v7, ULID, nanoid. Alphabet constants: `Rand::NUM`, `Rand::HEX`, `Rand::ALPHA`, `Rand::ALNUM`.
+- **`Str`** — string operations (multibyte-safe by default): blank/`ctype` checks, case helpers (`title`/`toCamel`/`toSnake`/...), search, `before`/`after`, trim, split/join, `replace`/`replaceAt`, `slug`/`mask`, padding/wrapping (`wordWrap`/`wordCount`), `format`/`scan`, `levenshtein`/`similarity`.
+- **`Arr`** — array operations: emptiness, count, first/last (value and key) lookup, find/search, filter/map/reduce, flatten, groupBy, partition, chunk, unique, reverse/slice/flip/combine, diff/intersect, countValues, append/prepend, immutable shift/pop (`[element, rest]`), fill, sort/sortKeys, zip, range, nested dot-path access (`get`/`set`/`forget`/`dot`/`undot`).
+- **`Num`** — number operations: type checks (incl. `isFinite`/`isNan`/`isInfinite`), parsing (incl. `parseNumber` returning `BcMath\Number`) and `toBase`, clamp/inRange/`lerp`/`remap`, rounding, formatting, aggregates (`sum`/`product`/`avg`/...), sign, arithmetic (`add`/`sub`/`mul`/`div`, `pow`, `sqrt`, `floor`, `ceil`, `mod`). Aggregation and per-element methods accept and propagate `BcMath\Number` alongside `int|float`.
+- **`Rand`** — randomness in one place: int/float/bytes/string, masked patterns, UUID v4 / UUID v7, ULID, nanoid, plus UUID/ULID inspection (`isUuid`/`isUlid`, timestamp extraction). Alphabet constants: `Rand::NUM`, `Rand::HEX`, `Rand::ALPHA`, `Rand::ALNUM`.
 
 ### Tier 2 — contextual
 
@@ -56,7 +56,7 @@ composer require rak200/utils
 - **`Json`** — JSON with implicit `JSON_THROW_ON_ERROR`: `encode`, `decode`, `is`.
 - **`Base64`** — standard and URL-safe (no-padding) encode/decode, plus the `is` predicate.
 - **`Hex`** — hexadecimal encode/decode of binary strings (the byte-string counterpart to `Base64`), the `is` predicate, and `toBytes`/`fromBytes` for hex ↔ byte-value (`int`) lists.
-- **`Dt`** — `DateTimeImmutable` helpers: construction, `isValid` calendar check, formatting (incl. `Dt::sql()`), arithmetic, comparison, period boundaries, diff in integer units.
+- **`Dt`** — `DateTimeImmutable` helpers: construction, `isValid` calendar check, formatting (incl. `Dt::sql()`), arithmetic, comparison, weekend/past/future predicates, period boundaries, a `period` range generator, diff in integer units.
 - **`Url`** — URL parsing/building and query-string encode/decode: `parse`/`parseOrNull`/`build`, `encode`/`decode`, `encodeQuery`/`decodeQuery`, `is`/`isAbsolute`.
 - **`Path`** — logical (no-disk) path manipulation: `join`, `normalize`, `relative`, `isAbsolute`, `basename`, `dirname`, `extension`, `filename`. Normalises to `/`; preserves Windows drive prefixes.
 - **`Type`** — type introspection accepting `mixed`: type-name resolver (`of`), basic checks (`isStr`/`isBool`/`isInt`/`isFloat`/`isArray`/`isObject`/`isEnum`/`isCallable`/`isIterable`/`isNull`/`isScalar`/`isNumeric`/`isResource`), numeric strings (`isNumericStr`/`isIntLike` — both `@deprecated` since 2.1.0, removed in 3.0.0), class/trait checks (`isInstance`/`isA`/`isSubclass`/`isClassName`/`isInterfaceName`/`usesTrait`). Domain-mirroring predicates (`isStr`/`isInt`/`isFloat`/`isArray`/`isEnum`/`isNumeric`) are aliases of the canonical `is` on each domain class (`Str::is`, `Num::isInt`/`Num::isFloat`/`Num::is`, `Arr::is`, `Enum::is`). Topic-specific guards live with their tier-1 class: `Str::isBlank`/`Str::isNotBlank`, `Arr::isList`/`Arr::isAssoc`, `Num::isPositive`/`Num::isNegative`.

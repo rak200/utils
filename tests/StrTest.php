@@ -387,6 +387,38 @@ final class StrTest extends TestCase
         $this->assertSame('', Str::slug('   '));
     }
 
+    public function testMask(): void
+    {
+        $this->assertSame('************1111', Str::mask('4111111111111111', 0, -4));
+        $this->assertSame('tay***************', Str::mask('taylor@example.com', 3));
+        $this->assertSame('sec***', Str::mask('secret', -3));
+        $this->assertSame('##34', Str::mask('1234', 0, 2, '#'));
+        $this->assertSame('hello', Str::mask('hello', 0, 0));
+        $this->assertSame('*****', Str::mask('hello'));
+    }
+
+    public function testMaskKeepsSeparators(): void
+    {
+        $this->assertSame('***.***.***-09', Str::mask('123.456.789-09', 0, -2, keep: '.-'));
+        $this->assertSame('123.***.***-09', Str::mask('123.456.789-09', 4, -2, keep: '.-'));
+        $this->assertSame(
+            '***.456.***-09',
+            Str::mask(Str::mask('123.456.789-09', 0, 3, keep: '.-'), 8, 3, keep: '.-'),
+        );
+    }
+
+    public function testMaskMultibyte(): void
+    {
+        $this->assertSame('caf**', Str::mask('café!', 3));
+        $this->assertSame('•••', Str::mask('abc', 0, null, '•'));
+    }
+
+    public function testMaskRejectsEmptyMask(): void
+    {
+        $this->expectException(RuntimeException::class);
+        Str::mask('hello', 0, 2, '');
+    }
+
     public function testIndexOfWithIgnoreCase(): void
     {
         $this->assertSame(0, Str::indexOf('Hello', 'h', 0, true));

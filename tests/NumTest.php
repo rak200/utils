@@ -182,6 +182,63 @@ final class NumTest extends TestCase
         $this->assertFalse(Num::inRange(11, 0, 10));
     }
 
+    public function testLerp(): void
+    {
+        $this->assertSame(5.0, Num::lerp(0, 10, 0.5));
+        $this->assertSame(12.5, Num::lerp(10, 20, 0.25));
+        $this->assertSame(15.0, Num::lerp(0, 10, 1.5));
+        $this->assertSame(0, Num::lerp(0, 10, 0));
+        $this->assertSame(10, Num::lerp(0, 10, 1));
+    }
+
+    public function testRemap(): void
+    {
+        $this->assertSame(50, Num::remap(5, 0, 10, 0, 100));
+        $this->assertSame(0.0, Num::remap(0.5, 0, 1, -100, 100));
+        $this->assertSame(1.2, Num::remap(120, 0, 100, 0, 1));
+        $this->assertSame(-1, Num::remap(0, 50, 100, 0, 1));
+    }
+
+    public function testRemapRejectsEmptyInputRange(): void
+    {
+        $this->expectException(RuntimeException::class);
+        Num::remap(5, 0, 0, 0, 100);
+    }
+
+    public function testAddSubMulDiv(): void
+    {
+        $this->assertSame(5, Num::add(2, 3));
+        $this->assertSame(3, Num::sub(5, 2));
+        $this->assertSame(10.0, Num::mul(4, 2.5));
+        $this->assertSame(3.5, Num::div(7, 2));
+        $this->assertSame(2, Num::div(6, 3));
+    }
+
+    public function testDivRejectsZero(): void
+    {
+        $this->expectException(RuntimeException::class);
+        Num::div(1, 0);
+    }
+
+    public function testArithmeticWithNumber(): void
+    {
+        $this->assertInstanceOf(Number::class, Num::add(new Number('0.1'), new Number('0.2')));
+        $this->assertEquals(new Number('0.3'), Num::add(new Number('0.1'), new Number('0.2')));
+        $this->assertEquals(new Number('6'), Num::mul(new Number('2'), 3));
+        $this->assertEquals(new Number('2.5'), Num::div(new Number('5'), 2));
+    }
+
+    public function testLerpRemapWithNumber(): void
+    {
+        $lerp = Num::lerp(new Number('0'), new Number('10'), new Number('0.5'));
+        $this->assertInstanceOf(Number::class, $lerp);
+        $this->assertEquals(new Number('5'), $lerp);
+
+        $remap = Num::remap(new Number('5'), new Number('0'), new Number('10'), new Number('0'), new Number('100'));
+        $this->assertInstanceOf(Number::class, $remap);
+        $this->assertEquals(new Number('50'), $remap);
+    }
+
     public function testRound(): void
     {
         $this->assertSame(3.0, Num::round(2.5));

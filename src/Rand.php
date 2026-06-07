@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
+use DateTimeImmutable;
 use RuntimeException;
 
 use function microtime;
@@ -11,7 +12,8 @@ use function random_bytes;
 use function random_int;
 
 /**
- * Cryptographically-secure random helpers, plus UUID, ULID, and NanoID generators.
+ * Cryptographically-secure random helpers, plus UUID, ULID, and NanoID
+ * generators and UUID/ULID inspection (validation and timestamp extraction).
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
@@ -153,6 +155,96 @@ final class Rand
         $bytes = [...self::timestampBytes(), ...Str::toBytes(random_bytes(10))];
 
         return self::encodeCrockfordBase32($bytes);
+    }
+
+    /**
+     * Returns true when $value is a canonical 8-4-4-4-12 hexadecimal UUID
+     * (case-insensitive). When $version (1-8) is given, the version nibble must
+     * match and the variant must be RFC 4122 (the 8/9/a/b family).
+     */
+    public static function isUuid(string $value, ?int $version = null): bool
+    {
+        if (!Regex::matches('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value)) {
+            return false;
+        }
+        if ($version === null) {
+            return true;
+        }
+
+        return Str::lower(Str::sub($value, 14, 1)) === Num::toBase($version, 16)
+            && Str::contains('89ab', Str::lower(Str::sub($value, 19, 1)));
+    }
+
+    /**
+     * Returns true when $value is a 26-character Crockford Base32 ULID
+     * (case-insensitive). The first character must be 0-7, which bounds the
+     * 48-bit timestamp.
+     */
+    public static function isUlid(string $value): bool
+    {
+        return Regex::matches('/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/i', $value);
+    }
+
+    /**
+     * Extracts the millisecond timestamp embedded in a UUID v7 as a UTC
+     * {@see DateTimeImmutable}.
+     *
+     * @throws RuntimeException when $value is not a valid UUID v7
+     */
+    public static function uuidV7Time(string $value): DateTimeImmutable
+    {
+        $dt = self::uuidV7TimeOrNull($value);
+        if ($dt === null) {
+            throw new RuntimeException("Not a valid UUID v7: \"{$value}\".");
+        }
+
+        return $dt;
+    }
+
+    /**
+     * Extracts the millisecond timestamp embedded in a UUID v7, or null when
+     * $value is not a valid UUID v7.
+     */
+    public static function uuidV7TimeOrNull(string $value): ?DateTimeImmutable
+    {
+        if (!self::isUuid($value, 7)) {
+            return null;
+        }
+
+        return Dt::fromEpochMs(Num::parseInt(Str::sub($value, 0, 8).Str::sub($value, 9, 4), 16));
+    }
+
+    /**
+     * Extracts the millisecond timestamp embedded in a ULID as a UTC
+     * {@see DateTimeImmutable}.
+     *
+     * @throws RuntimeException when $value is not a valid ULID
+     */
+    public static function ulidTime(string $value): DateTimeImmutable
+    {
+        $dt = self::ulidTimeOrNull($value);
+        if ($dt === null) {
+            throw new RuntimeException("Not a valid ULID: \"{$value}\".");
+        }
+
+        return $dt;
+    }
+
+    /**
+     * Extracts the millisecond timestamp embedded in a ULID, or null when $value
+     * is not a valid ULID.
+     */
+    public static function ulidTimeOrNull(string $value): ?DateTimeImmutable
+    {
+        if (!self::isUlid($value)) {
+            return null;
+        }
+        $ms = 0;
+        foreach (Str::split(Str::upper(Str::sub($value, 0, 10))) as $char) {
+            $ms = $ms * 32 + Str::indexOf(self::CROCKFORD_BASE32, $char);
+        }
+
+        return Dt::fromEpochMs($ms);
     }
 
     /**

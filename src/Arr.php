@@ -467,13 +467,123 @@ final class Arr
     }
 
     /**
-     * Returns true if $key exists in the array (including null values).
+     * Returns true if $path resolves in the array — either as a literal key
+     * (checked first, including null values) or, when $path is a string holding
+     * dots, as a nested path `'a.b.c'` traversed level by level.
+     *
+     * The literal-first fallback is transitional: in 3.0.0 {@see has()} becomes
+     * a pure dot-path lookup. Use {@see hasKey()} for a literal-key check that
+     * stays stable across that change.
      *
      * @param array<array-key, mixed> $array
      */
-    public static function has(array $array, int|string $key): bool
+    public static function has(array $array, int|string $path): bool
+    {
+        return self::resolvePath($array, $path)[0];
+    }
+
+    /**
+     * Returns true if $key exists in the array as a literal key (including null
+     * values), without dot-path interpretation — the literal-key counterpart to
+     * the dot-aware {@see has()}.
+     *
+     * @param array<array-key, mixed> $array
+     */
+    public static function hasKey(array $array, int|string $key): bool
     {
         return array_key_exists($key, $array);
+    }
+
+    /**
+     * Returns the value at $path — a literal key (checked first) or, when $path
+     * is a string holding dots, the nested path `'a.b.c'`. The literal-first
+     * fallback is transitional (pure dot-path in 3.0.0); see {@see has()}.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @throws RuntimeException when $path does not resolve
+     */
+    public static function get(array $array, int|string $path): mixed
+    {
+        [$found, $value] = self::resolvePath($array, $path);
+        if (!$found) {
+            throw new RuntimeException("Path \"{$path}\" not found in array.");
+        }
+
+        return $value;
+    }
+
+    /**
+     * Returns the value at $path (literal key first, then dot-path), or null when
+     * it does not resolve. See {@see get()}.
+     *
+     * @param array<array-key, mixed> $array
+     */
+    public static function getOrNull(array $array, int|string $path): mixed
+    {
+        return self::resolvePath($array, $path)[1];
+    }
+
+    /**
+     * Returns a new array with $value set at the nested dot-path $path, creating
+     * intermediate arrays as needed; a non-array value met along the path is
+     * overwritten. $array itself is left unchanged.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @return array<array-key, mixed>
+     */
+    public static function set(array $array, string $path, mixed $value): array
+    {
+        return self::setSegments($array, Str::split($path, '.'), 0, $value);
+    }
+
+    /**
+     * Returns a new array with the nested dot-path $path removed. $array itself is
+     * left unchanged; a path that does not resolve yields an unchanged copy.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @return array<array-key, mixed>
+     */
+    public static function forget(array $array, string $path): array
+    {
+        return self::forgetSegments($array, Str::split($path, '.'), 0);
+    }
+
+    /**
+     * Flattens a nested array into a single level keyed by the dot-path to each
+     * leaf: `['a' => ['b' => 1]]` becomes `['a.b' => 1]`. Empty arrays are kept as
+     * leaves. The inverse of {@see undot()}.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @return array<array-key, mixed>
+     */
+    public static function dot(array $array, string $prefix = ''): array
+    {
+        $result = [];
+        self::dotInto($array, $prefix, $result);
+
+        return $result;
+    }
+
+    /**
+     * Expands a single-level array of dot-paths back into nested arrays — the
+     * inverse of {@see dot()}: `['a.b' => 1]` becomes `['a' => ['b' => 1]]`.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @return array<array-key, mixed>
+     */
+    public static function undot(array $array): array
+    {
+        $result = [];
+        foreach ($array as $key => $value) {
+            $result = self::set($result, (string) $key, $value);
+        }
+
+        return $result;
     }
 
     /**
@@ -1053,5 +1163,99 @@ final class Arr
         }
 
         return $result;
+    }
+
+    /**
+     * Resolves $path against $array — the literal key first, then, for a string
+     * with dots, a level-by-level dot-traversal — returning a `[found, value]`
+     * pair so callers can tell a missing path from a present null.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @return array{0: bool, 1: mixed}
+     */
+    private static function resolvePath(array $array, int|string $path): array
+    {
+        if (array_key_exists($path, $array)) {
+            return [true, $array[$path]];
+        }
+        if (Num::isInt($path) || !Str::contains($path, '.')) {
+            return [false, null];
+        }
+        $current = $array;
+        foreach (Str::split($path, '.') as $segment) {
+            if (!is_array($current) || !array_key_exists($segment, $current)) {
+                return [false, null];
+            }
+            $current = $current[$segment];
+        }
+
+        return [true, $current];
+    }
+
+    /**
+     * Recursively sets $value at $segments[$index..] within $array, creating
+     * intermediate arrays. Backing implementation of {@see set()}.
+     *
+     * @param array<array-key, mixed> $array
+     * @param list<string>            $segments
+     *
+     * @return array<array-key, mixed>
+     */
+    private static function setSegments(array $array, array $segments, int $index, mixed $value): array
+    {
+        $key = $segments[$index];
+        if ($index === count($segments) - 1) {
+            $array[$key] = $value;
+
+            return $array;
+        }
+        $child = isset($array[$key]) && is_array($array[$key]) ? $array[$key] : [];
+        $array[$key] = self::setSegments($child, $segments, $index + 1, $value);
+
+        return $array;
+    }
+
+    /**
+     * Recursively removes $segments[$index..] from $array. Backing implementation
+     * of {@see forget()}.
+     *
+     * @param array<array-key, mixed> $array
+     * @param list<string>            $segments
+     *
+     * @return array<array-key, mixed>
+     */
+    private static function forgetSegments(array $array, array $segments, int $index): array
+    {
+        $key = $segments[$index];
+        if ($index === count($segments) - 1) {
+            unset($array[$key]);
+
+            return $array;
+        }
+        if (isset($array[$key]) && is_array($array[$key])) {
+            $array[$key] = self::forgetSegments($array[$key], $segments, $index + 1);
+        }
+
+        return $array;
+    }
+
+    /**
+     * Writes the dot-path leaves of $array into $result in a single pass (no
+     * intermediate arrays). Backing implementation of {@see dot()}.
+     *
+     * @param array<array-key, mixed> $array
+     * @param array<array-key, mixed> $result
+     */
+    private static function dotInto(array $array, string $prefix, array &$result): void
+    {
+        foreach ($array as $key => $value) {
+            $compound = $prefix === '' ? (string) $key : $prefix.'.'.$key;
+            if (is_array($value) && $value !== []) {
+                self::dotInto($value, $compound, $result);
+            } else {
+                $result[$compound] = $value;
+            }
+        }
     }
 }

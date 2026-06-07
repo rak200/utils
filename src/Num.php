@@ -339,6 +339,44 @@ final class Num
     }
 
     /**
+     * Linearly interpolates between $a and $b by $t, returning `a + (b - a) * t`.
+     * $t in [0, 1] interpolates; outside that range it extrapolates. Widens to
+     * {@see Number} when any operand is one.
+     */
+    public static function lerp(
+        float|int|Number $a,
+        float|int|Number $b,
+        float|int|Number $t,
+    ): float|int|Number {
+        return self::add($a, self::mul(self::sub($b, $a), $t));
+    }
+
+    /**
+     * Re-maps $value from the input range [$inMin, $inMax] to the output range
+     * [$outMin, $outMax], linearly. Does not clamp — a $value outside the input
+     * range maps outside the output range (compose with {@see clamp()} to bound).
+     * Widens to {@see Number} when any operand is one.
+     *
+     * @throws RuntimeException when $inMin equals $inMax (the input range is empty)
+     */
+    public static function remap(
+        float|int|Number $value,
+        float|int|Number $inMin,
+        float|int|Number $inMax,
+        float|int|Number $outMin,
+        float|int|Number $outMax,
+    ): float|int|Number {
+        if ($inMin == $inMax) {
+            throw new RuntimeException('Input range cannot be empty (inMin equals inMax).');
+        }
+
+        return self::add(
+            $outMin,
+            self::div(self::mul(self::sub($value, $inMin), self::sub($outMax, $outMin)), self::sub($inMax, $inMin)),
+        );
+    }
+
+    /**
      * Rounds $value to $precision decimal places. Returns a {@see Number} when
      * $value is one (preserves arbitrary precision); a float otherwise.
      */
@@ -400,7 +438,7 @@ final class Num
     {
         $product = 1;
         foreach ($values as $value) {
-            $product = self::multiply($product, $value);
+            $product = self::mul($product, $value);
         }
 
         return $product;
@@ -617,10 +655,10 @@ final class Num
 
     /**
      * Adds two values, widening to {@see Number} when either operand is one.
-     * Centralises the union-arithmetic branching that the type system cannot
-     * express in a single expression.
+     * Centralises the union arithmetic the type system cannot express in a single
+     * expression — the same widening {@see sub()} / {@see mul()} / {@see div()} apply.
      */
-    private static function add(float|int|Number $a, float|int|Number $b): float|int|Number
+    public static function add(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($a instanceof Number || $b instanceof Number) {
             $aN = $a instanceof Number ? $a : new Number((string) $a);
@@ -633,11 +671,24 @@ final class Num
     }
 
     /**
-     * Multiplies two values, widening to {@see Number} when either operand is
-     * one. Mirrors {@see add()} for the union-arithmetic branching that the type
-     * system cannot express in a single expression.
+     * Subtracts $b from $a, widening to {@see Number} when either operand is one.
      */
-    private static function multiply(float|int|Number $a, float|int|Number $b): float|int|Number
+    public static function sub(float|int|Number $a, float|int|Number $b): float|int|Number
+    {
+        if ($a instanceof Number || $b instanceof Number) {
+            $aN = $a instanceof Number ? $a : new Number((string) $a);
+            $bN = $b instanceof Number ? $b : new Number((string) $b);
+
+            return $aN - $bN;
+        }
+
+        return $a - $b;
+    }
+
+    /**
+     * Multiplies two values, widening to {@see Number} when either operand is one.
+     */
+    public static function mul(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($a instanceof Number || $b instanceof Number) {
             $aN = $a instanceof Number ? $a : new Number((string) $a);
@@ -647,6 +698,32 @@ final class Num
         }
 
         return $a * $b;
+    }
+
+    /**
+     * Divides $a by $b, following PHP's `/`: an int when both operands are ints
+     * and evenly divisible, a float otherwise, and a {@see Number} when either
+     * operand is one.
+     *
+     * @throws RuntimeException when $b is zero
+     */
+    public static function div(float|int|Number $a, float|int|Number $b): float|int|Number
+    {
+        if ($b instanceof Number) {
+            if ($b == new Number('0')) {
+                throw new RuntimeException('Cannot divide by zero.');
+            }
+        } elseif ($b == 0) {
+            throw new RuntimeException('Cannot divide by zero.');
+        }
+        if ($a instanceof Number || $b instanceof Number) {
+            $aN = $a instanceof Number ? $a : new Number((string) $a);
+            $bN = $b instanceof Number ? $b : new Number((string) $b);
+
+            return $aN / $bN;
+        }
+
+        return $a / $b;
     }
 
     /**

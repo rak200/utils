@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use DateInterval;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -213,6 +214,57 @@ final class DtTest extends TestCase
         $this->assertFalse(Dt::isWeekend($mon));
         $this->assertFalse(Dt::isWeekday($sat));
         $this->assertTrue(Dt::isWeekday($mon));
+    }
+
+    public function testIsPastIsFuture(): void
+    {
+        $past = new DateTimeImmutable('2000-01-01');
+        $future = new DateTimeImmutable('2099-01-01');
+        $this->assertTrue(Dt::isPast($past));
+        $this->assertFalse(Dt::isFuture($past));
+        $this->assertTrue(Dt::isFuture($future));
+        $this->assertFalse(Dt::isPast($future));
+    }
+
+    public function testPeriod(): void
+    {
+        $days = array_map(
+            static fn (DateTimeImmutable $d): string => $d->format('Y-m-d'),
+            iterator_to_array(Dt::period(new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2026-01-04'))),
+        );
+        $this->assertSame(['2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04'], $days);
+    }
+
+    public function testPeriodExclusive(): void
+    {
+        $days = array_map(
+            static fn (DateTimeImmutable $d): string => $d->format('Y-m-d'),
+            iterator_to_array(Dt::period(new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2026-01-04'), inclusive: false)),
+        );
+        $this->assertSame(['2026-01-01', '2026-01-02', '2026-01-03'], $days);
+    }
+
+    public function testPeriodWithMonthInterval(): void
+    {
+        $months = array_map(
+            static fn (DateTimeImmutable $d): string => $d->format('Y-m-d'),
+            iterator_to_array(Dt::period(new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2026-04-01'), new DateInterval('P1M'))),
+        );
+        $this->assertSame(['2026-01-01', '2026-02-01', '2026-03-01', '2026-04-01'], $months);
+    }
+
+    public function testPeriodIsEmptyWhenStartAfterEnd(): void
+    {
+        $this->assertSame(
+            [],
+            iterator_to_array(Dt::period(new DateTimeImmutable('2026-01-04'), new DateTimeImmutable('2026-01-01'))),
+        );
+    }
+
+    public function testPeriodRejectsNonAdvancingStep(): void
+    {
+        $this->expectException(RuntimeException::class);
+        iterator_to_array(Dt::period(new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2026-01-04'), new DateInterval('PT0S')));
     }
 
     public function testDayOfWeekDayOfYearWeekOfYear(): void

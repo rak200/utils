@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-06-07
+
+Roadmap sweep of the additive helpers queued for the existing classes.
+
+### Added
+
+- **`Str::mask(value, start = 0, length = null, mask = '*', keep = '')`** — masks part of a string for safe PII display. Within the window (negative `$start` / `$length` like `Str::replaceAt`), every character not in `$keep` becomes the first character of `$mask`, preserving length. `$keep` passes formatting separators through, so a Brazilian CPF masks to `***.***.***-09` in one call; non-contiguous patterns compose two calls.
+- **`Num::add` / `sub` / `mul` / `div`** — the four basic operations over `int|float|BcMath\Number`, widening to `Number` when any operand is one (the previously-private `add` / `multiply` are now public, joined by `sub` / `div`). `div` follows PHP's `/` and throws on a zero divisor.
+- **`Num::lerp(a, b, t)` / `Num::remap(value, inMin, inMax, outMin, outMax)`** — linear interpolation and range re-mapping; `Number`-aware, no clamping (compose with `Num::clamp`). `remap` throws when the input range is empty.
+- **`Dt::period(start, end, step = P1D, inclusive = true)`** — a lazy `Generator<int, DateTimeImmutable>` walking a date range by a `DateInterval` (ascending; throws on a non-advancing step).
+- **`Dt::isPast` / `Dt::isFuture`** — strict comparison of a date/time against the current instant.
+- **`Arr::get` / `getOrNull` / `set` / `forget` / `dot` / `undot`** — nested dot-path access (`'a.b.c'`). `get` bare throws / `getOrNull` returns `null`; `set` / `forget` return a new array (immutable); `dot` flattens nested → dot-keyed, `undot` is the inverse.
+- **`Arr::hasKey(array, key)`** — the literal-key check (the pre-dot-path behaviour of `Arr::has`), stable across the planned 3.0.0 change.
+- **`Rand::isUuid(value, version = null)` / `Rand::isUlid(value)`** — validate UUID (canonical 8-4-4-4-12 hex, optional version + RFC 4122 variant) and ULID (26-char Crockford Base32) strings.
+- **`Rand::uuidV7Time` / `uuidV7TimeOrNull` / `ulidTime` / `ulidTimeOrNull`** — extract the embedded millisecond timestamp from a UUID v7 / ULID as a `DateTimeImmutable`.
+
+### Changed
+
+- **`Arr::has` now resolves a dot-path** `'a.b.c'`, checking the literal key first (so existing checks — including keys that contain a dot — keep working), then traversing. `Arr::get` / `getOrNull` follow the same literal-first rule. Backward-compatible.
+
+### Deprecated
+
+- **The literal-first fallback of `Arr::has` / `get` / `getOrNull`** for keys that contain a dot — transitional. In 3.0.0 these become pure dot-path lookups; use `Arr::hasKey` for a literal-key check that stays stable.
+
 ## [2.1.0] - 2026-06-04
 
 ### Deprecated
@@ -360,6 +384,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[2.2.0]: https://github.com/rak200/utils/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/rak200/utils/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/rak200/utils/compare/1.16.0...2.0.0
 [1.16.0]: https://github.com/rak200/utils/compare/1.15.1...1.16.0

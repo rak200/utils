@@ -43,6 +43,7 @@ use Rak200\Utils\Str;
 - [`ord` / `chr`](#ord--chr)
 - [`trunc`](#trunc)
 - [`slug`](#slug)
+- [`mask`](#mask)
 - [`format` / `scan`](#format--scan)
 - [`levenshtein` / `similarity`](#levenshtein--similarity)
 - [`toCamel` / `toPascal` / `toSnake` / `toKebab`](#tocamel--topascal--tosnake--tokebab)
@@ -539,6 +540,30 @@ Str::slug('Hello World!');           // 'hello-world'
 Str::slug('Olá, mundo!');            // 'ola-mundo'
 Str::slug('foo  bar', '_');          // 'foo_bar'
 Str::slug('   ');                    // ''
+```
+
+[↑ Back to top](#str)
+
+---
+
+## `mask`
+
+Masks PII for safe display. Within the window `[start, start+length)`, every character not in `$keep` becomes the first character of `$mask` (length preserved); characters in `$keep` (formatting separators) pass through. Negative `$start` counts from the end; `null` `$length` runs to the end; negative `$length` leaves that many characters untouched at the end. Throws when `$mask` is empty.
+
+```php
+// simple (no keep)
+Str::mask('4111111111111111', 0, -4);        // '************1111'  (card)
+Str::mask('taylor@example.com', 3);          // 'tay***************' (e-mail)
+Str::mask('secret', -3);                     // 'sec***'
+Str::mask('1234', 0, 2, '#');                // '##34'
+
+// keep separators (Brazilian CPF)
+Str::mask('123.456.789-09', 0, -2, keep: '.-');   // '***.***.***-09'
+Str::mask('123.456.789-09', 4, -2, keep: '.-');   // '123.***.***-09'
+
+// non-contiguous (1st + 3rd groups) by composition
+Str::mask(Str::mask('123.456.789-09', 0, 3, keep: '.-'), 8, 3, keep: '.-');
+// '***.456.***-09'
 ```
 
 [↑ Back to top](#str)

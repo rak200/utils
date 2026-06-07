@@ -6,6 +6,7 @@ Per-class API reference with runnable examples. For installation and a package o
 | -------- | ---------------------- | -------------- |
 | `Str`    | [str.md](str.md)       | Multibyte string helpers |
 | `Arr`    | [arr.md](arr.md)       | Array helpers |
+| `Iter`   | [iter.md](iter.md)     | Lazy iterable helpers (generators) |
 | `Num`    | [num.md](num.md)       | Numeric parsing, formatting, aggregation |
 | `Rand`   | [rand.md](rand.md)     | CSPRNG, UUID v4/v7, ULID, NanoID, ID inspection |
 | `Regex`  | [regex.md](regex.md)   | PCRE wrappers that throw on bad patterns |

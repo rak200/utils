@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-06-07
+
+Adds `Iter`, the lazy counterpart of `Arr`.
+
+### Added
+
+- **`Iter`** — a Tier 1 class of lazy iterable helpers operating on `array|Traversable` and returning `Generator`, so transforms compose without materialising intermediate arrays and sources may be infinite. It reads as the eager/lazy twin of `Arr`.
+  - **Sources:** `range` (unbounded when `$end` is null), `repeat`, `cycle`, `iterate`, `times`.
+  - **Lazy transforms:** `map`, `filter`, `flatMap`, `take`, `drop`, `takeWhile`, `dropWhile`, `chunk`, `flatten`, `zip`, `concat`, `keys`, `values`, `unique`, `slice`, `tap`. Transforms preserve keys.
+  - **Terminals:** `first` / `last` / `find` / `nth` (each with an `*OrNull` variant), `reduce`, `count`, `contains`, `any`, `every`, and `toArray(bool $preserveKeys = false)` (re-indexes by default).
+  - **Single-pass contract:** a `Generator` is consumed once — passing the same one to two terminals throws `Cannot traverse an already closed generator`; re-derive the pipeline from its source.
+  - Two deliberate divergences from `Arr`: `Iter::zip` stops at the **shortest** input (vs `Arr::zip` padding to the longest), and `Iter::flatten` descends into **any** nested iterable, not only arrays.
+
 ## [2.2.0] - 2026-06-07
 
 Roadmap sweep of the additive helpers queued for the existing classes.
@@ -384,6 +397,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[2.3.0]: https://github.com/rak200/utils/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/rak200/utils/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/rak200/utils/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/rak200/utils/compare/1.16.0...2.0.0

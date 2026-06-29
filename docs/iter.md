@@ -2,13 +2,13 @@
 
 [← Reference](README.md)
 
-Lazy iterable helpers — the streaming counterpart of [`Arr`](arr.md). Every transform returns a `Generator` and pulls from its source one element at a time, so transforms compose without building intermediate arrays and sources may be infinite. Terminals consume the source to produce a concrete value.
+Lazy iterable helpers — the streaming counterpart of [`Arr`](arr.md). Every transform returns a `Generator` and pulls from its source one element at a time, so transforms compose without building intermediate arrays and sources may be infinite. Terminals consume the source to produce a concrete value — those that read it to the end (`toArray`, `last`, `reduce`, `count`, …) never return on an infinite source, so bound it with [`take`](#take--drop) first.
 
 ```php
 use Rak200\Utils\Iter;
 ```
 
-> **Single-pass — read this first.** A `Generator` can be iterated only once. Passing the *same* generator to two terminals fails: the first drains it, and PHP then throws `Cannot traverse an already closed generator` on the second. Re-derive the pipeline from its source instead of reusing a generator. Lazy transforms **preserve keys**, so [`toArray`](#toarray) re-indexes by default (pass `true` to keep keys).
+> **Single-pass — read this first.** A `Generator` can be iterated only once. Passing the *same* generator to two terminals fails: the first drains it, and PHP then throws `Cannot traverse an already closed generator` on the second. Re-derive the pipeline from its source instead of reusing a generator. Most lazy transforms **preserve keys** (`flatMap`, `flatten`, `values`, `zip`, `chunk` re-index), so [`toArray`](#toarray) re-indexes by default (pass `true` to keep keys).
 
 ## Contents
 
@@ -79,7 +79,7 @@ Iter::toArray(Iter::take(Iter::repeat('x'), 2));     // ['x', 'x']  (infinite, b
 
 ## `cycle`
 
-Yields the values of the source over and over, forever. Values are buffered on the first pass, so a single-pass source (a `Generator`) can be cycled; an empty source yields nothing rather than looping forever.
+Yields the values of the source over and over, forever. Values are buffered on the first pass, so a single-pass source (a fresh, not-yet-iterated `Generator`) can be cycled; an empty source yields nothing rather than looping forever.
 
 ```php
 Iter::toArray(Iter::take(Iter::cycle([1, 2, 3]), 7));  // [1, 2, 3, 1, 2, 3, 1]
@@ -261,7 +261,7 @@ Iter::toArray(Iter::unique([1, '1', 1, 2, 2, 3]));  // [1, '1', 2, 3]
 
 ## `slice`
 
-Lazily yields `$length` elements starting at `$offset` (preserving keys); a null `$length` runs to the end. Both bounds must be non-negative — counting from the end is impossible on a lazy or infinite source — and throw otherwise.
+Lazily yields `$length` elements starting at `$offset` (preserving keys); a null `$length` runs to the end. Both bounds must be non-negative — counting from the end is impossible on a lazy or infinite source — and throw otherwise. With a null `$length`, slicing an infinite source never ends, so cap it with [`take`](#take--drop) when materialising.
 
 ```php
 Iter::toArray(Iter::slice([10, 20, 30, 40, 50], 1, 2));  // [20, 30]

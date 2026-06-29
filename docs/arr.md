@@ -275,11 +275,12 @@ Arr::chunk([1, 2, 3, 4, 5], 2);      // [[1, 2], [3, 4], [5]]
 
 ## `unique`
 
-Loose comparison, re-indexed as a list.
+Strict comparison, re-indexed as a list — values of different types never collapse.
 
 ```php
 Arr::unique([1, 2, 2, 3, 3, 3]);     // [1, 2, 3]
 Arr::unique(['a', 'b', 'a', 'c']);   // ['a', 'b', 'c']
+Arr::unique([1, '1', 1]);            // [1, '1']  (strict: int 1 and string '1' differ)
 ```
 
 [↑ Back to top](#arr)

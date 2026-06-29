@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-06-28
+
+Strictness alignment between the `Arr`/`Iter` twins, plus `Iter` correctness fixes.
+
+### Changed
+
+- **`Arr::unique` now uses strict comparison** (was loose `SORT_REGULAR`). Values of different types no longer collapse — `Arr::unique([1, '1'])` is `[1, '1']`, not `[1]`. This aligns it with `Iter::unique` (already strict): both twins now deduplicate identically.
+
+### Fixed
+
+- **`Iter::zip`** no longer advances the longer sources one element past the shortest. It stops as soon as a source is exhausted without pulling an extra element from the others — so a source whose next element has a side effect or throws is no longer touched beyond the shortest input.
+- **`Iter::range`** with a bounded `$end` near `PHP_INT_MAX` / `PHP_INT_MIN` no longer overflows into an infinite loop yielding floats; it now terminates correctly at the bound.
+- **Docs:** the "lazy transforms preserve keys" summary now names the re-indexing transforms (`flatMap`, `flatten`, `values`, `zip`, `chunk`), and the infinite-source caveats for the eager terminals and for `slice` without a length are documented.
+
 ## [2.3.0] - 2026-06-07
 
 Adds `Iter`, the lazy counterpart of `Arr`.
@@ -397,6 +411,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[2.4.0]: https://github.com/rak200/utils/compare/2.3.0...2.4.0
 [2.3.0]: https://github.com/rak200/utils/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/rak200/utils/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/rak200/utils/compare/2.0.0...2.1.0

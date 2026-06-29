@@ -27,7 +27,6 @@ use function array_merge;
 use function array_reverse;
 use function array_search;
 use function array_slice;
-use function array_unique;
 use function array_values;
 use function count;
 use function in_array;
@@ -452,8 +451,9 @@ final class Arr
     }
 
     /**
-     * Returns the unique values of the array as a 0-indexed list. Uses loose
-     * comparison (SORT_REGULAR).
+     * Returns the unique values of the array as a 0-indexed list, keeping the
+     * first occurrence of each value under strict comparison — so values of
+     * different types never collapse (`1` and `'1'` both survive).
      *
      * @template T
      *
@@ -463,7 +463,14 @@ final class Arr
      */
     public static function unique(array $array): array
     {
-        return array_values(array_unique($array, SORT_REGULAR));
+        $result = [];
+        foreach ($array as $value) {
+            if (!self::contains($result, $value, true)) {
+                $result[] = $value;
+            }
+        }
+
+        return $result;
     }
 
     /**

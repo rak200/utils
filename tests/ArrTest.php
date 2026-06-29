@@ -214,6 +214,11 @@ final class ArrTest extends TestCase
         $this->assertSame([1, 2, 3], Arr::unique([1, 2, 2, 3, 1]));
     }
 
+    public function testUniqueIsStrict(): void
+    {
+        $this->assertSame([1, '1', 2], Arr::unique([1, '1', 2, '1', 1]));
+    }
+
     public function testHas(): void
     {
         $this->assertTrue(Arr::has(['a' => 1], 'a'));

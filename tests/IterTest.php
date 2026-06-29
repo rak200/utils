@@ -472,4 +472,119 @@ final class IterTest extends TestCase
         $squares = Iter::map(Iter::range(1), static fn (int $n): int => $n * $n);
         $this->assertSame([1, 4, 9, 16, 25], Iter::toArray(Iter::take($squares, 5)));
     }
+
+    // ---- Key argument reaches every callback ------------------------------
+
+    public function testFilterReceivesKey(): void
+    {
+        $result = Iter::filter(['a' => 1, 'b' => 2], static fn (int $v, string $k): bool => $k === 'b');
+        $this->assertSame(['b' => 2], Iter::toArray($result, true));
+    }
+
+    public function testTakeWhileReceivesKey(): void
+    {
+        $result = Iter::takeWhile(['a' => 1, 'b' => 2, 'c' => 3], static fn (int $v, string $k): bool => $k !== 'c');
+        $this->assertSame(['a' => 1, 'b' => 2], Iter::toArray($result, true));
+    }
+
+    public function testDropWhileReceivesKey(): void
+    {
+        $result = Iter::dropWhile(['a' => 1, 'b' => 2, 'c' => 3], static fn (int $v, string $k): bool => $k !== 'c');
+        $this->assertSame(['c' => 3], Iter::toArray($result, true));
+    }
+
+    public function testFindReceivesKey(): void
+    {
+        $this->assertSame(2, Iter::find(['a' => 1, 'b' => 2], static fn (int $v, string $k): bool => $k === 'b'));
+    }
+
+    public function testFindOrNullReceivesKey(): void
+    {
+        $this->assertSame(2, Iter::findOrNull(['a' => 1, 'b' => 2], static fn (int $v, string $k): bool => $k === 'b'));
+    }
+
+    public function testAnyReceivesKey(): void
+    {
+        $this->assertTrue(Iter::any(['a' => 1, 'b' => 2], static fn (int $v, string $k): bool => $k === 'b'));
+    }
+
+    public function testEveryReceivesKey(): void
+    {
+        /** @var array<string, int> $input */
+        $input = ['a' => 1, 'b' => 2];
+        $this->assertTrue(Iter::every($input, static fn (int $v, string $k): bool => $k !== ''));
+    }
+
+    public function testReduceReceivesKey(): void
+    {
+        $keys = Iter::reduce(['a' => 1, 'b' => 2], static fn (array $carry, int $v, string $k): array => [...$carry, $k], []);
+        $this->assertSame(['a', 'b'], $keys);
+    }
+
+    public function testTapReceivesKey(): void
+    {
+        $keys = [];
+        Iter::toArray(Iter::tap(['a' => 1, 'b' => 2], static function (int $v, string $k) use (&$keys): void {
+            $keys[] = $k;
+        }));
+        $this->assertSame(['a', 'b'], $keys);
+    }
+
+    // ---- Terminals short-circuit (proven over infinite sources) -----------
+
+    public function testAnyShortCircuitsOnInfiniteSource(): void
+    {
+        $this->assertTrue(Iter::any(Iter::range(1), static fn (int $n): bool => $n === 3));
+    }
+
+    public function testEveryShortCircuitsOnInfiniteSource(): void
+    {
+        $this->assertFalse(Iter::every(Iter::range(1), static fn (int $n): bool => $n < 3));
+    }
+
+    public function testFindShortCircuitsOnInfiniteSource(): void
+    {
+        $this->assertSame(3, Iter::find(Iter::range(1), static fn (int $n): bool => $n === 3));
+    }
+
+    public function testContainsShortCircuitsOnInfiniteSource(): void
+    {
+        $this->assertTrue(Iter::contains(Iter::range(1), 3));
+    }
+
+    // ---- zip / range regression -------------------------------------------
+
+    public function testZipDoesNotOverReadASourceAfterTheShortest(): void
+    {
+        $pulls = 0;
+        $longer = Iter::map(Iter::range(0), static function (int $n) use (&$pulls): int {
+            ++$pulls;
+
+            return $n;
+        });
+        $this->assertSame([[1, 0], [2, 1]], Iter::toArray(Iter::zip([1, 2], $longer)));
+        $this->assertSame(2, $pulls);
+    }
+
+    public function testZipSingleSource(): void
+    {
+        $this->assertSame([[1], [2], [3]], Iter::toArray(Iter::zip([1, 2, 3])));
+    }
+
+    public function testRangeTerminatesNearIntMax(): void
+    {
+        $this->assertSame([PHP_INT_MAX - 2, PHP_INT_MAX], Iter::toArray(Iter::range(PHP_INT_MAX - 2, PHP_INT_MAX, 2)));
+    }
+
+    public function testRangeTerminatesNearIntMin(): void
+    {
+        $this->assertSame([PHP_INT_MIN + 2, PHP_INT_MIN], Iter::toArray(Iter::range(PHP_INT_MIN + 2, PHP_INT_MIN, -2)));
+    }
+
+    // ---- Misc contract gaps -----------------------------------------------
+
+    public function testFlattenDepthZeroIsPassThrough(): void
+    {
+        $this->assertSame([1, [2, [3]]], Iter::toArray(Iter::flatten([1, [2, [3]]], 0)));
+    }
 }

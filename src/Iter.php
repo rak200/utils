@@ -7,9 +7,6 @@ namespace Rak200\Utils;
 use Generator;
 use RuntimeException;
 
-use function in_array;
-use function is_iterable;
-
 /**
  * Lazy iterable helpers — the streaming counterpart of {@see Arr}.
  *
@@ -17,14 +14,19 @@ use function is_iterable;
  * at a time, so transforms compose without materialising intermediate arrays
  * and sources may be infinite ({@see range()}, {@see repeat()}, {@see cycle()},
  * {@see iterate()}). Terminals ({@see toArray()}, {@see first()}, {@see reduce()},
- * {@see count()}, …) consume the source to produce a concrete value.
+ * {@see count()}, …) consume the source to produce a concrete value; those that
+ * read it to the end ({@see toArray()}, {@see last()}, {@see reduce()},
+ * {@see count()}, {@see every()} on an all-true source, …) never return on an
+ * infinite source — bound it with {@see take()} first.
  *
  * **Single-pass — the one place the immutable/stateless contract bends.** A
  * `Generator` can be iterated only once. Passing the *same* generator to two
  * terminals fails: the first drains it, and PHP then throws "Cannot traverse an
  * already closed generator" on the second — re-derive it from its source
- * instead. Lazy transforms preserve keys, so {@see toArray()} re-indexes by
- * default (pass `true` to keep keys).
+ * instead. Most lazy transforms preserve keys; {@see flatMap()}, {@see flatten()},
+ * {@see values()}, {@see zip()} and {@see chunk()} re-index. Because preserved
+ * keys can be non-sequential or collide, {@see toArray()} re-indexes by default
+ * (pass `true` to keep keys).
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
@@ -72,8 +74,9 @@ final class Iter
 
     /**
      * Yields the values of $iterable over and over, forever. The values are
-     * buffered on the first pass, so a single-pass source (a `Generator`) can be
-     * cycled; an empty source yields nothing rather than looping forever.
+     * buffered on the first pass, so a single-pass source (a fresh, not-yet-iterated
+     * `Generator`) can be cycled; an empty source yields nothing rather than looping
+     * forever.
      *
      * @template T
      *
@@ -351,24 +354,25 @@ final class Iter
         }
         $iterators = [];
         foreach ($iterables as $iterable) {
-            $iterator = self::toIterator($iterable);
-            $iterator->rewind();
-            $iterators[] = $iterator;
+            $iterators[] = self::toIterator($iterable);
         }
+        $first = true;
         while (true) {
             $tuple = [];
             foreach ($iterators as $iterator) {
+                if ($first) {
+                    $iterator->rewind();
+                } else {
+                    $iterator->next();
+                }
                 if (!$iterator->valid()) {
                     return;
                 }
                 $tuple[] = $iterator->current();
             }
+            $first = false;
 
             yield $tuple;
-
-            foreach ($iterators as $iterator) {
-                $iterator->next();
-            }
         }
     }
 
@@ -437,7 +441,7 @@ final class Iter
     {
         $seen = [];
         foreach ($iterable as $key => $value) {
-            if (in_array($value, $seen, true)) {
+            if (Arr::contains($seen, $value, true)) {
                 continue;
             }
             $seen[] = $value;
@@ -449,7 +453,8 @@ final class Iter
     /**
      * Lazily yields $length elements starting at $offset (preserving keys); a
      * null $length runs to the end. Both bounds must be non-negative — counting
-     * from the end is impossible on a lazy or infinite source.
+     * from the end is impossible on a lazy or infinite source. With a null
+     * $length, slicing an infinite source never ends — cap it with {@see take()}.
      *
      * @template TKey
      * @template TValue
@@ -811,14 +816,29 @@ final class Iter
      */
     private static function doRange(int $start, ?int $end, int $step): Generator
     {
-        $value = $start;
         if ($end === null) {
-            while (true) {
-                yield $value;
-                $value += $step;
-            }
+            yield from self::infiniteRange($start, $step);
+
+            return;
         }
+        $value = $start;
         while ($step > 0 ? $value <= $end : $value >= $end) {
+            yield $value;
+            // Stop before $value += $step would pass $end or overflow the int domain.
+            if ($step > 0 ? $end - $value < $step : $value - $end < -$step) {
+                return;
+            }
+            $value += $step;
+        }
+    }
+
+    /**
+     * @return Generator<int, int>
+     */
+    private static function infiniteRange(int $start, int $step): Generator
+    {
+        $value = $start;
+        while (true) {
             yield $value;
             $value += $step;
         }
@@ -834,11 +854,25 @@ final class Iter
     private static function doRepeat(mixed $value, ?int $times): Generator
     {
         if ($times === null) {
-            while (true) {
-                yield $value;
-            }
+            yield from self::infiniteRepeat($value);
+
+            return;
         }
         for ($i = 0; $i < $times; ++$i) {
+            yield $value;
+        }
+    }
+
+    /**
+     * @template T
+     *
+     * @param T $value
+     *
+     * @return Generator<int, T>
+     */
+    private static function infiniteRepeat(mixed $value): Generator
+    {
+        while (true) {
             yield $value;
         }
     }
@@ -933,7 +967,7 @@ final class Iter
     private static function doFlatten(iterable $iterable, int $depth): Generator
     {
         foreach ($iterable as $item) {
-            if ($depth > 0 && is_iterable($item)) {
+            if ($depth > 0 && Type::isIterable($item)) {
                 foreach (self::doFlatten($item, $depth - 1) as $sub) {
                     yield $sub;
                 }

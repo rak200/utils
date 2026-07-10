@@ -23,7 +23,6 @@ Every domain class also exposes a bare **`is`** as its canonical "is a member of
 - [`isStr` / `isBool` / `isInt` / `isFloat` / `isArray` / `isObject` / `isCallable` / `isIterable` / `isNull` / `isScalar` / `isResource`](#basic-type-checks)
 - [`isEnum`](#isenum)
 - [`isNumeric`](#isnumeric)
-- [`isNumericStr` / `isIntLike`](#isnumericstr--isintlike)
 - [`isInstance` / `isA` / `isSubclass`](#isinstance--isa--issubclass)
 - [`isClassName` / `isInterfaceName`](#isclassname--isinterfacename)
 - [`usesTrait`](#usestrait)
@@ -126,31 +125,6 @@ Type::isNumeric('hello');                // false
 Type::isNumeric(true);                   // false
 Type::isNumeric(' 42 ');                 // false  (surrounding whitespace rejected)
 ```
-
-[↑ Back to top](#type)
-
----
-
-## `isNumericStr` / `isIntLike`
-
-`isNumericStr` is true for strings in numeric format — decimals, exponent, leading sign — with no surrounding whitespace. `isIntLike` is stricter still: an int, or a string parseable as one (sign + digits only — no decimal point, exponent, or whitespace).
-
-```php
-Type::isNumericStr('42');      // true
-Type::isNumericStr('-1.5');    // true
-Type::isNumericStr('1e3');     // true
-Type::isNumericStr(' 42 ');    // false   (surrounding whitespace rejected)
-Type::isNumericStr(42);        // false   (not a string)
-
-Type::isIntLike(42);           // true
-Type::isIntLike('42');         // true
-Type::isIntLike('-7');         // true
-Type::isIntLike('1.0');        // false
-Type::isIntLike('1e3');        // false
-Type::isIntLike(' 42 ');       // false
-```
-
-> Both are `@deprecated` since 2.1.0 and will be removed in 3.0.0. Replace `isNumericStr($v)` with `Type::isStr($v) && Type::isNumeric($v)`, and `isIntLike($v)` with `Type::isInt($v) || (Type::isStr($v) && Regex::matches('/^[+-]?\d+$/', $v))`.
 
 [↑ Back to top](#type)
 

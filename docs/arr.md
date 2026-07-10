@@ -28,7 +28,7 @@ use Rak200\Utils\Arr;
 - [`chunk`](#chunk)
 - [`unique`](#unique)
 - [`has` / `hasKey`](#has--haskey)
-- [`get` / `getOrNull`](#get--getornull)
+- [`get` / `getOrNull` / `getKey` / `getKeyOrNull`](#get--getornull--getkey--getkeyornull)
 - [`set` / `forget`](#set--forget)
 - [`dot` / `undot`](#dot--undot)
 - [`contains`](#contains)
@@ -289,15 +289,13 @@ Arr::unique([1, '1', 1]);            // [1, '1']  (strict: int 1 and string '1' 
 
 ## `has` / `hasKey`
 
-`has` resolves a **dot-path** `'a.b.c'`, checking a literal key first (so existing literal-key checks, even keys that contain a dot, keep working). `hasKey` is the pure literal-key check (the pre-dot-path behaviour). Both treat a `null` value as present.
-
-> The literal-first fallback in `has` is transitional — in 3.0.0 `has` becomes a pure dot-path lookup. Use `hasKey` for a literal-key check that stays stable across that change.
+`has` resolves a **dot-path** `'a.b.c'`, traversing level by level (an int or dotless string is a single-segment lookup). `hasKey` is the literal-key check that never splits on dots. Both treat a `null` value as present.
 
 ```php
 Arr::has(['user' => ['name' => 'rak']], 'user.name');  // true   (nested)
 Arr::has(['user' => ['name' => 'rak']], 'user.age');   // false
 Arr::has(['name' => 'rak'], 'name');                   // true
-Arr::has(['a.b' => 1], 'a.b');                         // true   (literal key, checked first)
+Arr::has(['a.b' => 1], 'a.b');                         // false  (traversed a→b; use hasKey)
 Arr::has([null], 0);                                   // true
 
 Arr::hasKey(['a' => ['b' => 1]], 'a.b');               // false  (no literal 'a.b' key)
@@ -308,9 +306,9 @@ Arr::hasKey(['a.b' => 1], 'a.b');                      // true
 
 ---
 
-## `get` / `getOrNull`
+## `get` / `getOrNull` / `getKey` / `getKeyOrNull`
 
-Read a value by dot-path (literal key checked first, like [`has`](#has--haskey)). Bare throws when the path does not resolve; `getOrNull` returns `null`.
+`get` / `getOrNull` read a value by dot-path (like [`has`](#has--haskey)); the bare form throws when the path does not resolve, `getOrNull` returns `null`. `getKey` / `getKeyOrNull` are the literal-key counterparts — they never split on dots (a key that contains a dot is read as-is), throwing / returning `null` respectively when the key is absent. All treat a present `null` value as found.
 
 ```php
 $data = ['user' => ['name' => 'rak', 'roles' => ['admin']]];
@@ -318,6 +316,11 @@ Arr::get($data, 'user.name');            // 'rak'
 Arr::get($data, 'user.roles.0');         // 'admin'
 Arr::getOrNull($data, 'user.email');     // null
 Arr::get($data, 'user.email');           // throws RuntimeException
+
+Arr::getKey(['a.b' => 1], 'a.b');               // 1     (literal key, no traversal)
+Arr::getKeyOrNull(['a.b' => 1], 'a.b');         // 1
+Arr::getKeyOrNull(['a' => ['b' => 1]], 'a.b');  // null  (no traversal)
+Arr::getKey(['a' => ['b' => 1]], 'a.b');        // throws RuntimeException
 ```
 
 [↑ Back to top](#arr)

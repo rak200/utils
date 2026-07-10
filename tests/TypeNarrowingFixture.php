@@ -35,9 +35,6 @@ final class TypeNarrowingFixture
         if (Type::isBool($value)) {
             \PHPStan\Testing\assertType('bool', $value);
         }
-        if (Type::isNumericStr($value)) {
-            \PHPStan\Testing\assertType('numeric-string', $value);
-        }
     }
 
     /** Mirrors Caster::toNumber(): the int|float branch must cast to numeric-string. */

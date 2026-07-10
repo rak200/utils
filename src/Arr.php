@@ -474,13 +474,10 @@ final class Arr
     }
 
     /**
-     * Returns true if $path resolves in the array — either as a literal key
-     * (checked first, including null values) or, when $path is a string holding
-     * dots, as a nested path `'a.b.c'` traversed level by level.
-     *
-     * The literal-first fallback is transitional: in 3.0.0 {@see has()} becomes
-     * a pure dot-path lookup. Use {@see hasKey()} for a literal-key check that
-     * stays stable across that change.
+     * Returns true if $path resolves in the array as a dot-path `'a.b.c'`
+     * traversed level by level (an int or dotless string is a single-segment
+     * lookup). A present null value counts as resolved. For a literal-key check
+     * that never splits on dots, use {@see hasKey()}.
      *
      * @param array<array-key, mixed> $array
      */
@@ -502,9 +499,9 @@ final class Arr
     }
 
     /**
-     * Returns the value at $path — a literal key (checked first) or, when $path
-     * is a string holding dots, the nested path `'a.b.c'`. The literal-first
-     * fallback is transitional (pure dot-path in 3.0.0); see {@see has()}.
+     * Returns the value at the dot-path $path `'a.b.c'`, traversed level by level
+     * (an int or dotless string is a single-segment lookup). For a literal-key
+     * read that never splits on dots, use {@see getKey()}.
      *
      * @param array<array-key, mixed> $array
      *
@@ -521,14 +518,43 @@ final class Arr
     }
 
     /**
-     * Returns the value at $path (literal key first, then dot-path), or null when
-     * it does not resolve. See {@see get()}.
+     * Returns the value at the dot-path $path, or null when it does not resolve.
+     * See {@see get()}; for a literal-key read use {@see getKeyOrNull()}.
      *
      * @param array<array-key, mixed> $array
      */
     public static function getOrNull(array $array, int|string $path): mixed
     {
         return self::resolvePath($array, $path)[1];
+    }
+
+    /**
+     * Returns the value at the literal key $key, without dot-path interpretation
+     * (including null values) — the literal-key counterpart to the dot-aware
+     * {@see get()}.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @throws RuntimeException when $key is not present
+     */
+    public static function getKey(array $array, int|string $key): mixed
+    {
+        if (!array_key_exists($key, $array)) {
+            throw new RuntimeException("Key \"{$key}\" not found in array.");
+        }
+
+        return $array[$key];
+    }
+
+    /**
+     * Returns the value at the literal key $key (including null values), or null
+     * when it is not present — the literal-key counterpart to {@see getOrNull()}.
+     *
+     * @param array<array-key, mixed> $array
+     */
+    public static function getKeyOrNull(array $array, int|string $key): mixed
+    {
+        return array_key_exists($key, $array) ? $array[$key] : null;
     }
 
     /**
@@ -1173,8 +1199,8 @@ final class Arr
     }
 
     /**
-     * Resolves $path against $array — the literal key first, then, for a string
-     * with dots, a level-by-level dot-traversal — returning a `[found, value]`
+     * Resolves $path against $array by dot-traversal — a string splits on `.`
+     * into segments, an int is a single numeric key — returning a `[found, value]`
      * pair so callers can tell a missing path from a present null.
      *
      * @param array<array-key, mixed> $array
@@ -1183,14 +1209,9 @@ final class Arr
      */
     private static function resolvePath(array $array, int|string $path): array
     {
-        if (array_key_exists($path, $array)) {
-            return [true, $array[$path]];
-        }
-        if (Num::isInt($path) || !Str::contains($path, '.')) {
-            return [false, null];
-        }
+        $segments = Num::isInt($path) ? [$path] : Str::split($path, '.');
         $current = $array;
-        foreach (Str::split($path, '.') as $segment) {
+        foreach ($segments as $segment) {
             if (!is_array($current) || !array_key_exists($segment, $current)) {
                 return [false, null];
             }

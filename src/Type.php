@@ -15,9 +15,7 @@ use function interface_exists;
 use function is_a;
 use function is_bool;
 use function is_callable;
-use function is_int;
 use function is_iterable;
-use function is_numeric;
 use function is_object;
 use function is_resource;
 use function is_scalar;
@@ -202,44 +200,6 @@ final class Type
     public static function isResource(mixed $value): bool
     {
         return is_resource($value);
-    }
-
-    /**
-     * Returns true if $value is a string in numeric format (decimals, leading
-     * sign, exponent notation; no surrounding whitespace).
-     *
-     * @deprecated since 2.1.0, use `Type::isStr($v) && Type::isNumeric($v)`
-     *             instead. Will be removed in 3.0.0.
-     *
-     * @phpstan-assert-if-true numeric-string $value
-     */
-    public static function isNumericStr(mixed $value): bool
-    {
-        return is_string($value) && is_numeric($value)
-            && !Str::isWhitespace($value[0]) && !Str::isWhitespace($value[-1]);
-    }
-
-    /**
-     * Returns true if $value is an int, or a string that parses cleanly as
-     * an integer (optional leading sign, digits only — no decimal point,
-     * exponent, or surrounding whitespace).
-     *
-     * @deprecated since 2.1.0, use `Type::isInt($v) || (Type::isStr($v) &&
-     *             Regex::matches('/^[+-]?\d+$/', $v))` instead.
-     *             Will be removed in 3.0.0.
-     *
-     * @phpstan-assert-if-true int|numeric-string $value
-     */
-    public static function isIntLike(mixed $value): bool
-    {
-        if (is_int($value)) {
-            return true;
-        }
-        if (!is_string($value)) {
-            return false;
-        }
-
-        return Regex::matches('/^[+-]?\d+$/', $value);
     }
 
     /**

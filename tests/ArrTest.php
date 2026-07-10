@@ -234,8 +234,8 @@ final class ArrTest extends TestCase
         $this->assertTrue(Arr::has($data, 'user.meta.age'));
         $this->assertFalse(Arr::has($data, 'user.email'));
         $this->assertFalse(Arr::has($data, 'user.name.x'));   // descends into a non-array
-        // literal-first fallback keeps a key that contains a dot resolvable
-        $this->assertTrue(Arr::has(['a.b' => 1], 'a.b'));
+        // pure dot-path: a key that literally contains a dot is traversed, not matched
+        $this->assertFalse(Arr::has(['a.b' => 1], 'a.b'));    // use hasKey() for the literal key
     }
 
     public function testHasKey(): void
@@ -251,7 +251,6 @@ final class ArrTest extends TestCase
         $data = ['user' => ['name' => 'rak', 'roles' => ['admin']]];
         $this->assertSame('rak', Arr::get($data, 'user.name'));
         $this->assertSame('admin', Arr::get($data, 'user.roles.0'));
-        $this->assertSame(1, Arr::get(['a.b' => 1], 'a.b'));           // literal-first
 
         $this->assertSame(['a' => ['b' => ['c' => 1]]], Arr::set([], 'a.b.c', 1));
         $this->assertSame(['a' => ['x' => 1, 'y' => 2]], Arr::set(['a' => ['x' => 1]], 'a.y', 2));
@@ -281,6 +280,26 @@ final class ArrTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         Arr::get(['a' => 1], 'x.y');
+    }
+
+    public function testGetKey(): void
+    {
+        $this->assertSame(1, Arr::getKey(['a.b' => 1], 'a.b'));   // literal key, no traversal
+        $this->assertNull(Arr::getKey(['a' => null], 'a'));       // present null is returned
+        $this->assertSame(1, Arr::getKey([1], 0));
+    }
+
+    public function testGetKeyThrowsWhenMissing(): void
+    {
+        $this->expectException(RuntimeException::class);
+        Arr::getKey(['a' => ['b' => 1]], 'a.b');   // no dot-traversal → not found
+    }
+
+    public function testGetKeyOrNull(): void
+    {
+        $this->assertSame(1, Arr::getKeyOrNull(['a.b' => 1], 'a.b'));
+        $this->assertNull(Arr::getKeyOrNull(['a' => ['b' => 1]], 'a.b'));   // no traversal
+        $this->assertNull(Arr::getKeyOrNull(['a' => null], 'a'));           // present null → null
     }
 
     public function testDotUndot(): void

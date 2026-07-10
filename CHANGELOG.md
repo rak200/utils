@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-07-09
+
+First major since 2.0.0 — two staged breaking changes land, plus symmetric literal-key getters.
+
+### Added
+
+- **`Arr::getKey` / `Arr::getKeyOrNull`** — literal-key reads that never split on dots (a key containing a dot is read as-is), the value-returning counterparts to `Arr::hasKey`. `getKey` throws when the key is absent; `getKeyOrNull` returns `null`. A present `null` value is returned, not treated as missing.
+
+### Changed
+
+- **`Arr::has` / `get` / `getOrNull` are now pure dot-path lookups.** The transitional *literal-first* fallback (shipped 2.2.0) is removed: a string `$path` always traverses on `.`, and an int or dotless string is a single-segment lookup — aligning the read side with the already-pure-dot-path `set` / `forget`. **BC break:** a key that literally contains a dot (`['a.b' => 1]`) is no longer matched by `has` / `get` — it is traversed (`a` → `b`). Migrate literal-key access to `hasKey` (existence) and the new `getKey` / `getKeyOrNull` (reads).
+
+### Removed
+
+- **`Type::isNumericStr` and `Type::isIntLike`** — `@deprecated` since 2.1.0. Replace `isNumericStr($v)` with `Type::isStr($v) && Type::isNumeric($v)`, and `isIntLike($v)` with `Type::isInt($v) || (Type::isStr($v) && Regex::matches('/^[+-]?\d+$/', $v))`.
+
 ## [2.4.0] - 2026-06-28
 
 Strictness alignment between the `Arr`/`Iter` twins, plus `Iter` correctness fixes.
@@ -411,6 +427,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[3.0.0]: https://github.com/rak200/utils/compare/2.4.0...3.0.0
 [2.4.0]: https://github.com/rak200/utils/compare/2.3.0...2.4.0
 [2.3.0]: https://github.com/rak200/utils/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/rak200/utils/compare/2.1.0...2.2.0

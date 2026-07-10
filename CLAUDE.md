@@ -2,14 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+The **cross-library rak200 PHP conventions** (baseline & tooling, dev dependencies, CI, code style, naming, `use function` inventory, first-class callables, correctness-over-efficiency, safe defaults, testing, versioning, README badges) are shared and imported below. This file keeps only what is specific to **utils**.
+
+@~/.claude/rak200-php-conventions.md
+
 ## Project Overview
 
 **rak200/utils** is a standalone PHP 8.4+ library of static utility helpers. It groups commonly-used helpers into a small set of `final` classes with short Laravel-style names, replacing scattered global functions with a discoverable, type-strict API. No runtime dependencies.
-
-Dev dependencies:
-- `phpunit/phpunit ^13.1` for the test suite
-- `phpstan/phpstan ^2.1` for static analysis (level max)
-- `friendsofphp/php-cs-fixer ^3.75` for code style (see [Code style](#code-style))
 
 ## Structure
 
@@ -39,70 +38,22 @@ utils/
 
 Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes live under `Rak200\Utils\Tests\` (PSR-4 from `tests/`, dev-only).
 
-## Conventions
+## Conventions (utils-specific)
 
-- Every class is `final` with a `private` constructor and only `public static` methods — pure functions, no instances, no state.
-- `declare(strict_types=1)` at the top of every file.
-- **Documentation is mandatory.** Every class carries a PHPDoc class summary (one short paragraph) plus the `@author rak200 <rak.ricardo@windowslive.com>` tag. Every `public` method carries a PHPDoc that states what it does — `@param`/`@return`/`@throws` tags are added only when they convey information beyond the type signature (units, semantics, edge-case behaviour, exception condition). Private helpers are documented only when the implementation is non-obvious. Each per-class doc under `docs/<class>.md` must list every public method in its `## Contents` TOC and include at least one runnable example per method (`bare` + `*OrNull` variants documented together).
-- String operations default to multibyte-safe (`mb_*` family).
-- "Not found" convention: bare method throws `RuntimeException`; the `*OrNull` variant returns `?T`. Keep the two variants consistent in every class.
-- Cryptographically-secure randomness only in `Rand` (`random_int`, `random_bytes`). Never `rand()` / `mt_rand()`.
-- `Dt` works strictly with `DateTimeImmutable` — no mutable `DateTime`.
-- Public API takes/returns native PHP types where possible; no custom wrapper objects.
-- **Efficiency is never the goal; correctness comes first and benchmarks are never chased — but needless work is still avoided.** No micro-optimising for raw speed's sake. Two costs, though, are worth removing *even when the tighter form reads worse*: a redundant second pass over the same data, and an intermediate array that a single pass would avoid — prefer a single pass over "build an intermediate array, then fold it," accepting the loss of readability. The other sanctioned lever is *laziness*: offer generator-returning / streaming variants for paths that may handle large or unbounded data (as `File::lines` and the `Iter` class do).
-- **Prefer the library's own helpers over native PHP functions** when a clean semantic equivalent exists (`Str::repeat` over `str_repeat`, `Str::trim` over `trim`, `Str::lower` over `mb_strtolower`, `Str::contains`/`sub`/`split`/`len`, `Arr::has` over `array_key_exists`, `Arr::is` over `is_array`, …) — many helpers exist precisely to fix native shortcomings. Keep the native only when **(a)** there is no equivalent (`ord`, `fmod`, `iconv`, `htmlspecialchars`, case-insensitive `stripos`); **(b)** the wrapper would break the method's contract — e.g. `Filter` sanitizers keep `preg_replace(...) ?? ''` rather than `Regex::replace`, because `Regex::replace` throws on the `null` that invalid UTF-8 yields under the `/u` modifier, violating `Filter`'s "never throws" guarantee; or **(c)** the method *is* the wrapper for that native — `Str::byteLen` is built on `strlen`, `Str::len` on `mb_strlen`, `Str::repeat` on `str_repeat`, so it cannot replace the native it is made of.
-- **Every native function a class still calls is imported via `use function`.** The `use function` block at the top of each file is the auditable inventory of the natives deliberately kept under the rule above — reviewable at a glance, and (with first-class callables, below) the only place a native name appears. Functions only; constants stay unqualified.
-- **Pass callables with first-class syntax, never as strings.** When handing a function or method to be invoked (callbacks for `array_map` / `usort` / `array_filter` / …), use `func(...)` / `self::method(...)` — not `'func'` or `['Class', 'method']`. This keeps the reference statically checked, IDE-navigable, and bound by `use function`. Does **not** apply to APIs that take a function *name as data* (`function_exists`, `is_callable`) or when the symbol is computed at runtime.
-- **Naming — the shortest name that stays unambiguous and discoverable** (brevity is the tie-breaker, not the goal). Apply in order of precedence: **(1)** existing conventions/families are invariant and outrank brevity — the `*OrNull` suffix, the `is*` predicate prefix, and verb families (`parse*` / `to*`) are never shortened away; **(2)** prefer a consolidated cross-language synonym to the PHP-specific name (`join` over `implode`, `slice` over `array_slice`), and keep a word whole when the full form *is* the consolidated one (`toString` / `toInt` / `toBool`, not `toStr`); **(3)** prefer a widely-recognised abbreviation (`Str` / `Num` / `Arr` / `Dt` / `Id` / `Url` / `Dir` / `Tmp` — `fooBarStr` over `fooBarString`), never an obscure one (`fmt` / `cnt` / `lvl`); **(4)** drop a word the qualified name already carries (`File::mimeType` → `File::mime`; a hypothetical `Dt::checkDate` → `Dt::check`) — *but rule 1 wins*, so a boolean check keeps its `is*` form (the calendar validator is `Dt::isValid`, not `Dt::check`), and a type suffix that disambiguates a `mixed`-accepting guard from a typed predicate stays (`Str::isNonEmptyStr` vs `Str::isEmpty(string)`; `Arr::isNonEmptyArray` vs `Arr::isNotEmpty(array)`). API-breaking renames land only on a major bump and ship a `@deprecated` alias kept for one major cycle (as `toCamelCase`→`toCamel` and `isNumeric`→`is` already do).
-- **Member order within a class:** constants → properties → constructor → non-magic methods → magic methods. Don't drop a constant beside its first use mid-class. (Enforced by php-cs-fixer's `ordered_class_elements`, configured magic-last — see [Code style](#code-style).)
+The general PHP conventions live in the imported shared file above. What follows is specific to this library:
 
-## Code style
-
-Formatting is enforced by **PHP-CS-Fixer** (`friendsofphp/php-cs-fixer`) with the `@PhpCsFixer` ruleset — the strictest preset — over `src/` and `tests/`, configured in [.php-cs-fixer.dist.php](.php-cs-fixer.dist.php). Run:
-
-- `composer cs-check` — report violations (`--dry-run --diff`); CI runs this on the PHP 8.4 job and fails on any deviation
-- `composer cs-fix` — apply fixes in place
-
-The preset is used as-is except for a few **deliberate, load-bearing overrides** that stop it fighting the conventions above (chiefly the `use function` inventory and the member order). Each override carries its rationale inline in [.php-cs-fixer.dist.php](.php-cs-fixer.dist.php) — don't drop one without reading why it's there.
-
-Run PHP-CS-Fixer on PHP 8.4 to match the project floor; on a newer runtime it prints a version warning (and needs `PHP_CS_FIXER_IGNORE_ENV=1`), harmless but noisy.
+- **Static-only classes.** Every class is `final` with a `private` constructor and only `public static` methods — pure functions, no instances, no state. Public API takes/returns native PHP types; no custom wrapper objects.
+- **Purity is the contract.** No mutable / in-place / pointer natives, no global / impure / low-level state — see [Out of scope](#out-of-scope-by-design--wont-do). Impure concerns belong in a separate sibling library (e.g. `rak200/http-input`), not here.
+- **Per-class docs.** utils ships a full per-class reference under `docs/` (index: [docs/README.md](docs/README.md)); every new or changed public method must be reflected there, following the layout in the shared conventions.
+- **`Filter`'s prefer-lib-over-native carve-out.** The general rule is in the shared file; the notable utils exception: `Filter` sanitizers keep `preg_replace(...) ?? ''` rather than `Regex::replace`, because `Regex::replace` throws on the `null` that invalid UTF-8 yields under the `/u` modifier — which would violate `Filter`'s "never throws" guarantee.
 
 ## Testing
 
-PHPUnit 13 is configured via `phpunit.xml` with a single `Unit` suite. The strict flags `failOnWarning` and `failOnRisky` are enabled.
+General testing conventions are in the shared file. utils specifics:
 
-Run:
-- `composer test` — runs the test suite
-- `vendor/bin/phpunit tests/StrTest.php` — single file
-
-Test classes mirror the source namespace (e.g. `Rak200\Utils\Str` → `Rak200\Utils\Tests\StrTest`). Test methods follow PSR-12 camelCase (e.g. `testReturnsBlankForWhitespaceOnly`), **not** snake_case.
-
-Tests assert exact behaviour for the contract — return values, thrown exceptions, edge cases (empty input, multibyte input, boundary conditions). Time-sensitive tests (`Rand::uuidV7`, `Dt::now`) assert structural properties rather than exact values.
-
-## Versioning
-
-Follows [Semantic Versioning](https://semver.org). The public API is stable from `1.0.0` onwards: breaking changes require a major bump. The current version lives in `composer.json`.
-
-When releasing a new version:
-1. Update `"version"` in `composer.json`
-2. Update `CHANGELOG.md`: add a new `## [x.y.z] - YYYY-MM-DD` section and a comparison link at the bottom
-3. README needs no version edit — its GitHub-tag version badge updates automatically once the new tag is pushed
-4. Update the `/docs/`
-5. **Prune the Roadmap** — *remove* every entry delivered in this release from the `## Roadmap` section below (do not merely annotate it as delivered); the `CHANGELOG.md` is the historical record of what shipped, the Roadmap is only what's still pending.
-6. Commit, then `git tag x.y.z` and `git push origin master && git push origin x.y.z`.
-
-### README badges
-
-Badges must stay honest — each one is a claim the repo has to back up. Three categories by how that honesty is maintained:
-
-- **Live (self-honest — never hand-edit):** `CI`, `Coverage`, `Latest tag` — driven by GitHub Actions / Codecov / the GitHub tag API, so they can't drift.
-- **Static, mirror a source of truth (update the badge whenever that source changes):**
-  - PHP-version badge ⇄ `composer.json` `"php"` constraint
-  - PHPStan-level badge ⇄ `phpstan.neon.dist` `level`
-  - License badge ⇄ `composer.json` `"license"` + `LICENSE`
-- **Static, stable claims (revisit only if the practice itself changes):** Code style (PHP-CS-Fixer), SemVer, Keep a Changelog.
-
-Before adding a badge, prefer one that is *verifiable* — backed by a file in the repo or a live service — over a vanity/activity metric.
+- PHPUnit is configured via `phpunit.xml` with a single `Unit` suite.
+- Single file: `vendor/bin/phpunit tests/StrTest.php`.
+- Time-sensitive tests (`Rand::uuidV7`, `Dt::now`) assert structural properties rather than exact values.
 
 ## Roadmap
 

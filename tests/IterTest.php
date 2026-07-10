@@ -464,7 +464,9 @@ final class IterTest extends TestCase
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Cannot traverse an already closed generator');
-        Iter::toArray($gen);
+        foreach ($gen as $ignored) {
+            // unreachable: re-traversing the drained generator throws
+        }
     }
 
     public function testComposedInfinitePipelineTerminates(): void
@@ -524,9 +526,10 @@ final class IterTest extends TestCase
     public function testTapReceivesKey(): void
     {
         $keys = [];
-        Iter::toArray(Iter::tap(['a' => 1, 'b' => 2], static function (int $v, string $k) use (&$keys): void {
+        $out = Iter::toArray(Iter::tap(['a' => 1, 'b' => 2], static function (int $v, string $k) use (&$keys): void {
             $keys[] = $k;
-        }));
+        }), true);
+        $this->assertSame(['a' => 1, 'b' => 2], $out);
         $this->assertSame(['a', 'b'], $keys);
     }
 

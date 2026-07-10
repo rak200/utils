@@ -1278,7 +1278,7 @@ final class Arr
     private static function dotInto(array $array, string $prefix, array &$result): void
     {
         foreach ($array as $key => $value) {
-            $compound = $prefix === '' ? (string) $key : $prefix.'.'.$key;
+            $compound = $prefix === '' ? (string) $key : $prefix . '.' . $key;
             if (is_array($value) && $value !== []) {
                 self::dotInto($value, $compound, $result);
             } else {

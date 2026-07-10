@@ -187,7 +187,7 @@ final class Bit
     private static function checkBitIndex(int $bit): void
     {
         if ($bit < 0 || $bit >= self::BITS) {
-            throw new RuntimeException('Bit index must be between 0 and '.(self::BITS - 1).'.');
+            throw new RuntimeException('Bit index must be between 0 and ' . (self::BITS - 1) . '.');
         }
     }
 

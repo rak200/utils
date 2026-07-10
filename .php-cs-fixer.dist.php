@@ -44,5 +44,9 @@ return (new PhpCsFixer\Config())
 
         // Natural comparison order ($x === null), not Yoda.
         'yoda_style' => false,
+
+        // One space around the concatenation operator: 'x ' . $y, not 'x '.$y —
+        // the preset's 'none' glues operands together and hurts readability.
+        'concat_space' => ['spacing' => 'one'],
     ])
     ->setFinder($finder);

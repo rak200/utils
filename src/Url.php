@@ -79,12 +79,12 @@ final class Url
     {
         $result = '';
         if (isset($components['scheme'])) {
-            $result .= $components['scheme'].'://';
+            $result .= $components['scheme'] . '://';
         }
         if (isset($components['user'])) {
             $result .= $components['user'];
             if (isset($components['pass'])) {
-                $result .= ':'.$components['pass'];
+                $result .= ':' . $components['pass'];
             }
             $result .= '@';
         }
@@ -92,16 +92,16 @@ final class Url
             $result .= $components['host'];
         }
         if (isset($components['port'])) {
-            $result .= ':'.$components['port'];
+            $result .= ':' . $components['port'];
         }
         if (isset($components['path'])) {
             $result .= $components['path'];
         }
         if (isset($components['query']) && $components['query'] !== '') {
-            $result .= '?'.$components['query'];
+            $result .= '?' . $components['query'];
         }
         if (isset($components['fragment'])) {
-            $result .= '#'.$components['fragment'];
+            $result .= '#' . $components['fragment'];
         }
 
         return $result;

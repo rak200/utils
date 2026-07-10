@@ -141,7 +141,7 @@ final class Dt
             --$seconds;
         }
         $micro = $remainder * 1000;
-        $dt = DateTimeImmutable::createFromFormat('U.u', (string) $seconds.'.'.Str::padStart((string) $micro, 6, '0'));
+        $dt = DateTimeImmutable::createFromFormat('U.u', (string) $seconds . '.' . Str::padStart((string) $micro, 6, '0'));
         if ($dt === false) {
             throw new RuntimeException("Cannot create date/time from epoch ms {$milliseconds}.");
         }

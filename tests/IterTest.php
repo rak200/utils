@@ -117,7 +117,7 @@ final class IterTest extends TestCase
 
     public function testMapPreservesKeysAndReceivesKey(): void
     {
-        $result = Iter::map(['a' => 1, 'b' => 2], static fn (int $v, string $k): string => $k.$v);
+        $result = Iter::map(['a' => 1, 'b' => 2], static fn (int $v, string $k): string => $k . $v);
         $this->assertSame(['a' => 'a1', 'b' => 'b2'], Iter::toArray($result, true));
     }
 

@@ -230,7 +230,7 @@ final class Num
         $result = '';
         $n = $value;
         while ($n !== 0) {
-            $result = $digits[abs($n % $base)].$result;
+            $result = $digits[abs($n % $base)] . $result;
             $n = intdiv($n, $base);
         }
 
@@ -771,21 +771,21 @@ final class Num
             $fracPart = '';
         }
 
-        $digits = $intPart.$fracPart;
+        $digits = $intPart . $fracPart;
         if (Str::len($digits) + abs($exp) > self::MAX_NUMBER_DIGITS) {
             return null;
         }
 
         $pointPos = Str::len($intPart) + $exp;
         if ($pointPos <= 0) {
-            $result = '0.'.Str::repeat('0', -$pointPos).$digits;
+            $result = '0.' . Str::repeat('0', -$pointPos) . $digits;
         } elseif ($pointPos >= Str::len($digits)) {
-            $result = $digits.Str::repeat('0', $pointPos - Str::len($digits));
+            $result = $digits . Str::repeat('0', $pointPos - Str::len($digits));
         } else {
-            $result = Str::sub($digits, 0, $pointPos).'.'.Str::sub($digits, $pointPos);
+            $result = Str::sub($digits, 0, $pointPos) . '.' . Str::sub($digits, $pointPos);
         }
 
-        return $sign.$result;
+        return $sign . $result;
     }
 
     /**
@@ -794,7 +794,7 @@ final class Num
      */
     private static function pow10(int $exp): Number
     {
-        $s = '1'.Str::repeat('0', $exp);
+        $s = '1' . Str::repeat('0', $exp);
         assert(is_numeric($s));
 
         return new Number($s);
@@ -865,9 +865,9 @@ final class Num
         $intGrouped = $thousandsSeparator === ''
             ? $intPart
             : Str::reverse(implode($thousandsSeparator, Str::split(Str::reverse($intPart), limit: 3)));
-        $result = ($negative ? '-' : '').$intGrouped;
+        $result = ($negative ? '-' : '') . $intGrouped;
         if ($decimals > 0) {
-            $result .= $decimalSeparator.$decPart;
+            $result .= $decimalSeparator . $decPart;
         }
 
         return $result;

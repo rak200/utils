@@ -62,7 +62,7 @@ final class Path
         }
         $joined = $segments[0];
         for ($i = 1, $n = Arr::count($segments); $i < $n; ++$i) {
-            $joined = Str::trimEnd($joined, '/').'/'.Str::trimStart($segments[$i], '/');
+            $joined = Str::trimEnd($joined, '/') . '/' . Str::trimStart($segments[$i], '/');
         }
 
         return self::normalize($joined);
@@ -83,7 +83,7 @@ final class Path
         $drive = '';
         $driveMatch = Regex::matchOrNull('#^([a-zA-Z]):#', $unified);
         if ($driveMatch !== null) {
-            $drive = Str::upper($driveMatch[1]).':';
+            $drive = Str::upper($driveMatch[1]) . ':';
             $unified = substr($unified, 2);
         }
 
@@ -108,10 +108,10 @@ final class Path
 
         $joined = implode('/', $stack);
         if ($drive !== '') {
-            return $drive.($isAbsolute || $joined !== '' ? '/' : '').$joined;
+            return $drive . ($isAbsolute || $joined !== '' ? '/' : '') . $joined;
         }
         if ($isAbsolute) {
-            return '/'.$joined;
+            return '/' . $joined;
         }
 
         return $joined === '' ? '.' : $joined;
@@ -202,19 +202,19 @@ final class Path
         $drive = '';
         $driveMatch = Regex::matchOrNull('#^([a-zA-Z]):#', $unified);
         if ($driveMatch !== null) {
-            $drive = Str::upper($driveMatch[1]).':';
+            $drive = Str::upper($driveMatch[1]) . ':';
             $unified = substr($unified, 2);
         }
         $trimmed = Str::trimEnd($unified, '/');
         $pos = strrpos($trimmed, '/');
         if ($pos === false) {
-            return $drive !== '' ? ($unified !== '' && $unified[0] === '/' ? $drive.'/' : $drive) : '.';
+            return $drive !== '' ? ($unified !== '' && $unified[0] === '/' ? $drive . '/' : $drive) : '.';
         }
         if ($pos === 0) {
-            return $drive.'/';
+            return $drive . '/';
         }
 
-        return $drive.substr($trimmed, 0, $pos);
+        return $drive . substr($trimmed, 0, $pos);
     }
 
     /**
@@ -260,7 +260,7 @@ final class Path
     private static function driveOf(string $path): string
     {
         if (Str::byteLen($path) >= 2 && $path[1] === ':' && Str::isAlpha($path[0])) {
-            return Str::upper($path[0]).':';
+            return Str::upper($path[0]) . ':';
         }
 
         return '';

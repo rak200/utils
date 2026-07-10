@@ -324,7 +324,7 @@ final class File
         if (!is_dir($dir)) {
             throw new RuntimeException("Directory not found: {$dir}");
         }
-        $result = glob(Str::trimEnd($dir, '/\\').DIRECTORY_SEPARATOR.$pattern);
+        $result = glob(Str::trimEnd($dir, '/\\') . DIRECTORY_SEPARATOR . $pattern);
         if ($result === false) {
             throw new RuntimeException("Cannot list directory: {$dir}");
         }

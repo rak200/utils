@@ -233,7 +233,7 @@ final class Str
             return '';
         }
 
-        return mb_strtoupper(mb_substr($value, 0, 1)).mb_substr($value, 1);
+        return mb_strtoupper(mb_substr($value, 0, 1)) . mb_substr($value, 1);
     }
 
     /**
@@ -245,7 +245,7 @@ final class Str
             return '';
         }
 
-        return mb_strtolower(mb_substr($value, 0, 1)).mb_substr($value, 1);
+        return mb_strtolower(mb_substr($value, 0, 1)) . mb_substr($value, 1);
     }
 
     /**
@@ -379,7 +379,7 @@ final class Str
         $from = $start < 0 ? max(0, $total + $start) : min($start, $total);
         $to = $length < 0 ? max($from, $total + $length) : min($total, $from + $length);
 
-        return mb_substr($value, 0, $from).$replacement.mb_substr($value, $to);
+        return mb_substr($value, 0, $from) . $replacement . mb_substr($value, $to);
     }
 
     /**
@@ -505,7 +505,7 @@ final class Str
             return mb_substr($ellipsis, 0, $length);
         }
 
-        return mb_substr($value, 0, $length - $ellipsisLen).$ellipsis;
+        return mb_substr($value, 0, $length - $ellipsisLen) . $ellipsis;
     }
 
     /**
@@ -561,7 +561,7 @@ final class Str
             $masked .= str_contains($keep, $char) ? $char : $maskChar;
         }
 
-        return mb_substr($value, 0, $from).$masked.mb_substr($value, $to);
+        return mb_substr($value, 0, $from) . $masked . mb_substr($value, $to);
     }
 
     /**
@@ -626,11 +626,11 @@ final class Str
             return '';
         }
         if ($lastSeparator === null || Arr::count($parts) < 2) {
-            return $prefix.implode($separator, $parts).$suffix;
+            return $prefix . implode($separator, $parts) . $suffix;
         }
         $last = array_pop($parts);
 
-        return $prefix.implode($separator, $parts).$lastSeparator.$last.$suffix;
+        return $prefix . implode($separator, $parts) . $lastSeparator . $last . $suffix;
     }
 
     /**
@@ -638,7 +638,7 @@ final class Str
      */
     public static function wrap(string $value, string $prefix = '', string $suffix = ''): string
     {
-        return self::isBlank($value) ? '' : $prefix.$value.$suffix;
+        return self::isBlank($value) ? '' : $prefix . $value . $suffix;
     }
 
     /**

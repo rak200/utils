@@ -211,7 +211,7 @@ final class Rand
             return null;
         }
 
-        return Dt::fromEpochMs(Num::parseInt(Str::sub($value, 0, 8).Str::sub($value, 9, 4), 16));
+        return Dt::fromEpochMs(Num::parseInt(Str::sub($value, 0, 8) . Str::sub($value, 9, 4), 16));
     }
 
     /**
@@ -377,7 +377,7 @@ final class Rand
         foreach ($bytes as $byte) {
             $bits .= Bit::toStr($byte, 8);
         }
-        $bits = '00'.$bits;
+        $bits = '00' . $bits;
         $result = '';
         for ($i = 0; $i < 130; $i += 5) {
             $result .= self::CROCKFORD_BASE32[Bit::fromStr(Str::sub($bits, $i, 5))];

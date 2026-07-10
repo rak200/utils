@@ -112,6 +112,8 @@ final class Iter
      * @param callable(T): T $fn
      *
      * @return Generator<int, T>
+     *
+     * @suppress PHP0420
      */
     public static function iterate(mixed $seed, callable $fn): Generator
     {
@@ -834,6 +836,8 @@ final class Iter
 
     /**
      * @return Generator<int, int>
+     *
+     * @suppress PHP0420
      */
     private static function infiniteRange(int $start, int $step): Generator
     {
@@ -869,6 +873,8 @@ final class Iter
      * @param T $value
      *
      * @return Generator<int, T>
+     *
+     * @suppress PHP0420
      */
     private static function infiniteRepeat(mixed $value): Generator
     {

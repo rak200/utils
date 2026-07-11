@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use InvalidArgumentException;
+use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Regex;
-use RuntimeException;
 
 /**
  * @internal
@@ -41,7 +42,7 @@ final class RegexTest extends TestCase
     {
         // An invalid pattern makes the underlying preg_* emit a warning and
         // return false/null; @ suppresses that expected warning while we assert
-        // every throwing helper turns it into a RuntimeException.
+        // every throwing helper turns it into an InvalidArgumentException.
         $bad = '/[/';
         $calls = [
             'matches' => static fn (): mixed => @Regex::matches($bad, 'x'),
@@ -56,7 +57,7 @@ final class RegexTest extends TestCase
             try {
                 $call();
                 $this->fail("Regex::{$name} should throw on an invalid pattern.");
-            } catch (RuntimeException) {
+            } catch (InvalidArgumentException) {
                 $this->addToAssertionCount(1);
             }
         }
@@ -72,7 +73,7 @@ final class RegexTest extends TestCase
 
     public function testMatchThrowsWhenNoMatch(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Regex::match('/xyz/', 'abc');
     }
 

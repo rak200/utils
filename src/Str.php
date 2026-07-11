@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use RuntimeException;
+use InvalidArgumentException;
 use Stringable;
+use UnderflowException;
 
 use function array_pop;
 use function chr;
@@ -197,14 +198,14 @@ final class Str
      *
      * @param list<int> $bytes
      *
-     * @throws RuntimeException when a value is outside 0–255
+     * @throws InvalidArgumentException when a value is outside 0–255
      */
     public static function fromBytes(array $bytes): string
     {
         $result = '';
         foreach ($bytes as $byte) {
             if ($byte < 0 || $byte > 255) {
-                throw new RuntimeException("Byte value out of range: {$byte}.");
+                throw new InvalidArgumentException("Byte value out of range: {$byte}.");
             }
             $result .= chr($byte);
         }
@@ -387,14 +388,14 @@ final class Str
      * the character at the same position in $to. Multibyte-aware and applied in a
      * single pass — characters introduced by the replacement are not re-translated.
      *
-     * @throws RuntimeException when $from and $to differ in character length
+     * @throws InvalidArgumentException when $from and $to differ in character length
      */
     public static function translate(string $value, string $from, string $to): string
     {
         $fromChars = mb_str_split($from);
         $toChars = mb_str_split($to);
         if (Arr::count($fromChars) !== Arr::count($toChars)) {
-            throw new RuntimeException('Translation strings must have the same length.');
+            throw new InvalidArgumentException('Translation strings must have the same length.');
         }
         if ($fromChars === []) {
             return $value;
@@ -490,12 +491,12 @@ final class Str
      * truncation occurs. When $length is shorter than $ellipsis, returns the
      * leading $length characters of $ellipsis.
      *
-     * @throws RuntimeException when $length is negative
+     * @throws InvalidArgumentException when $length is negative
      */
     public static function trunc(string $value, int $length, string $ellipsis = '…'): string
     {
         if ($length < 0) {
-            throw new RuntimeException('Length must be non-negative.');
+            throw new InvalidArgumentException('Length must be non-negative.');
         }
         if (mb_strlen($value) <= $length) {
             return $value;
@@ -540,12 +541,12 @@ final class Str
      * Non-contiguous patterns (e.g. masking the 1st and 3rd groups but not the
      * 2nd) are produced by composing two calls.
      *
-     * @throws RuntimeException when $mask is empty
+     * @throws InvalidArgumentException when $mask is empty
      */
     public static function mask(string $value, int $start = 0, ?int $length = null, string $mask = '*', string $keep = ''): string
     {
         if ($mask === '') {
-            throw new RuntimeException('Mask string cannot be empty.');
+            throw new InvalidArgumentException('Mask string cannot be empty.');
         }
         $total = mb_strlen($value);
         $from = $start < 0 ? max(0, $total + $start) : min($start, $total);
@@ -644,12 +645,12 @@ final class Str
     /**
      * Left-pads the string with $pad up to $length characters (multibyte-aware).
      *
-     * @throws RuntimeException when $pad is empty
+     * @throws InvalidArgumentException when $pad is empty
      */
     public static function padStart(string $value, int $length, string $pad = ' '): string
     {
         if ($pad === '') {
-            throw new RuntimeException('Pad string cannot be empty.');
+            throw new InvalidArgumentException('Pad string cannot be empty.');
         }
 
         return mb_str_pad($value, $length, $pad, STR_PAD_LEFT);
@@ -658,12 +659,12 @@ final class Str
     /**
      * Right-pads the string with $pad up to $length characters (multibyte-aware).
      *
-     * @throws RuntimeException when $pad is empty
+     * @throws InvalidArgumentException when $pad is empty
      */
     public static function padEnd(string $value, int $length, string $pad = ' '): string
     {
         if ($pad === '') {
-            throw new RuntimeException('Pad string cannot be empty.');
+            throw new InvalidArgumentException('Pad string cannot be empty.');
         }
 
         return mb_str_pad($value, $length, $pad, STR_PAD_RIGHT);
@@ -672,12 +673,12 @@ final class Str
     /**
      * Repeats the string $times times.
      *
-     * @throws RuntimeException when $times is negative
+     * @throws InvalidArgumentException when $times is negative
      */
     public static function repeat(string $value, int $times): string
     {
         if ($times < 0) {
-            throw new RuntimeException('Repeat count must be non-negative.');
+            throw new InvalidArgumentException('Repeat count must be non-negative.');
         }
 
         return str_repeat($value, $times);
@@ -694,15 +695,16 @@ final class Str
     /**
      * Returns the Unicode code point of the first character of $value.
      *
-     * @throws RuntimeException when $value is empty or not valid UTF-8
+     * @throws UnderflowException       when $value is empty
+     * @throws InvalidArgumentException when $value is not valid UTF-8
      */
     public static function ord(string $value): int
     {
         if ($value === '') {
-            throw new RuntimeException('Cannot take the code point of an empty string.');
+            throw new UnderflowException('Cannot take the code point of an empty string.');
         }
         if (!mb_check_encoding($value, 'UTF-8')) {
-            throw new RuntimeException('Invalid UTF-8 sequence.');
+            throw new InvalidArgumentException('Invalid UTF-8 sequence.');
         }
 
         return mb_ord($value);
@@ -711,12 +713,12 @@ final class Str
     /**
      * Returns the character for the given Unicode $codepoint (0 to 0x10FFFF).
      *
-     * @throws RuntimeException when $codepoint is outside the valid Unicode range
+     * @throws InvalidArgumentException when $codepoint is outside the valid Unicode range
      */
     public static function chr(int $codepoint): string
     {
         if ($codepoint < 0 || $codepoint > 0x10FFFF) {
-            throw new RuntimeException("Invalid code point: {$codepoint}.");
+            throw new InvalidArgumentException("Invalid code point: {$codepoint}.");
         }
 
         return mb_chr($codepoint);
@@ -759,12 +761,12 @@ final class Str
      * $break. With $cut = true, words longer than $width are split mid-word.
      * Byte-level (via {@see wordwrap()}); reliable for ASCII text.
      *
-     * @throws RuntimeException when $width is less than 1
+     * @throws InvalidArgumentException when $width is less than 1
      */
     public static function wordWrap(string $value, int $width = 75, string $break = "\n", bool $cut = false): string
     {
         if ($width < 1) {
-            throw new RuntimeException('Width must be at least 1.');
+            throw new InvalidArgumentException('Width must be at least 1.');
         }
 
         return wordwrap($value, $width, $break, $cut);

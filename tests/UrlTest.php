@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Url;
-use RuntimeException;
 
 /**
  * @internal
@@ -58,7 +58,7 @@ final class UrlTest extends TestCase
 
     public function testParseThrowsOnMalformed(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Url::parse('http:///bad-url');
     }
 

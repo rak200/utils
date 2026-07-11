@@ -8,11 +8,12 @@ use DateInterval;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Dt;
-use RuntimeException;
 use stdClass;
+use UnderflowException;
 
 /**
  * @internal
@@ -86,7 +87,7 @@ final class DtTest extends TestCase
 
     public function testParseThrowsOnInvalid(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Dt::parse('not a date');
     }
 
@@ -159,13 +160,13 @@ final class DtTest extends TestCase
 
     public function testMaxThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Dt::max();
     }
 
     public function testMinThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Dt::min();
     }
 
@@ -263,7 +264,7 @@ final class DtTest extends TestCase
 
     public function testPeriodRejectsNonAdvancingStep(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         iterator_to_array(Dt::period(new DateTimeImmutable('2026-01-01'), new DateTimeImmutable('2026-01-04'), new DateInterval('PT0S')));
     }
 

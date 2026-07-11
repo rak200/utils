@@ -34,7 +34,7 @@ Hex::is('gg');          // false  (non-hex character)
 
 ## `encode` / `decode`
 
-Convert between a binary string and its hexadecimal form: `encode` produces lowercase, two digits per byte (never fails); `decode` is the inverse and accepts upper- and lowercase digits. `decode` throws `RuntimeException` on invalid hex (odd length or a non-hex character).
+Convert between a binary string and its hexadecimal form: `encode` produces lowercase, two digits per byte (never fails); `decode` is the inverse and accepts upper- and lowercase digits. `decode` throws `InvalidArgumentException` on invalid hex (odd length or a non-hex character).
 
 ```php
 Hex::encode('hello');         // '68656c6c6f'

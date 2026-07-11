@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-11
+
+Exception semantics release: every throw-site now uses the precise SPL exception for its failure kind.
+
+### Changed
+
+- **Breaking: invalid-input throws are now `InvalidArgumentException`** (extends `LogicException`, so a `catch (RuntimeException)` no longer captures them) — malformed input and out-of-domain arguments across the library: parse failures (`Num::parseInt`/`parseFloat`/`parseNumber`, `Dt::parse`, `Url::parse`, `Rand::uuidV7Time`/`ulidTime`), malformed encodings (`Base64`/`Hex`/`Bit` decode, invalid UTF-8, invalid regex patterns), and argument-domain guards (`must be non-negative`, `cannot be empty`, base/bit-index ranges, division/modulo by zero, negative square roots, mismatched lengths)
+- **Lookup misses now throw `OutOfBoundsException`** (extends `RuntimeException` — existing catches keep working): `Arr::find`/`get`/`getKey`/`search`, `Iter::find`/`nth`, `Enum::fromName`, `Regex::match`, `Arr::pluck`/`keyBy` on a missing column
+- **Operations on an empty source now throw `UnderflowException`** (extends `RuntimeException`): `Arr::first`/`last`/`firstKey`/`lastKey`/`shift`/`pop`, `Iter::first`/`last`, `Num::min`/`max`/`avg`, `Dt::min`/`max`, `Rand::choice`, `Enum::random`, `Str::ord` on `''`
+- **A user callback returning an unusable value now throws `UnexpectedValueException`** (extends `RuntimeException`): `Arr::keyBy` resolved-key type
+- `RuntimeException` remains only for environment/native failures (`File::*`, fileinfo, temp files)
+- `Num::parseNumber` / `Num::parseNumberOrNull` widened to accept `float|int|string|Number`: a `Number` passes through, an int converts directly, a finite float is expanded to its exact decimal form (so a value whose string form is scientific notation, e.g. `1.0E-7`, converts cleanly), and non-finite floats (`NAN`, `INF`) throw `InvalidArgumentException` / return `null`
+
 ## [3.1.0] - 2026-07-11
 
 ### Added
@@ -433,6 +446,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[4.0.0]: https://github.com/rak200/utils/compare/3.1.0...4.0.0
 [3.1.0]: https://github.com/rak200/utils/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/rak200/utils/compare/2.4.0...3.0.0
 [2.4.0]: https://github.com/rak200/utils/compare/2.3.0...2.4.0

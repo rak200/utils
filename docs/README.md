@@ -27,5 +27,5 @@ Per-class API reference with runnable examples. For installation and a package o
 
 - Output is shown in trailing `// …` comments next to each call.
 - Time-sensitive helpers (`Rand::uuidV7`, `Dt::now`, …) get a *shape* example, not a literal value.
-- `bare` and `*OrNull` variants are documented together: the bare method throws `RuntimeException`, the `*OrNull` variant returns `?T`.
+- `bare` and `*OrNull` variants are documented together: the bare method throws a precise SPL exception (`InvalidArgumentException` for malformed input, `OutOfBoundsException` for a lookup with no result, `UnderflowException` for an empty source; `RuntimeException` only for environment failures), the `*OrNull` variant returns `?T`.
 - All snippets assume the relevant `use Rak200\Utils\X;` import shown at the top of each file.

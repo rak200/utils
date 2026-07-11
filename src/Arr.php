@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use RuntimeException;
+use InvalidArgumentException;
+use OutOfBoundsException;
+use UnderflowException;
+use UnexpectedValueException;
 
 use function array_chunk;
 use function array_combine;
@@ -106,12 +109,12 @@ final class Arr
      *
      * @return T
      *
-     * @throws RuntimeException when the array is empty
+     * @throws UnderflowException when the array is empty
      */
     public static function first(array $array): mixed
     {
         if ($array === []) {
-            throw new RuntimeException('Cannot get first element of an empty array.');
+            throw new UnderflowException('Cannot get first element of an empty array.');
         }
 
         return $array[array_key_first($array)];
@@ -144,12 +147,12 @@ final class Arr
      *
      * @return T
      *
-     * @throws RuntimeException when the array is empty
+     * @throws UnderflowException when the array is empty
      */
     public static function last(array $array): mixed
     {
         if ($array === []) {
-            throw new RuntimeException('Cannot get last element of an empty array.');
+            throw new UnderflowException('Cannot get last element of an empty array.');
         }
 
         return $array[array_key_last($array)];
@@ -182,12 +185,12 @@ final class Arr
      *
      * @return K
      *
-     * @throws RuntimeException when the array is empty
+     * @throws UnderflowException when the array is empty
      */
     public static function firstKey(array $array): int|string
     {
         if ($array === []) {
-            throw new RuntimeException('Cannot get first key of an empty array.');
+            throw new UnderflowException('Cannot get first key of an empty array.');
         }
 
         return array_key_first($array);
@@ -216,12 +219,12 @@ final class Arr
      *
      * @return K
      *
-     * @throws RuntimeException when the array is empty
+     * @throws UnderflowException when the array is empty
      */
     public static function lastKey(array $array): int|string
     {
         if ($array === []) {
-            throw new RuntimeException('Cannot get last key of an empty array.');
+            throw new UnderflowException('Cannot get last key of an empty array.');
         }
 
         return array_key_last($array);
@@ -252,7 +255,7 @@ final class Arr
      *
      * @return T
      *
-     * @throws RuntimeException when no element matches
+     * @throws OutOfBoundsException when no element matches
      */
     public static function find(array $array, callable $predicate): mixed
     {
@@ -262,7 +265,7 @@ final class Arr
             }
         }
 
-        throw new RuntimeException('No element matches the predicate.');
+        throw new OutOfBoundsException('No element matches the predicate.');
     }
 
     /**
@@ -358,12 +361,12 @@ final class Arr
      *
      * @return list<mixed>
      *
-     * @throws RuntimeException when $depth is negative
+     * @throws InvalidArgumentException when $depth is negative
      */
     public static function flatten(array $array, int $depth = PHP_INT_MAX): array
     {
         if ($depth < 0) {
-            throw new RuntimeException('Depth must be non-negative.');
+            throw new InvalidArgumentException('Depth must be non-negative.');
         }
         $result = [];
         foreach ($array as $item) {
@@ -439,12 +442,12 @@ final class Arr
      *
      * @return list<non-empty-list<T>>
      *
-     * @throws RuntimeException when $size is less than 1
+     * @throws InvalidArgumentException when $size is less than 1
      */
     public static function chunk(array $array, int $size): array
     {
         if ($size < 1) {
-            throw new RuntimeException('Chunk size must be at least 1.');
+            throw new InvalidArgumentException('Chunk size must be at least 1.');
         }
 
         return array_chunk($array, $size);
@@ -505,13 +508,13 @@ final class Arr
      *
      * @param array<array-key, mixed> $array
      *
-     * @throws RuntimeException when $path does not resolve
+     * @throws OutOfBoundsException when $path does not resolve
      */
     public static function get(array $array, int|string $path): mixed
     {
         [$found, $value] = self::resolvePath($array, $path);
         if (!$found) {
-            throw new RuntimeException("Path \"{$path}\" not found in array.");
+            throw new OutOfBoundsException("Path \"{$path}\" not found in array.");
         }
 
         return $value;
@@ -535,12 +538,12 @@ final class Arr
      *
      * @param array<array-key, mixed> $array
      *
-     * @throws RuntimeException when $key is not present
+     * @throws OutOfBoundsException when $key is not present
      */
     public static function getKey(array $array, int|string $key): mixed
     {
         if (!array_key_exists($key, $array)) {
-            throw new RuntimeException("Key \"{$key}\" not found in array.");
+            throw new OutOfBoundsException("Key \"{$key}\" not found in array.");
         }
 
         return $array[$key];
@@ -693,13 +696,13 @@ final class Arr
      *
      * @return array-key
      *
-     * @throws RuntimeException when $value is not present
+     * @throws OutOfBoundsException when $value is not present
      */
     public static function search(array $array, mixed $value, bool $strict = true): int|string
     {
         $key = self::searchOrNull($array, $value, $strict);
         if ($key === null) {
-            throw new RuntimeException('Value not found in array.');
+            throw new OutOfBoundsException('Value not found in array.');
         }
 
         return $key;
@@ -731,8 +734,8 @@ final class Arr
      *
      * @return ($indexKey is null ? list<mixed> : array<int|string, mixed>)
      *
-     * @throws RuntimeException when $indexKey is given and an item lacks it or
-     *                          the resolved key is not an int or string
+     * @throws OutOfBoundsException     when $indexKey is given and an item lacks it
+     * @throws UnexpectedValueException when the resolved key is not an int or string
      */
     public static function pluck(array $array, int|string $key, int|string|null $indexKey = null): array
     {
@@ -759,9 +762,9 @@ final class Arr
      *
      * @return array<int|string, T>
      *
-     * @throws RuntimeException when $key is a column name and an item is not
-     *                          an array or lacks that column, or when the
-     *                          resolved key is not an int or string
+     * @throws OutOfBoundsException     when $key is a column name and an item is
+     *                                  not an array or lacks that column
+     * @throws UnexpectedValueException when the resolved key is not an int or string
      */
     public static function keyBy(array $array, callable|int|string $key): array
     {
@@ -773,12 +776,12 @@ final class Arr
                 $k = $key($item);
             } else {
                 if (!is_array($item) || !array_key_exists($key, $item)) {
-                    throw new RuntimeException("Item missing key \"{$key}\"");
+                    throw new OutOfBoundsException("Item missing key \"{$key}\"");
                 }
                 $k = $item[$key];
             }
             if (!Num::isInt($k) && !Str::is($k)) {
-                throw new RuntimeException('Resolved key must be an int or string.');
+                throw new UnexpectedValueException('Resolved key must be an int or string.');
             }
             $result[$k] = $item;
         }
@@ -943,12 +946,12 @@ final class Arr
      *
      * @return array<array-key, T>
      *
-     * @throws RuntimeException when $keys and $values differ in length
+     * @throws InvalidArgumentException when $keys and $values differ in length
      */
     public static function combine(array $keys, array $values): array
     {
         if (count($keys) !== count($values)) {
-            throw new RuntimeException('Keys and values must have the same number of elements.');
+            throw new InvalidArgumentException('Keys and values must have the same number of elements.');
         }
 
         return array_combine($keys, $values);
@@ -1048,12 +1051,12 @@ final class Arr
      *
      * @return array{0: T, 1: array<array-key, T>}
      *
-     * @throws RuntimeException when the array is empty
+     * @throws UnderflowException when the array is empty
      */
     public static function shift(array $array): array
     {
         if ($array === []) {
-            throw new RuntimeException('Cannot shift from an empty array.');
+            throw new UnderflowException('Cannot shift from an empty array.');
         }
 
         return [self::first($array), self::slice($array, 1)];
@@ -1085,12 +1088,12 @@ final class Arr
      *
      * @return array{0: T, 1: array<array-key, T>}
      *
-     * @throws RuntimeException when the array is empty
+     * @throws UnderflowException when the array is empty
      */
     public static function pop(array $array): array
     {
         if ($array === []) {
-            throw new RuntimeException('Cannot pop from an empty array.');
+            throw new UnderflowException('Cannot pop from an empty array.');
         }
 
         return [self::last($array), self::slice($array, 0, -1)];
@@ -1141,12 +1144,12 @@ final class Arr
      *
      * @return list<T>
      *
-     * @throws RuntimeException when $count is negative
+     * @throws InvalidArgumentException when $count is negative
      */
     public static function fill(int $count, mixed $value): array
     {
         if ($count < 0) {
-            throw new RuntimeException('Count must be non-negative.');
+            throw new InvalidArgumentException('Count must be non-negative.');
         }
 
         return array_fill(0, $count, $value);
@@ -1174,12 +1177,12 @@ final class Arr
      *
      * @return list<int>
      *
-     * @throws RuntimeException when $step is zero
+     * @throws InvalidArgumentException when $step is zero
      */
     public static function range(int $start, int $end, int $step = 1): array
     {
         if ($step === 0) {
-            throw new RuntimeException('Step cannot be zero.');
+            throw new InvalidArgumentException('Step cannot be zero.');
         }
         if (($step > 0 && $start > $end) || ($step < 0 && $start < $end)) {
             return [];

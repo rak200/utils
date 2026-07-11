@@ -148,7 +148,7 @@ Str::toBytes("\x00\xff");     // [0, 255]
 Str::toBytes('');             // []
 Str::fromBytes([104, 105]);   // 'hi'
 Str::fromBytes([0, 255]);     // "\x00\xff"
-Str::fromBytes([256]);        // throws RuntimeException (out of range)
+Str::fromBytes([256]);        // throws InvalidArgumentException (out of range)
 ```
 
 [↑ Back to top](#str)

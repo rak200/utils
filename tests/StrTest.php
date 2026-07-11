@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Str;
-use RuntimeException;
 use stdClass;
 use Stringable;
+use UnderflowException;
 
 /**
  * @internal
@@ -283,13 +284,13 @@ final class StrTest extends TestCase
 
     public function testPadRejectsEmptyPad(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::padStart('abc', 5, '');
     }
 
     public function testPadEndRejectsEmptyPad(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::padEnd('abc', 5, '');
     }
 
@@ -301,7 +302,7 @@ final class StrTest extends TestCase
 
     public function testRepeatRejectsNegative(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::repeat('a', -1);
     }
 
@@ -365,7 +366,7 @@ final class StrTest extends TestCase
 
     public function testTruncateRejectsNegativeLength(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::trunc('x', -1);
     }
 
@@ -415,7 +416,7 @@ final class StrTest extends TestCase
 
     public function testMaskRejectsEmptyMask(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::mask('hello', 0, 2, '');
     }
 
@@ -447,13 +448,13 @@ final class StrTest extends TestCase
 
     public function testOrdRejectsEmptyString(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Str::ord('');
     }
 
     public function testOrdRejectsInvalidUtf8(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::ord("\xFF");
     }
 
@@ -466,13 +467,13 @@ final class StrTest extends TestCase
 
     public function testChrRejectsNegativeCodePoint(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::chr(-1);
     }
 
     public function testChrRejectsCodePointAboveMax(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::chr(0x110000);
     }
 
@@ -502,7 +503,7 @@ final class StrTest extends TestCase
 
     public function testTranslateRejectsLengthMismatch(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::translate('hello', 'el', 'x');
     }
 
@@ -579,7 +580,7 @@ final class StrTest extends TestCase
 
     public function testWordWrapThrowsForBadWidth(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::wordWrap('abc', 0);
     }
 
@@ -649,7 +650,7 @@ final class StrTest extends TestCase
 
     public function testFromBytesRejectsOutOfRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Str::fromBytes([0, 256]);
     }
 

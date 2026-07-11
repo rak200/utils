@@ -83,7 +83,7 @@ Returns the backed values of every case, in declaration order. Throws when the c
 
 ```php
 Enum::values(Status::class);  // ['active', 'inactive']
-Enum::values(Suit::class);    // RuntimeException (pure enum)
+Enum::values(Suit::class);    // InvalidArgumentException (pure enum)
 ```
 
 [↑ Back to top](#enum)
@@ -96,7 +96,7 @@ Looks up a case by its **name** — the gap PHP leaves open (the native `from()`
 
 ```php
 Enum::fromName(Suit::class, 'Hearts');       // Suit::Hearts
-Enum::fromName(Suit::class, 'Clubs');        // RuntimeException
+Enum::fromName(Suit::class, 'Clubs');        // OutOfBoundsException
 
 Enum::tryFromName(Status::class, 'Active');  // Status::Active
 Enum::tryFromName(Status::class, 'Unknown'); // null

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use RuntimeException;
+use InvalidArgumentException;
 
 use function array_pop;
 use function implode;
@@ -122,15 +122,15 @@ final class Path
      * paths must be either both absolute or both relative; on Windows, the
      * drive letters must match.
      *
-     * @throws RuntimeException when $from and $to cannot be related (mismatched
-     *                          anchors or drives)
+     * @throws InvalidArgumentException when $from and $to cannot be related (mismatched
+     *                                  anchors or drives)
      */
     public static function relative(string $from, string $to): string
     {
         $fromNorm = self::normalize($from);
         $toNorm = self::normalize($to);
         if (self::isAbsolute($fromNorm) !== self::isAbsolute($toNorm)) {
-            throw new RuntimeException('Cannot compute relative path between absolute and relative paths.');
+            throw new InvalidArgumentException('Cannot compute relative path between absolute and relative paths.');
         }
         $fromDrive = self::driveOf($fromNorm);
         $toDrive = self::driveOf($toNorm);
@@ -138,7 +138,7 @@ final class Path
             $fromLabel = $fromDrive ?: '(none)';
             $toLabel = $toDrive ?: '(none)';
 
-            throw new RuntimeException("Cannot compute relative path across drives {$fromLabel} and {$toLabel}.");
+            throw new InvalidArgumentException("Cannot compute relative path across drives {$fromLabel} and {$toLabel}.");
         }
 
         $fromBody = $fromDrive !== '' ? substr($fromNorm, Str::byteLen($fromDrive)) : $fromNorm;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use RuntimeException;
+use InvalidArgumentException;
 
 use function filter_var;
 use function http_build_query;
@@ -44,13 +44,13 @@ final class Url
      *
      * @return array{scheme?: string, host?: string, port?: int, user?: string, pass?: string, path?: string, query?: string, fragment?: string}
      *
-     * @throws RuntimeException when $url is not a valid URL
+     * @throws InvalidArgumentException when $url is not a valid URL
      */
     public static function parse(string $url): array
     {
         $result = self::parseOrNull($url);
         if ($result === null) {
-            throw new RuntimeException("Cannot parse \"{$url}\" as URL.");
+            throw new InvalidArgumentException("Cannot parse \"{$url}\" as URL.");
         }
 
         return $result;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Path;
-use RuntimeException;
 
 /**
  * @internal
@@ -135,13 +135,13 @@ final class PathTest extends TestCase
 
     public function testRelativeRejectsMixedAnchors(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Path::relative('/a/b', 'c/d');
     }
 
     public function testRelativeRejectsDifferentDrives(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Path::relative('C:/a', 'D:/a');
     }
 

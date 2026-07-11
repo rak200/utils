@@ -73,7 +73,7 @@ Per-method reference with runnable examples lives in [`docs/`](docs/README.md).
 - All classes are `final` with a `private` constructor — pure static API, no instances.
 - Strict types everywhere (`declare(strict_types=1)`).
 - Multibyte-safe string operations by default.
-- "Not found" convention: bare method (`Arr::first`, `Num::parseInt`, ...) throws `RuntimeException`; the `*OrNull` variant returns `?T`.
+- "Not found" convention: bare method (`Arr::first`, `Num::parseInt`, ...) throws a precise SPL exception — `InvalidArgumentException` for malformed input, `OutOfBoundsException` for a lookup with no result, `UnderflowException` for an empty source (`RuntimeException` stays for environment failures, e.g. `File`); the `*OrNull` variant returns `?T`.
 
 ## Versioning
 

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use Generator;
-use RuntimeException;
+use InvalidArgumentException;
+use OutOfBoundsException;
+use UnderflowException;
 
 /**
  * Lazy iterable helpers — the streaming counterpart of {@see Arr}.
@@ -41,12 +43,12 @@ final class Iter
      *
      * @return Generator<int, int>
      *
-     * @throws RuntimeException when $step is zero
+     * @throws InvalidArgumentException when $step is zero
      */
     public static function range(int $start, ?int $end = null, int $step = 1): Generator
     {
         if ($step === 0) {
-            throw new RuntimeException('Step cannot be zero.');
+            throw new InvalidArgumentException('Step cannot be zero.');
         }
 
         return self::doRange($start, $end, $step);
@@ -61,12 +63,12 @@ final class Iter
      *
      * @return Generator<int, T>
      *
-     * @throws RuntimeException when $times is negative
+     * @throws InvalidArgumentException when $times is negative
      */
     public static function repeat(mixed $value, ?int $times = null): Generator
     {
         if ($times !== null && $times < 0) {
-            throw new RuntimeException('Times must be non-negative.');
+            throw new InvalidArgumentException('Times must be non-negative.');
         }
 
         return self::doRepeat($value, $times);
@@ -133,12 +135,12 @@ final class Iter
      *
      * @return Generator<int, T>
      *
-     * @throws RuntimeException when $count is negative
+     * @throws InvalidArgumentException when $count is negative
      */
     public static function times(int $count, callable $fn): Generator
     {
         if ($count < 0) {
-            throw new RuntimeException('Count must be non-negative.');
+            throw new InvalidArgumentException('Count must be non-negative.');
         }
 
         return self::doTimes($count, $fn);
@@ -218,12 +220,12 @@ final class Iter
      *
      * @return Generator<TKey, TValue>
      *
-     * @throws RuntimeException when $count is negative
+     * @throws InvalidArgumentException when $count is negative
      */
     public static function take(iterable $iterable, int $count): Generator
     {
         if ($count < 0) {
-            throw new RuntimeException('Count must be non-negative.');
+            throw new InvalidArgumentException('Count must be non-negative.');
         }
 
         return self::doTake($iterable, $count);
@@ -239,12 +241,12 @@ final class Iter
      *
      * @return Generator<TKey, TValue>
      *
-     * @throws RuntimeException when $count is negative
+     * @throws InvalidArgumentException when $count is negative
      */
     public static function drop(iterable $iterable, int $count): Generator
     {
         if ($count < 0) {
-            throw new RuntimeException('Count must be non-negative.');
+            throw new InvalidArgumentException('Count must be non-negative.');
         }
 
         return self::doDrop($iterable, $count);
@@ -308,12 +310,12 @@ final class Iter
      *
      * @return Generator<int, non-empty-list<TValue>>
      *
-     * @throws RuntimeException when $size is less than 1
+     * @throws InvalidArgumentException when $size is less than 1
      */
     public static function chunk(iterable $iterable, int $size): Generator
     {
         if ($size < 1) {
-            throw new RuntimeException('Chunk size must be at least 1.');
+            throw new InvalidArgumentException('Chunk size must be at least 1.');
         }
 
         return self::doChunk($iterable, $size);
@@ -328,12 +330,12 @@ final class Iter
      *
      * @return Generator<int, mixed>
      *
-     * @throws RuntimeException when $depth is negative
+     * @throws InvalidArgumentException when $depth is negative
      */
     public static function flatten(iterable $iterable, int $depth = PHP_INT_MAX): Generator
     {
         if ($depth < 0) {
-            throw new RuntimeException('Depth must be non-negative.');
+            throw new InvalidArgumentException('Depth must be non-negative.');
         }
 
         return self::doFlatten($iterable, $depth);
@@ -465,15 +467,15 @@ final class Iter
      *
      * @return Generator<TKey, TValue>
      *
-     * @throws RuntimeException when $offset or $length is negative
+     * @throws InvalidArgumentException when $offset or $length is negative
      */
     public static function slice(iterable $iterable, int $offset, ?int $length = null): Generator
     {
         if ($offset < 0) {
-            throw new RuntimeException('Offset must be non-negative.');
+            throw new InvalidArgumentException('Offset must be non-negative.');
         }
         if ($length !== null && $length < 0) {
-            throw new RuntimeException('Length must be non-negative.');
+            throw new InvalidArgumentException('Length must be non-negative.');
         }
 
         return self::doSlice($iterable, $offset, $length);
@@ -510,7 +512,7 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws RuntimeException when the source is empty
+     * @throws UnderflowException when the source is empty
      */
     public static function first(iterable $iterable): mixed
     {
@@ -518,7 +520,7 @@ final class Iter
             return $value;
         }
 
-        throw new RuntimeException('Cannot get first element of an empty iterable.');
+        throw new UnderflowException('Cannot get first element of an empty iterable.');
     }
 
     /**
@@ -548,7 +550,7 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws RuntimeException when the source is empty
+     * @throws UnderflowException when the source is empty
      */
     public static function last(iterable $iterable): mixed
     {
@@ -559,7 +561,7 @@ final class Iter
             $found = true;
         }
         if (!$found) {
-            throw new RuntimeException('Cannot get last element of an empty iterable.');
+            throw new UnderflowException('Cannot get last element of an empty iterable.');
         }
 
         return $last;
@@ -596,7 +598,7 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws RuntimeException when no element matches
+     * @throws OutOfBoundsException when no element matches
      */
     public static function find(iterable $iterable, callable $predicate): mixed
     {
@@ -606,7 +608,7 @@ final class Iter
             }
         }
 
-        throw new RuntimeException('No element matches the predicate.');
+        throw new OutOfBoundsException('No element matches the predicate.');
     }
 
     /**
@@ -640,12 +642,13 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws RuntimeException when $n is negative or beyond the last element
+     * @throws InvalidArgumentException when $n is negative
+     * @throws OutOfBoundsException     when $n is beyond the last element
      */
     public static function nth(iterable $iterable, int $n): mixed
     {
         if ($n < 0) {
-            throw new RuntimeException('Index must be non-negative.');
+            throw new InvalidArgumentException('Index must be non-negative.');
         }
         $index = 0;
         foreach ($iterable as $value) {
@@ -655,7 +658,7 @@ final class Iter
             ++$index;
         }
 
-        throw new RuntimeException("No element at index {$n}.");
+        throw new OutOfBoundsException("No element at index {$n}.");
     }
 
     /**
@@ -668,12 +671,12 @@ final class Iter
      *
      * @return null|TValue
      *
-     * @throws RuntimeException when $n is negative
+     * @throws InvalidArgumentException when $n is negative
      */
     public static function nthOrNull(iterable $iterable, int $n): mixed
     {
         if ($n < 0) {
-            throw new RuntimeException('Index must be non-negative.');
+            throw new InvalidArgumentException('Index must be non-negative.');
         }
         $index = 0;
         foreach ($iterable as $value) {

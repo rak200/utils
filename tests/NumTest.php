@@ -6,11 +6,12 @@ namespace Rak200\Utils\Tests;
 
 use BcMath\Number;
 use Generator;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Num;
 use RoundingMode;
-use RuntimeException;
+use UnderflowException;
 
 /**
  * @internal
@@ -108,7 +109,7 @@ final class NumTest extends TestCase
 
     public function testParseIntThrowsOnInvalid(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::parseInt('abc');
     }
 
@@ -129,7 +130,7 @@ final class NumTest extends TestCase
 
     public function testParseIntRejectsInvalidBase(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::parseIntOrNull('1', 37);
     }
 
@@ -142,7 +143,7 @@ final class NumTest extends TestCase
 
     public function testParseFloatThrowsOnInvalid(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::parseFloat('abc');
     }
 
@@ -169,7 +170,7 @@ final class NumTest extends TestCase
 
     public function testClampRejectsMinGreaterThanMax(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::clamp(5, 10, 0);
     }
 
@@ -201,7 +202,7 @@ final class NumTest extends TestCase
 
     public function testRemapRejectsEmptyInputRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::remap(5, 0, 0, 0, 100);
     }
 
@@ -216,7 +217,7 @@ final class NumTest extends TestCase
 
     public function testDivRejectsZero(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::div(1, 0);
     }
 
@@ -264,19 +265,19 @@ final class NumTest extends TestCase
 
     public function testAvgThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Num::avg([]);
     }
 
     public function testMinThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Num::min([]);
     }
 
     public function testMaxThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Num::max([]);
     }
 
@@ -303,7 +304,7 @@ final class NumTest extends TestCase
 
     public function testSqrtRejectsNegative(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::sqrt(-1);
     }
 
@@ -326,7 +327,7 @@ final class NumTest extends TestCase
 
     public function testModRejectsZeroDivisor(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::mod(5, 0);
     }
 
@@ -378,9 +379,41 @@ final class NumTest extends TestCase
         $this->assertNull(Num::parseNumberOrNull("1.5\t"));
     }
 
+    public function testParseNumberAcceptsInt(): void
+    {
+        $this->assertSame('42', (string) Num::parseNumber(42));
+        $this->assertSame('-7', (string) Num::parseNumber(-7));
+    }
+
+    public function testParseNumberAcceptsFiniteFloat(): void
+    {
+        $this->assertSame('3.14', (string) Num::parseNumber(3.14));
+        // (string) 0.0000001 is '1.0E-7' — the expansion keeps it exact.
+        $this->assertSame('0.00000010', (string) Num::parseNumber(0.0000001));
+    }
+
+    public function testParseNumberReturnsNumberAsIs(): void
+    {
+        $n = new Number('1.23');
+        $this->assertSame($n, Num::parseNumber($n));
+    }
+
+    public function testParseNumberOrNullRejectsNonFiniteFloats(): void
+    {
+        $this->assertNull(Num::parseNumberOrNull(NAN));
+        $this->assertNull(Num::parseNumberOrNull(INF));
+        $this->assertNull(Num::parseNumberOrNull(-INF));
+    }
+
+    public function testParseNumberThrowsOnNan(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Num::parseNumber(NAN);
+    }
+
     public function testParseNumberThrowsOnInvalid(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::parseNumber('xyz');
     }
 
@@ -441,13 +474,13 @@ final class NumTest extends TestCase
 
     public function testModByZeroNumberThrows(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::mod(new Number('5'), new Number('0'));
     }
 
     public function testSqrtRejectsNegativeNumber(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::sqrt(new Number('-1'));
     }
 
@@ -512,7 +545,7 @@ final class NumTest extends TestCase
 
     public function testIntDivByZeroThrows(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::intDiv(1, 0);
     }
 
@@ -593,7 +626,7 @@ final class NumTest extends TestCase
 
     public function testToBaseThrowsForBadBase(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Num::toBase(10, 37);
     }
 

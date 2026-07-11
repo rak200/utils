@@ -222,7 +222,7 @@ Extracts the millisecond timestamp embedded in a UUID v7 as a UTC `DateTimeImmut
 $id = Rand::uuidV7();
 Rand::uuidV7Time($id);               // DateTimeImmutable @ the instant $id was generated
 Rand::uuidV7TimeOrNull(Rand::uuidV4()); // null  (v4 has no embedded timestamp)
-Rand::uuidV7Time('not-a-uuid');      // throws RuntimeException
+Rand::uuidV7Time('not-a-uuid');      // throws InvalidArgumentException
 ```
 
 [↑ Back to top](#rand)
@@ -237,7 +237,7 @@ Extracts the millisecond timestamp embedded in a ULID as a UTC `DateTimeImmutabl
 $id = Rand::ulid();
 Rand::ulidTime($id);                 // DateTimeImmutable @ the instant $id was generated
 Rand::ulidTimeOrNull('nope');        // null
-Rand::ulidTime('nope');              // throws RuntimeException
+Rand::ulidTime('nope');              // throws InvalidArgumentException
 ```
 
 [↑ Back to top](#rand)

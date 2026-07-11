@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use RuntimeException;
+use InvalidArgumentException;
+use OutOfBoundsException;
 
 use function preg_grep;
 use function preg_match;
@@ -37,13 +38,13 @@ final class Regex
     /**
      * Returns true if $pattern matches anywhere in $subject.
      *
-     * @throws RuntimeException when $pattern is invalid
+     * @throws InvalidArgumentException when $pattern is invalid
      */
     public static function matches(string $pattern, string $subject): bool
     {
         $result = preg_match($pattern, $subject);
         if ($result === false) {
-            throw new RuntimeException("Invalid regex pattern: {$pattern}");
+            throw new InvalidArgumentException("Invalid regex pattern: {$pattern}");
         }
 
         return $result === 1;
@@ -55,13 +56,13 @@ final class Regex
      *
      * @return array<int|string, string>
      *
-     * @throws RuntimeException when $pattern is invalid or there is no match
+     * @throws OutOfBoundsException when $pattern is invalid or there is no match
      */
     public static function match(string $pattern, string $subject): array
     {
         $result = self::matchOrNull($pattern, $subject);
         if ($result === null) {
-            throw new RuntimeException("No match for pattern {$pattern}.");
+            throw new OutOfBoundsException("No match for pattern {$pattern}.");
         }
 
         return $result;
@@ -72,14 +73,14 @@ final class Regex
      *
      * @return null|array<int|string, string>
      *
-     * @throws RuntimeException when $pattern is invalid
+     * @throws InvalidArgumentException when $pattern is invalid
      */
     public static function matchOrNull(string $pattern, string $subject): ?array
     {
         $matches = [];
         $result = preg_match($pattern, $subject, $matches);
         if ($result === false) {
-            throw new RuntimeException("Invalid regex pattern: {$pattern}");
+            throw new InvalidArgumentException("Invalid regex pattern: {$pattern}");
         }
 
         return $result === 1 ? $matches : null;
@@ -91,14 +92,14 @@ final class Regex
      *
      * @return array<int|string, list<string>>
      *
-     * @throws RuntimeException when $pattern is invalid
+     * @throws InvalidArgumentException when $pattern is invalid
      */
     public static function matchAll(string $pattern, string $subject): array
     {
         $matches = [];
         $result = preg_match_all($pattern, $subject, $matches);
         if ($result === false) {
-            throw new RuntimeException("Invalid regex pattern: {$pattern}");
+            throw new InvalidArgumentException("Invalid regex pattern: {$pattern}");
         }
 
         return $matches;
@@ -108,13 +109,13 @@ final class Regex
      * Replaces every match of $pattern in $subject with $replacement.
      * $replacement may reference capture groups (e.g. "$1", "${name}").
      *
-     * @throws RuntimeException when $pattern is invalid
+     * @throws InvalidArgumentException when $pattern is invalid
      */
     public static function replace(string $pattern, string $replacement, string $subject): string
     {
         $result = preg_replace($pattern, $replacement, $subject);
         if ($result === null) {
-            throw new RuntimeException("Invalid regex pattern: {$pattern}");
+            throw new InvalidArgumentException("Invalid regex pattern: {$pattern}");
         }
 
         return $result;
@@ -126,13 +127,13 @@ final class Regex
      *
      * @param callable(array<int|string, string>): string $callback
      *
-     * @throws RuntimeException when $pattern is invalid
+     * @throws InvalidArgumentException when $pattern is invalid
      */
     public static function replaceCallback(string $pattern, callable $callback, string $subject): string
     {
         $result = preg_replace_callback($pattern, $callback, $subject);
         if ($result === null) {
-            throw new RuntimeException("Invalid regex pattern: {$pattern}");
+            throw new InvalidArgumentException("Invalid regex pattern: {$pattern}");
         }
 
         return $result;
@@ -143,13 +144,13 @@ final class Regex
      *
      * @return list<string>
      *
-     * @throws RuntimeException when $pattern is invalid
+     * @throws InvalidArgumentException when $pattern is invalid
      */
     public static function split(string $pattern, string $subject): array
     {
         $result = preg_split($pattern, $subject);
         if ($result === false) {
-            throw new RuntimeException("Invalid regex pattern: {$pattern}");
+            throw new InvalidArgumentException("Invalid regex pattern: {$pattern}");
         }
 
         return $result;
@@ -163,14 +164,14 @@ final class Regex
      *
      * @return array<array-key, string>
      *
-     * @throws RuntimeException when $pattern is invalid
+     * @throws InvalidArgumentException when $pattern is invalid
      */
     public static function grep(string $pattern, array $values, bool $invert = false): array
     {
         /** @var array<array-key, string>|false $result */
         $result = preg_grep($pattern, $values, $invert ? PREG_GREP_INVERT : 0);
         if ($result === false) {
-            throw new RuntimeException("Invalid regex pattern: {$pattern}");
+            throw new InvalidArgumentException("Invalid regex pattern: {$pattern}");
         }
 
         return $result;

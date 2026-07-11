@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use InvalidArgumentException;
+use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Enum;
-use RuntimeException;
 use stdClass;
+use UnderflowException;
 use UnitEnum;
 
 /**
@@ -79,7 +81,7 @@ final class EnumTest extends TestCase
 
     public function testValuesThrowsOnPureEnum(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Enum::values(EnumSuit::class);
     }
 
@@ -91,7 +93,7 @@ final class EnumTest extends TestCase
 
     public function testFromNameThrowsOnMiss(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Enum::fromName(EnumSuit::class, 'Clubs');
     }
 
@@ -112,7 +114,7 @@ final class EnumTest extends TestCase
 
     public function testRandomThrowsOnEmptyEnum(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Enum::random(EnumEmpty::class);
     }
 

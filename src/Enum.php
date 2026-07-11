@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use BackedEnum;
-use RuntimeException;
+use InvalidArgumentException;
+use OutOfBoundsException;
+use UnderflowException;
 use UnitEnum;
 
 /**
@@ -74,12 +76,12 @@ final class Enum
      *
      * @return list<int|string>
      *
-     * @throws RuntimeException when $enumClass is not a backed enum
+     * @throws InvalidArgumentException when $enumClass is not a backed enum
      */
     public static function values(string $enumClass): array
     {
         if (!Type::isSubclass($enumClass, BackedEnum::class)) {
-            throw new RuntimeException("{$enumClass} is not a backed enum.");
+            throw new InvalidArgumentException("{$enumClass} is not a backed enum.");
         }
         $values = [];
         foreach ($enumClass::cases() as $case) {
@@ -98,13 +100,13 @@ final class Enum
      *
      * @return T
      *
-     * @throws RuntimeException when no case has that name
+     * @throws OutOfBoundsException when no case has that name
      */
     public static function fromName(string $enumClass, string $name): UnitEnum
     {
         $case = self::tryFromName($enumClass, $name);
         if ($case === null) {
-            throw new RuntimeException("{$enumClass} has no case named \"{$name}\".");
+            throw new OutOfBoundsException("{$enumClass} has no case named \"{$name}\".");
         }
 
         return $case;
@@ -140,13 +142,13 @@ final class Enum
      *
      * @return T
      *
-     * @throws RuntimeException when $enumClass has no cases
+     * @throws UnderflowException when $enumClass has no cases
      */
     public static function random(string $enumClass): UnitEnum
     {
         $cases = $enumClass::cases();
         if ($cases === []) {
-            throw new RuntimeException("{$enumClass} has no cases.");
+            throw new UnderflowException("{$enumClass} has no cases.");
         }
 
         return Rand::choice($cases);

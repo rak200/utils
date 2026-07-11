@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use BcMath\Number;
+use InvalidArgumentException;
 use RoundingMode;
-use RuntimeException;
+use UnderflowException;
 
 use function abs;
 use function assert;
@@ -25,6 +26,7 @@ use function number_format;
 use function ord;
 use function round;
 use function sqrt;
+use function var_export;
 
 /**
  * Numeric helpers for parsing, formatting, arithmetic and aggregation.
@@ -32,8 +34,8 @@ use function sqrt;
  * Accepts {@see Number} (PHP 8.4 arbitrary precision) alongside int|float in
  * aggregation and per-element methods; the return widens to Number when any
  * input is one (no silent narrowing to float). Parsing helpers stay scalar;
- * use {@see parseNumber()} / {@see parseNumberOrNull()} for arbitrary-precision
- * strings.
+ * {@see parseNumber()} / {@see parseNumberOrNull()} accept everything
+ * {@see is()} reports as numeric for arbitrary-precision work.
  *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
@@ -157,13 +159,13 @@ final class Num
     /**
      * Parses $value as an integer in the given $base (2-36).
      *
-     * @throws RuntimeException when $value is not a valid integer in $base, or $base is out of range
+     * @throws InvalidArgumentException when $value is not a valid integer in $base, or $base is out of range
      */
     public static function parseInt(string $value, int $base = 10): int
     {
         $parsed = self::parseIntOrNull($value, $base);
         if ($parsed === null) {
-            throw new RuntimeException("Cannot parse \"{$value}\" as integer in base {$base}.");
+            throw new InvalidArgumentException("Cannot parse \"{$value}\" as integer in base {$base}.");
         }
 
         return $parsed;
@@ -172,12 +174,12 @@ final class Num
     /**
      * Parses $value as an integer in the given $base (2-36); returns null on failure.
      *
-     * @throws RuntimeException when $base is outside 2-36
+     * @throws InvalidArgumentException when $base is outside 2-36
      */
     public static function parseIntOrNull(string $value, int $base = 10): ?int
     {
         if ($base < 2 || $base > 36) {
-            throw new RuntimeException('Base must be between 2 and 36.');
+            throw new InvalidArgumentException('Base must be between 2 and 36.');
         }
         if ($value === '') {
             return null;
@@ -215,12 +217,12 @@ final class Num
      * using digits `0-9a-z` (lowercase). Negative values are prefixed with `-`.
      * Inverse of {@see parseInt()}: `parseInt(toBase($n, $b), $b) === $n`.
      *
-     * @throws RuntimeException when $base is outside 2-36
+     * @throws InvalidArgumentException when $base is outside 2-36
      */
     public static function toBase(int $value, int $base): string
     {
         if ($base < 2 || $base > 36) {
-            throw new RuntimeException('Base must be between 2 and 36.');
+            throw new InvalidArgumentException('Base must be between 2 and 36.');
         }
         if ($value === 0) {
             return '0';
@@ -240,13 +242,13 @@ final class Num
     /**
      * Parses $value as a float.
      *
-     * @throws RuntimeException when $value is not numeric or has surrounding whitespace
+     * @throws InvalidArgumentException when $value is not numeric or has surrounding whitespace
      */
     public static function parseFloat(string $value): float
     {
         $parsed = self::parseFloatOrNull($value);
         if ($parsed === null) {
-            throw new RuntimeException("Cannot parse \"{$value}\" as float.");
+            throw new InvalidArgumentException("Cannot parse \"{$value}\" as float.");
         }
 
         return $parsed;
@@ -266,20 +268,25 @@ final class Num
     }
 
     /**
-     * Parses $value as an arbitrary-precision {@see Number}. Accepts decimal and
-     * scientific notation (e.g. `1.5e3`, `2e-10`); scientific input is expanded
-     * to its exact decimal form, so no precision is lost. Accepts exactly the
-     * strings {@see is()} reports as numeric.
+     * Parses $value as an arbitrary-precision {@see Number}. Accepts exactly
+     * the values {@see is()} reports as numeric: a Number (returned as-is), an
+     * int, a finite float (expanded to its exact decimal form, so a value whose
+     * string form is scientific notation converts cleanly), or a strict numeric
+     * string in decimal or scientific notation (e.g. `1.5e3`, `2e-10`;
+     * scientific input is expanded, so no precision is lost).
      *
-     * @throws RuntimeException when $value cannot be represented as a Number —
-     *                          non-numeric, surrounding whitespace, or an
-     *                          exponent so large the decimal form is impractical
+     * @throws InvalidArgumentException when $value cannot be represented as a Number —
+     *                                  non-numeric, surrounding whitespace, a
+     *                                  non-finite float (NAN, INF), or an
+     *                                  exponent so large the decimal form is impractical
      */
-    public static function parseNumber(string $value): Number
+    public static function parseNumber(float|int|Number|string $value): Number
     {
         $parsed = self::parseNumberOrNull($value);
         if ($parsed === null) {
-            throw new RuntimeException("Cannot parse \"{$value}\" as number.");
+            $display = is_float($value) && !is_finite($value) ? var_export($value, true) : (string) $value;
+
+            throw new InvalidArgumentException("Cannot parse \"{$display}\" as number.");
         }
 
         return $parsed;
@@ -287,12 +294,24 @@ final class Num
 
     /**
      * Parses $value as an arbitrary-precision {@see Number}; returns null when
-     * $value is not a strict numeric string (surrounding whitespace is rejected,
-     * matching {@see is()}) or cannot be represented. Scientific notation is
-     * accepted and expanded to its exact decimal form. See {@see parseNumber()}.
+     * $value is a non-finite float (NAN, INF), not a strict numeric string
+     * (surrounding whitespace is rejected, matching {@see is()}), or cannot be
+     * represented. See {@see parseNumber()}.
      */
-    public static function parseNumberOrNull(string $value): ?Number
+    public static function parseNumberOrNull(float|int|Number|string $value): ?Number
     {
+        if ($value instanceof Number) {
+            return $value;
+        }
+        if (is_int($value)) {
+            return new Number($value);
+        }
+        if (is_float($value)) {
+            if (!is_finite($value)) {
+                return null;
+            }
+            $value = (string) $value;
+        }
         if (!self::isStrictNumericString($value)) {
             return null;
         }
@@ -307,7 +326,7 @@ final class Num
     /**
      * Constrains $value to the closed interval [$min, $max].
      *
-     * @throws RuntimeException when $min > $max
+     * @throws InvalidArgumentException when $min > $max
      */
     public static function clamp(
         float|int|Number $value,
@@ -315,7 +334,7 @@ final class Num
         float|int|Number $max,
     ): float|int|Number {
         if ($min > $max) {
-            throw new RuntimeException('Min cannot be greater than max.');
+            throw new InvalidArgumentException('Min cannot be greater than max.');
         }
         if ($value < $min) {
             return $min;
@@ -357,7 +376,7 @@ final class Num
      * range maps outside the output range (compose with {@see clamp()} to bound).
      * Widens to {@see Number} when any operand is one.
      *
-     * @throws RuntimeException when $inMin equals $inMax (the input range is empty)
+     * @throws InvalidArgumentException when $inMin equals $inMax (the input range is empty)
      */
     public static function remap(
         float|int|Number $value,
@@ -367,7 +386,7 @@ final class Num
         float|int|Number $outMax,
     ): float|int|Number {
         if ($inMin == $inMax) {
-            throw new RuntimeException('Input range cannot be empty (inMin equals inMax).');
+            throw new InvalidArgumentException('Input range cannot be empty (inMin equals inMax).');
         }
 
         return self::add(
@@ -450,7 +469,7 @@ final class Num
      *
      * @param iterable<float|int|Number> $values
      *
-     * @throws RuntimeException when $values is empty
+     * @throws UnderflowException when $values is empty
      */
     public static function avg(iterable $values): float|Number
     {
@@ -461,7 +480,7 @@ final class Num
             ++$count;
         }
         if ($count === 0) {
-            throw new RuntimeException('Cannot compute average of empty input.');
+            throw new UnderflowException('Cannot compute average of empty input.');
         }
         if ($sum instanceof Number) {
             return $sum / new Number((string) $count);
@@ -475,7 +494,7 @@ final class Num
      *
      * @param iterable<float|int|Number> $values
      *
-     * @throws RuntimeException when $values is empty
+     * @throws UnderflowException when $values is empty
      */
     public static function min(iterable $values): float|int|Number
     {
@@ -486,7 +505,7 @@ final class Num
             }
         }
         if ($min === null) {
-            throw new RuntimeException('Cannot compute min of empty input.');
+            throw new UnderflowException('Cannot compute min of empty input.');
         }
 
         return $min;
@@ -497,7 +516,7 @@ final class Num
      *
      * @param iterable<float|int|Number> $values
      *
-     * @throws RuntimeException when $values is empty
+     * @throws UnderflowException when $values is empty
      */
     public static function max(iterable $values): float|int|Number
     {
@@ -508,7 +527,7 @@ final class Num
             }
         }
         if ($max === null) {
-            throw new RuntimeException('Cannot compute max of empty input.');
+            throw new UnderflowException('Cannot compute max of empty input.');
         }
 
         return $max;
@@ -560,19 +579,19 @@ final class Num
      * Returns the square root of $value. Returns a {@see Number} when $value is
      * one (preserves arbitrary precision); a float otherwise.
      *
-     * @throws RuntimeException when $value is negative
+     * @throws InvalidArgumentException when $value is negative
      */
     public static function sqrt(float|int|Number $value): float|Number
     {
         if ($value instanceof Number) {
             if ($value < new Number('0')) {
-                throw new RuntimeException('Cannot take square root of a negative number.');
+                throw new InvalidArgumentException('Cannot take square root of a negative number.');
             }
 
             return $value->sqrt();
         }
         if ($value < 0) {
-            throw new RuntimeException('Cannot take square root of a negative number.');
+            throw new InvalidArgumentException('Cannot take square root of a negative number.');
         }
 
         return sqrt((float) $value);
@@ -614,16 +633,16 @@ final class Num
      * Returns the truncated modulo of $a divided by $b (sign of the result
      * follows the dividend, matching PHP's `%`).
      *
-     * @throws RuntimeException when $b is zero
+     * @throws InvalidArgumentException when $b is zero
      */
     public static function mod(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($b instanceof Number) {
             if ($b == new Number('0')) {
-                throw new RuntimeException('Cannot mod by zero.');
+                throw new InvalidArgumentException('Cannot mod by zero.');
             }
         } elseif ($b == 0) {
-            throw new RuntimeException('Cannot mod by zero.');
+            throw new InvalidArgumentException('Cannot mod by zero.');
         }
         if ($a instanceof Number || $b instanceof Number) {
             $aN = $a instanceof Number ? $a : new Number((string) $a);
@@ -642,12 +661,12 @@ final class Num
      * Returns the integer quotient of $a divided by $b, truncated toward zero
      * (matching PHP's {@see intdiv()}).
      *
-     * @throws RuntimeException when $b is zero
+     * @throws InvalidArgumentException when $b is zero
      */
     public static function intDiv(int $a, int $b): int
     {
         if ($b === 0) {
-            throw new RuntimeException('Cannot divide by zero.');
+            throw new InvalidArgumentException('Cannot divide by zero.');
         }
 
         return intdiv($a, $b);
@@ -705,16 +724,16 @@ final class Num
      * and evenly divisible, a float otherwise, and a {@see Number} when either
      * operand is one.
      *
-     * @throws RuntimeException when $b is zero
+     * @throws InvalidArgumentException when $b is zero
      */
     public static function div(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($b instanceof Number) {
             if ($b == new Number('0')) {
-                throw new RuntimeException('Cannot divide by zero.');
+                throw new InvalidArgumentException('Cannot divide by zero.');
             }
         } elseif ($b == 0) {
-            throw new RuntimeException('Cannot divide by zero.');
+            throw new InvalidArgumentException('Cannot divide by zero.');
         }
         if ($a instanceof Number || $b instanceof Number) {
             $aN = $a instanceof Number ? $a : new Number((string) $a);

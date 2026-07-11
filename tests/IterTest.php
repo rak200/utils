@@ -6,9 +6,11 @@ namespace Rak200\Utils\Tests;
 
 use ArrayIterator;
 use Exception;
+use InvalidArgumentException;
+use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Iter;
-use RuntimeException;
+use UnderflowException;
 
 /**
  * @internal
@@ -46,7 +48,7 @@ final class IterTest extends TestCase
 
     public function testRangeThrowsOnZeroStep(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::range(1, 10, 0);
     }
 
@@ -67,7 +69,7 @@ final class IterTest extends TestCase
 
     public function testRepeatThrowsOnNegativeTimes(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::repeat('x', -1);
     }
 
@@ -104,7 +106,7 @@ final class IterTest extends TestCase
 
     public function testTimesThrowsOnNegativeCount(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::times(-1, static fn (int $i): int => $i);
     }
 
@@ -150,7 +152,7 @@ final class IterTest extends TestCase
 
     public function testTakeThrowsOnNegativeCount(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::take([1, 2, 3], -1);
     }
 
@@ -161,7 +163,7 @@ final class IterTest extends TestCase
 
     public function testDropThrowsOnNegativeCount(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::drop([1, 2, 3], -1);
     }
 
@@ -187,7 +189,7 @@ final class IterTest extends TestCase
 
     public function testChunkThrowsOnSizeBelowOne(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::chunk([1, 2, 3], 0);
     }
 
@@ -209,7 +211,7 @@ final class IterTest extends TestCase
 
     public function testFlattenThrowsOnNegativeDepth(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::flatten([1, [2]], -1);
     }
 
@@ -273,13 +275,13 @@ final class IterTest extends TestCase
 
     public function testSliceThrowsOnNegativeOffset(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::slice([1, 2, 3], -1);
     }
 
     public function testSliceThrowsOnNegativeLength(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::slice([1, 2, 3], 0, -1);
     }
 
@@ -302,7 +304,7 @@ final class IterTest extends TestCase
 
     public function testFirstThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Iter::first([]);
     }
 
@@ -321,7 +323,7 @@ final class IterTest extends TestCase
 
     public function testLastThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Iter::last([]);
     }
 
@@ -342,7 +344,7 @@ final class IterTest extends TestCase
     {
         /** @var list<int> $odd */
         $odd = [1, 3, 5];
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Iter::find($odd, static fn (int $n): bool => $n % 2 === 0);
     }
 
@@ -361,13 +363,13 @@ final class IterTest extends TestCase
 
     public function testNthThrowsWhenOutOfRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Iter::nth([10], 5);
     }
 
     public function testNthThrowsOnNegativeIndex(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::nth([10, 20], -1);
     }
 
@@ -379,7 +381,7 @@ final class IterTest extends TestCase
 
     public function testNthOrNullThrowsOnNegativeIndex(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Iter::nthOrNull([10, 20], -1);
     }
 

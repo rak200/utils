@@ -315,12 +315,12 @@ $data = ['user' => ['name' => 'rak', 'roles' => ['admin']]];
 Arr::get($data, 'user.name');            // 'rak'
 Arr::get($data, 'user.roles.0');         // 'admin'
 Arr::getOrNull($data, 'user.email');     // null
-Arr::get($data, 'user.email');           // throws RuntimeException
+Arr::get($data, 'user.email');           // throws OutOfBoundsException
 
 Arr::getKey(['a.b' => 1], 'a.b');               // 1     (literal key, no traversal)
 Arr::getKeyOrNull(['a.b' => 1], 'a.b');         // 1
 Arr::getKeyOrNull(['a' => ['b' => 1]], 'a.b');  // null  (no traversal)
-Arr::getKey(['a' => ['b' => 1]], 'a.b');        // throws RuntimeException
+Arr::getKey(['a' => ['b' => 1]], 'a.b');        // throws OutOfBoundsException
 ```
 
 [↑ Back to top](#arr)
@@ -597,7 +597,7 @@ Immutable `array_shift`: returns the `[firstElement, rest]` pair without mutatin
 [$first, $rest] = Arr::shift([10, 20, 30]);          // [10, [20, 30]]
 [$first, $rest] = Arr::shift(['a' => 1, 'b' => 2]);  // [1, ['b' => 2]]
 Arr::shiftOrNull([]);                                 // null
-Arr::shift([]);                                       // RuntimeException
+Arr::shift([]);                                       // UnderflowException
 ```
 
 [↑ Back to top](#arr)
@@ -612,7 +612,7 @@ Immutable `array_pop`: returns the `[lastElement, rest]` pair without mutating t
 [$last, $rest] = Arr::pop([10, 20, 30]);            // [30, [10, 20]]
 [$last, $rest] = Arr::pop(['a' => 1, 'b' => 2]);    // [2, ['a' => 1]]
 Arr::popOrNull([]);                                  // null
-Arr::pop([]);                                        // RuntimeException
+Arr::pop([]);                                        // UnderflowException
 ```
 
 [↑ Back to top](#arr)

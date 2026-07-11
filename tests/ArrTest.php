@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use InvalidArgumentException;
+use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Arr;
-use RuntimeException;
 use stdClass;
+use UnderflowException;
+use UnexpectedValueException;
 
 /**
  * @internal
@@ -79,7 +82,7 @@ final class ArrTest extends TestCase
 
     public function testFirstThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Arr::first([]);
     }
 
@@ -98,7 +101,7 @@ final class ArrTest extends TestCase
 
     public function testLastThrowsOnEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Arr::last([]);
     }
 
@@ -122,7 +125,7 @@ final class ArrTest extends TestCase
 
     public function testFindThrowsWhenNoMatch(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
 
         /** @var array<int, int> $values */
         $values = [1, 2, 3];
@@ -181,7 +184,7 @@ final class ArrTest extends TestCase
 
     public function testFlattenRejectsNegativeDepth(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Arr::flatten([[1]], -1);
     }
 
@@ -205,7 +208,7 @@ final class ArrTest extends TestCase
 
     public function testChunkRejectsNonPositiveSize(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Arr::chunk([1, 2], 0);
     }
 
@@ -278,7 +281,7 @@ final class ArrTest extends TestCase
 
     public function testGetThrowsWhenMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Arr::get(['a' => 1], 'x.y');
     }
 
@@ -291,7 +294,7 @@ final class ArrTest extends TestCase
 
     public function testGetKeyThrowsWhenMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Arr::getKey(['a' => ['b' => 1]], 'a.b');   // no dot-traversal → not found
     }
 
@@ -356,7 +359,7 @@ final class ArrTest extends TestCase
 
     public function testRangeRejectsZeroStep(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Arr::range(1, 10, 0);
     }
 
@@ -400,7 +403,7 @@ final class ArrTest extends TestCase
 
     public function testPluckThrowsWhenIndexKeyMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Arr::pluck([['name' => 'a']], 'name', 'id');
     }
 
@@ -427,13 +430,13 @@ final class ArrTest extends TestCase
 
     public function testKeyByThrowsWhenColumnMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Arr::keyBy([['x' => 1]], 'missing');
     }
 
     public function testKeyByThrowsWhenResolvedKeyIsNotIntOrString(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnexpectedValueException::class);
         Arr::keyBy([['id' => 1.5]], 'id');   // a float is not a valid array key
     }
 
@@ -509,7 +512,7 @@ final class ArrTest extends TestCase
 
     public function testCombineThrowsOnLengthMismatch(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Arr::combine(['a', 'b'], [1]);
     }
 
@@ -540,7 +543,7 @@ final class ArrTest extends TestCase
 
     public function testSearchThrowsWhenMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(OutOfBoundsException::class);
         Arr::search([1, 2, 3], 9);
     }
 
@@ -587,7 +590,7 @@ final class ArrTest extends TestCase
 
     public function testShiftThrowsWhenEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Arr::shift([]);
     }
 
@@ -609,7 +612,7 @@ final class ArrTest extends TestCase
 
     public function testPopThrowsWhenEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Arr::pop([]);
     }
 
@@ -626,13 +629,13 @@ final class ArrTest extends TestCase
 
     public function testFirstKeyThrowsWhenEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Arr::firstKey([]);
     }
 
     public function testLastKeyThrowsWhenEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(UnderflowException::class);
         Arr::lastKey([]);
     }
 
@@ -653,7 +656,7 @@ final class ArrTest extends TestCase
 
     public function testFillThrowsForNegativeCount(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Arr::fill(-1, 'x');
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use RuntimeException;
+use InvalidArgumentException;
 
 use function bin2hex;
 use function ctype_xdigit;
@@ -48,13 +48,13 @@ final class Hex
      * Decodes a hexadecimal string back to its binary form. Accepts upper- and
      * lowercase digits.
      *
-     * @throws RuntimeException when $value is not valid hex (odd length or a
-     *                          non-hex character)
+     * @throws InvalidArgumentException when $value is not valid hex (odd length or a
+     *                                  non-hex character)
      */
     public static function decode(string $value): string
     {
         if (!self::is($value) || ($result = hex2bin($value)) === false) {
-            throw new RuntimeException('Invalid hex input.');
+            throw new InvalidArgumentException('Invalid hex input.');
         }
 
         return $result;
@@ -66,13 +66,13 @@ final class Hex
      *
      * @return list<int>
      *
-     * @throws RuntimeException when $value is not valid hex (odd length or a
-     *                          non-hex character)
+     * @throws InvalidArgumentException when $value is not valid hex (odd length or a
+     *                                  non-hex character)
      */
     public static function toBytes(string $value): array
     {
         if (!self::is($value)) {
-            throw new RuntimeException('Invalid hex input.');
+            throw new InvalidArgumentException('Invalid hex input.');
         }
         $bytes = [];
         foreach (Str::split($value, limit: 2) as $pair) {
@@ -88,14 +88,14 @@ final class Hex
      *
      * @param array<int> $bytes
      *
-     * @throws RuntimeException when a value is outside the 0–255 byte range
+     * @throws InvalidArgumentException when a value is outside the 0–255 byte range
      */
     public static function fromBytes(array $bytes): string
     {
         $hex = '';
         foreach ($bytes as $byte) {
             if ($byte < 0 || $byte > 255) {
-                throw new RuntimeException("Byte value out of range (0-255): {$byte}.");
+                throw new InvalidArgumentException("Byte value out of range (0-255): {$byte}.");
             }
             $hex .= Str::padStart(dechex($byte), 2, '0');
         }

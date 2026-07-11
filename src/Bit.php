@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use RuntimeException;
+use InvalidArgumentException;
 
 use function bindec;
 use function decbin;
@@ -24,7 +24,7 @@ final class Bit
     /**
      * Returns $value with the bit at index $bit set to 1.
      *
-     * @throws RuntimeException when $bit is out of range [0, PHP_INT_SIZE*8 - 1]
+     * @throws InvalidArgumentException when $bit is out of range [0, PHP_INT_SIZE*8 - 1]
      */
     public static function set(int $value, int $bit): int
     {
@@ -36,7 +36,7 @@ final class Bit
     /**
      * Returns $value with the bit at index $bit cleared to 0.
      *
-     * @throws RuntimeException when $bit is out of range
+     * @throws InvalidArgumentException when $bit is out of range
      */
     public static function unset(int $value, int $bit): int
     {
@@ -48,7 +48,7 @@ final class Bit
     /**
      * Returns $value with the bit at index $bit flipped.
      *
-     * @throws RuntimeException when $bit is out of range
+     * @throws InvalidArgumentException when $bit is out of range
      */
     public static function toggle(int $value, int $bit): int
     {
@@ -60,7 +60,7 @@ final class Bit
     /**
      * Returns true when the bit at index $bit is set.
      *
-     * @throws RuntimeException when $bit is out of range
+     * @throws InvalidArgumentException when $bit is out of range
      */
     public static function has(int $value, int $bit): bool
     {
@@ -165,17 +165,17 @@ final class Bit
     /**
      * Returns the integer value of the base-2 string $bits.
      *
-     * @throws RuntimeException when $bits is empty, contains characters other than
-     *                          '0'/'1', or denotes a value larger than PHP_INT_MAX
+     * @throws InvalidArgumentException when $bits is empty, contains characters other than
+     *                                  '0'/'1', or denotes a value larger than PHP_INT_MAX
      */
     public static function fromStr(string $bits): int
     {
         if ($bits === '' || Str::span($bits, '01') !== Str::len($bits)) {
-            throw new RuntimeException('Invalid binary string.');
+            throw new InvalidArgumentException('Invalid binary string.');
         }
         $value = bindec($bits);
         if (!Num::isInt($value)) {
-            throw new RuntimeException('Binary string exceeds the integer range.');
+            throw new InvalidArgumentException('Binary string exceeds the integer range.');
         }
 
         return $value;
@@ -187,7 +187,7 @@ final class Bit
     private static function checkBitIndex(int $bit): void
     {
         if ($bit < 0 || $bit >= self::BITS) {
-            throw new RuntimeException('Bit index must be between 0 and ' . (self::BITS - 1) . '.');
+            throw new InvalidArgumentException('Bit index must be between 0 and ' . (self::BITS - 1) . '.');
         }
     }
 

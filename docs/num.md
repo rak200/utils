@@ -250,7 +250,7 @@ Num::remap(5, 0, 10, 0, 100);                   // 50    (int — all-int, evenl
 Num::remap(0.5, 0, 1, -100, 100);               // 0.0
 Num::remap(120, 0, 100, 0, 1);                  // 1.2   (no clamp)
 Num::lerp(new Number('0'), new Number('10'), new Number('0.5')); // BcMath\Number('5')
-Num::remap(5, 0, 0, 0, 100);                    // throws RuntimeException
+Num::remap(5, 0, 0, 0, 100);                    // throws InvalidArgumentException
 ```
 
 [↑ Back to top](#num)
@@ -437,7 +437,7 @@ Integer division, truncated toward zero (matching PHP's `intdiv()`). The compani
 Num::intDiv(7, 2);       // 3
 Num::intDiv(-7, 2);      // -3   (truncates toward zero)
 Num::intDiv(7, -2);      // -3
-Num::intDiv(1, 0);       // throws RuntimeException
+Num::intDiv(1, 0);       // throws InvalidArgumentException
 ```
 
 [↑ Back to top](#num)
@@ -454,7 +454,7 @@ Num::sub(5, 2);        // 3
 Num::mul(4, 2.5);      // 10.0
 Num::div(7, 2);        // 3.5
 Num::div(6, 3);        // 2     (int, evenly divisible)
-Num::div(1, 0);        // throws RuntimeException
+Num::div(1, 0);        // throws InvalidArgumentException
 Num::add(new Number('0.1'), new Number('0.2'));   // BcMath\Number('0.3')
 Num::mul(new Number('2'), 3);                      // BcMath\Number('6')
 ```

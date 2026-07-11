@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Bit;
-use RuntimeException;
 
 /**
  * @internal
@@ -65,13 +65,13 @@ final class BitTest extends TestCase
 
     public function testRejectsNegativeBitIndex(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Bit::set(0, -1);
     }
 
     public function testRejectsBitIndexOutOfRange(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Bit::set(0, PHP_INT_SIZE * 8);
     }
 
@@ -98,20 +98,20 @@ final class BitTest extends TestCase
 
     public function testFromStrRejectsInvalidChars(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Bit::fromStr('102');
     }
 
     public function testFromStrRejectsEmpty(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Bit::fromStr('');
     }
 
     public function testFromStrRejectsValueExceedingIntRange(): void
     {
         // one more '1' bit than the platform int width → bindec overflows to a float
-        $this->expectException(RuntimeException::class);
+        $this->expectException(InvalidArgumentException::class);
         Bit::fromStr(str_repeat('1', PHP_INT_SIZE * 8 + 1));
     }
 

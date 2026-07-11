@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use DateTimeImmutable;
-use RuntimeException;
+use InvalidArgumentException;
+use UnderflowException;
 
 use function microtime;
 use function random_bytes;
@@ -39,12 +40,12 @@ final class Rand
     /**
      * Returns a cryptographically-secure integer in the closed range [$min, $max].
      *
-     * @throws RuntimeException when $min > $max
+     * @throws InvalidArgumentException when $min > $max
      */
     public static function int(int $min, int $max): int
     {
         if ($min > $max) {
-            throw new RuntimeException('Min cannot be greater than max.');
+            throw new InvalidArgumentException('Min cannot be greater than max.');
         }
 
         return random_int($min, $max);
@@ -53,12 +54,12 @@ final class Rand
     /**
      * Returns a cryptographically-seeded float in the closed range [$min, $max].
      *
-     * @throws RuntimeException when $min > $max
+     * @throws InvalidArgumentException when $min > $max
      */
     public static function float(float $min, float $max): float
     {
         if ($min > $max) {
-            throw new RuntimeException('Min cannot be greater than max.');
+            throw new InvalidArgumentException('Min cannot be greater than max.');
         }
         $ratio = random_int(0, PHP_INT_MAX) / PHP_INT_MAX;
 
@@ -68,12 +69,12 @@ final class Rand
     /**
      * Returns $length cryptographically-secure random bytes (raw binary).
      *
-     * @throws RuntimeException when $length < 1
+     * @throws InvalidArgumentException when $length < 1
      */
     public static function bytes(int $length): string
     {
         if ($length < 1) {
-            throw new RuntimeException('Length must be at least 1.');
+            throw new InvalidArgumentException('Length must be at least 1.');
         }
 
         return random_bytes($length);
@@ -82,15 +83,15 @@ final class Rand
     /**
      * Returns a random string of $length characters drawn from $alphabet.
      *
-     * @throws RuntimeException when $length < 1 or $alphabet is empty
+     * @throws InvalidArgumentException when $length < 1 or $alphabet is empty
      */
     public static function string(int $length, string $alphabet = self::ALNUM): string
     {
         if ($length < 1) {
-            throw new RuntimeException('Length must be at least 1.');
+            throw new InvalidArgumentException('Length must be at least 1.');
         }
         if ($alphabet === '') {
-            throw new RuntimeException('Alphabet cannot be empty.');
+            throw new InvalidArgumentException('Alphabet cannot be empty.');
         }
 
         return self::pickFromAlphabet($length, $alphabet);
@@ -100,15 +101,15 @@ final class Rand
      * Generates a string by replacing every '#' in $pattern with a random
      * character from $alphabet. All other characters are emitted literally.
      *
-     * @throws RuntimeException when $pattern or $alphabet is empty
+     * @throws InvalidArgumentException when $pattern or $alphabet is empty
      */
     public static function masked(string $pattern, string $alphabet = self::ALNUM): string
     {
         if ($pattern === '') {
-            throw new RuntimeException('Pattern cannot be empty.');
+            throw new InvalidArgumentException('Pattern cannot be empty.');
         }
         if ($alphabet === '') {
-            throw new RuntimeException('Alphabet cannot be empty.');
+            throw new InvalidArgumentException('Alphabet cannot be empty.');
         }
         $alphabetLen = Str::byteLen($alphabet);
         $result = '';
@@ -189,13 +190,13 @@ final class Rand
      * Extracts the millisecond timestamp embedded in a UUID v7 as a UTC
      * {@see DateTimeImmutable}.
      *
-     * @throws RuntimeException when $value is not a valid UUID v7
+     * @throws InvalidArgumentException when $value is not a valid UUID v7
      */
     public static function uuidV7Time(string $value): DateTimeImmutable
     {
         $dt = self::uuidV7TimeOrNull($value);
         if ($dt === null) {
-            throw new RuntimeException("Not a valid UUID v7: \"{$value}\".");
+            throw new InvalidArgumentException("Not a valid UUID v7: \"{$value}\".");
         }
 
         return $dt;
@@ -218,13 +219,13 @@ final class Rand
      * Extracts the millisecond timestamp embedded in a ULID as a UTC
      * {@see DateTimeImmutable}.
      *
-     * @throws RuntimeException when $value is not a valid ULID
+     * @throws InvalidArgumentException when $value is not a valid ULID
      */
     public static function ulidTime(string $value): DateTimeImmutable
     {
         $dt = self::ulidTimeOrNull($value);
         if ($dt === null) {
-            throw new RuntimeException("Not a valid ULID: \"{$value}\".");
+            throw new InvalidArgumentException("Not a valid ULID: \"{$value}\".");
         }
 
         return $dt;
@@ -264,12 +265,12 @@ final class Rand
      *
      * @return T
      *
-     * @throws RuntimeException when $items is empty
+     * @throws UnderflowException when $items is empty
      */
     public static function choice(array $items): mixed
     {
         if ($items === []) {
-            throw new RuntimeException('Cannot pick from an empty array.');
+            throw new UnderflowException('Cannot pick from an empty array.');
         }
         $keys = Arr::keys($items);
 
@@ -302,12 +303,12 @@ final class Rand
     /**
      * Generates a NanoID using the standard 64-character URL-safe alphabet.
      *
-     * @throws RuntimeException when $length < 1
+     * @throws InvalidArgumentException when $length < 1
      */
     public static function nanoid(int $length = 21): string
     {
         if ($length < 1) {
-            throw new RuntimeException('Length must be at least 1.');
+            throw new InvalidArgumentException('Length must be at least 1.');
         }
 
         return self::pickFromAlphabet($length, self::NANOID_ALPHABET);

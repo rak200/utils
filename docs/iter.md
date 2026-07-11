@@ -43,6 +43,7 @@ use Rak200\Utils\Iter;
 - [`find` / `findOrNull`](#find--findornull)
 - [`nth` / `nthOrNull`](#nth--nthornull)
 - [`reduce`](#reduce)
+- [`isEmpty` / `isNotEmpty`](#isempty--isnotempty)
 - [`count`](#count)
 - [`contains`](#contains)
 - [`any` / `every`](#any--every)
@@ -347,6 +348,20 @@ Reduces the source to a single value by repeatedly applying `$callback` (accumul
 
 ```php
 Iter::reduce([1, 2, 3, 4], fn (int $c, int $v): int => $c + $v, 0);  // 10
+```
+
+[↑ Back to top](#iter)
+
+---
+
+## `isEmpty` / `isNotEmpty`
+
+`isEmpty` returns true when the source yields no elements; `isNotEmpty` is its negation. Both probe at most one element — an infinite source is fine — but probing **advances** the source: a `Generator` has its first element consumed. The lazy counterparts of [`Arr::isEmpty` / `Arr::isNotEmpty`](arr.md#isempty--isnotempty).
+
+```php
+Iter::isEmpty([]);                              // true
+Iter::isEmpty(Iter::take(Iter::range(1), 0));   // true
+Iter::isNotEmpty(Iter::range(1));               // true  (probes a single element)
 ```
 
 [↑ Back to top](#iter)

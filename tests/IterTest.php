@@ -388,6 +388,26 @@ final class IterTest extends TestCase
         $this->assertSame(10, Iter::reduce([1, 2, 3, 4], static fn (int $c, int $v): int => $c + $v, 0));
     }
 
+    public function testIsEmpty(): void
+    {
+        $this->assertTrue(Iter::isEmpty([]));
+        $this->assertFalse(Iter::isEmpty([1]));
+        $this->assertTrue(Iter::isEmpty(Iter::take(Iter::range(1), 0)));
+    }
+
+    public function testIsNotEmpty(): void
+    {
+        $this->assertFalse(Iter::isNotEmpty([]));
+        $this->assertTrue(Iter::isNotEmpty([0]));
+        $this->assertTrue(Iter::isNotEmpty([null]));
+    }
+
+    public function testIsEmptyProbesSingleElementOnInfiniteSource(): void
+    {
+        $this->assertFalse(Iter::isEmpty(Iter::range(1)));
+        $this->assertTrue(Iter::isNotEmpty(Iter::range(1)));
+    }
+
     public function testCount(): void
     {
         $this->assertSame(3, Iter::count([1, 2, 3]));

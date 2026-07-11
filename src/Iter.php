@@ -711,6 +711,33 @@ final class Iter
     }
 
     /**
+     * Returns true when the source yields no elements. Probes at most one
+     * element — an infinite source is fine — but probing **advances** the
+     * source: a Generator has its first element consumed.
+     *
+     * @param iterable<mixed> $iterable
+     */
+    public static function isEmpty(iterable $iterable): bool
+    {
+        foreach ($iterable as $value) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns true when the source yields at least one element. Negation of
+     * {@see isEmpty()}, with the same single-element probing caveat.
+     *
+     * @param iterable<mixed> $iterable
+     */
+    public static function isNotEmpty(iterable $iterable): bool
+    {
+        return !self::isEmpty($iterable);
+    }
+
+    /**
      * Returns the number of elements, consuming the source.
      *
      * @param iterable<mixed> $iterable

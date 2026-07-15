@@ -318,7 +318,7 @@ final class Arr
      * @param array<K, T>             $array
      * @param callable(T, K): TResult $callback
      *
-     * @return array<K, TResult>
+     * @return ($array is list<T> ? list<TResult> : array<K, TResult>)
      */
     public static function map(array $array, callable $callback): array
     {
@@ -899,7 +899,7 @@ final class Arr
      *
      * @param array<array-key, T> $array
      *
-     * @return array<array-key, T>
+     * @return ($array is list<T> ? ($preserveKeys is true ? array<int, T> : list<T>) : array<array-key, T>)
      */
     public static function reverse(array $array, bool $preserveKeys = false): array
     {
@@ -916,7 +916,7 @@ final class Arr
      *
      * @param array<array-key, T> $array
      *
-     * @return array<array-key, T>
+     * @return ($array is list<T> ? ($preserveKeys is true ? array<int, T> : list<T>) : array<array-key, T>)
      */
     public static function slice(array $array, int $offset, ?int $length = null, bool $preserveKeys = false): array
     {
@@ -1012,7 +1012,7 @@ final class Arr
      * @param array<array-key, T> $array
      * @param T                   ...$values
      *
-     * @return array<array-key, T>
+     * @return ($array is list<T> ? list<T> : array<array-key, T>)
      */
     public static function append(array $array, mixed ...$values): array
     {
@@ -1033,7 +1033,7 @@ final class Arr
      * @param array<array-key, T> $array
      * @param T                   ...$values
      *
-     * @return array<array-key, T>
+     * @return ($array is list<T> ? list<T> : array<array-key, T>)
      */
     public static function prepend(array $array, mixed ...$values): array
     {
@@ -1049,7 +1049,7 @@ final class Arr
      *
      * @param array<array-key, T> $array
      *
-     * @return array{0: T, 1: array<array-key, T>}
+     * @return ($array is list<T> ? array{0: T, 1: list<T>} : array{0: T, 1: array<array-key, T>})
      *
      * @throws UnderflowException when the array is empty
      */
@@ -1070,7 +1070,7 @@ final class Arr
      *
      * @param array<array-key, T> $array
      *
-     * @return null|array{0: T, 1: array<array-key, T>}
+     * @return ($array is list<T> ? null|array{0: T, 1: list<T>} : null|array{0: T, 1: array<array-key, T>})
      */
     public static function shiftOrNull(array $array): ?array
     {
@@ -1086,7 +1086,7 @@ final class Arr
      *
      * @param array<array-key, T> $array
      *
-     * @return array{0: T, 1: array<array-key, T>}
+     * @return ($array is list<T> ? array{0: T, 1: list<T>} : array{0: T, 1: array<array-key, T>})
      *
      * @throws UnderflowException when the array is empty
      */
@@ -1107,7 +1107,7 @@ final class Arr
      *
      * @param array<array-key, T> $array
      *
-     * @return null|array{0: T, 1: array<array-key, T>}
+     * @return ($array is list<T> ? null|array{0: T, 1: list<T>} : null|array{0: T, 1: array<array-key, T>})
      */
     public static function popOrNull(array $array): ?array
     {
@@ -1122,7 +1122,7 @@ final class Arr
      *
      * @param array<array-key, T> $array
      *
-     * @return array<array-key, T>
+     * @return ($array is list<T> ? ($desc is true ? array<int, T> : list<T>) : array<array-key, T>)
      */
     public static function sortKeys(array $array, bool $desc = false): array
     {
@@ -1212,7 +1212,7 @@ final class Arr
      */
     private static function resolvePath(array $array, int|string $path): array
     {
-        $segments = Num::isInt($path) ? [$path] : Str::split($path, '.');
+        $segments = Num::isInt($path) ? [$path] : Str::split((string) $path, '.');
         $current = $array;
         foreach ($segments as $segment) {
             if (!is_array($current) || !array_key_exists($segment, $current)) {

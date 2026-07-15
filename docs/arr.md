@@ -192,7 +192,7 @@ Arr::filter([1, 2, 3, 4], fn(int $n) => $n % 2 === 0);
 
 ## `map`
 
-Callback receives value and key. Keys are preserved.
+Callback receives value and key. Keys are preserved — and a `list` input is typed as returning a `list` (conditional return type), so list-ness survives the call under PHPStan.
 
 ```php
 Arr::map([1, 2, 3], fn(int $n) => $n * 10);
@@ -480,7 +480,7 @@ Arr::sortBy($people, fn(array $p) => $p['age']);
 
 ## `sortKeys`
 
-Sorts by key with the natural comparator, preserving the key=>value association. Pass `desc: true` for descending order. Immutable.
+Sorts by key with the natural comparator, preserving the key=>value association. Pass `desc: true` for descending order. Immutable. Ascending, a `list` input is typed as returning a `list` (its keys are already sorted, so this is a no-op).
 
 ```php
 Arr::sortKeys(['b' => 1, 'a' => 2, 'c' => 3]);        // ['a' => 2, 'b' => 1, 'c' => 3]
@@ -493,7 +493,7 @@ Arr::sortKeys(['b' => 1, 'a' => 2], desc: true);      // ['b' => 1, 'a' => 2]
 
 ## `reverse`
 
-Reverses element order. Integer keys are renumbered from 0 (string keys are always kept) unless `preserveKeys: true`.
+Reverses element order. Integer keys are renumbered from 0 (string keys are always kept) unless `preserveKeys: true`. With the default `preserveKeys`, a `list` input is typed as returning a `list`.
 
 ```php
 Arr::reverse([1, 2, 3]);                  // [3, 2, 1]
@@ -507,7 +507,7 @@ Arr::reverse([1, 2, 3], preserveKeys: true); // [2 => 3, 1 => 2, 0 => 1]
 
 ## `slice`
 
-A slice of `$length` elements from `$offset` (negative `$offset` counts from the end; null `$length` runs to the end, negative `$length` stops that many from the end). Integer keys are renumbered (string keys kept) unless `preserveKeys: true`.
+A slice of `$length` elements from `$offset` (negative `$offset` counts from the end; null `$length` runs to the end, negative `$length` stops that many from the end). Integer keys are renumbered (string keys kept) unless `preserveKeys: true`. With the default `preserveKeys`, a `list` input is typed as returning a `list`.
 
 ```php
 Arr::slice([1, 2, 3, 4, 5], 1, 2);            // [2, 3]
@@ -576,7 +576,7 @@ Arr::countValues([1, 1, 2]);         // [1 => 2, 2 => 1]
 
 ## `append` / `prepend`
 
-Immutable add at either end (the input array is left unchanged). `append` keeps existing keys and adds the new values under the next integer key; `prepend` inserts before, renumbering integer keys (string keys kept), matching `array_unshift`.
+Immutable add at either end (the input array is left unchanged). `append` keeps existing keys and adds the new values under the next integer key; `prepend` inserts before, renumbering integer keys (string keys kept), matching `array_unshift`. A `list` input is typed as returning a `list`.
 
 ```php
 Arr::append([1, 2], 3, 4);          // [1, 2, 3, 4]
@@ -591,7 +591,7 @@ Arr::prepend(['a' => 1], 3);        // [3, 'a' => 1]
 
 ## `shift` / `shiftOrNull`
 
-Immutable `array_shift`: returns the `[firstElement, rest]` pair without mutating the input. The remainder follows [`slice`](#slice) semantics (integer keys renumbered, string keys kept). Bare throws on an empty array; `*OrNull` returns `null`.
+Immutable `array_shift`: returns the `[firstElement, rest]` pair without mutating the input. The remainder follows [`slice`](#slice) semantics (integer keys renumbered, string keys kept; typed as a `list` when the input is one). Bare throws on an empty array; `*OrNull` returns `null`.
 
 ```php
 [$first, $rest] = Arr::shift([10, 20, 30]);          // [10, [20, 30]]
@@ -606,7 +606,7 @@ Arr::shift([]);                                       // UnderflowException
 
 ## `pop` / `popOrNull`
 
-Immutable `array_pop`: returns the `[lastElement, rest]` pair without mutating the input. The remainder follows [`slice`](#slice) semantics. Bare throws on an empty array; `*OrNull` returns `null`.
+Immutable `array_pop`: returns the `[lastElement, rest]` pair without mutating the input. The remainder follows [`slice`](#slice) semantics (typed as a `list` when the input is one). Bare throws on an empty array; `*OrNull` returns `null`.
 
 ```php
 [$last, $rest] = Arr::pop([10, 20, 30]);            // [30, [10, 20]]
@@ -649,7 +649,7 @@ Arr::fillKeys(['a', 'b'], 0);       // ['a' => 0, 'b' => 0]
 
 ## `merge`
 
-Left-to-right merge. String keys are overwritten by later arrays; integer keys are renumbered (matches `array_merge`).
+Left-to-right merge. String keys are overwritten by later arrays; integer keys are renumbered (matches `array_merge`). Merging only lists therefore yields a list at runtime, but the return type cannot say so — PHPStan does not evaluate conditional return types over a variadic parameter; pipe the result through [`values`](#values) when the narrowed type matters.
 
 ```php
 Arr::merge(['a' => 1, 'b' => 2], ['b' => 3, 'c' => 4]);

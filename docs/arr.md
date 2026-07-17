@@ -89,7 +89,7 @@ Arr::isNotEmpty([1, 2]);     // true
 
 ## `isList` / `isAssoc`
 
-`mixed`-typed guards. `isList` mirrors `array_is_list` (sequential `0..n-1` int keys; empty array qualifies). `isAssoc` is the complement on non-empty arrays.
+`mixed`-typed guards. `isList` mirrors `array_is_list` (sequential `0..n-1` int keys; empty array qualifies). `isAssoc` is the complement on non-empty arrays. `isList` carries `@phpstan-assert-if-true list<mixed> $value`, so a guarded branch narrows the `mixed` argument to `list<mixed>` without pairing it with `isArray` / `Arr::is`.
 
 ```php
 Arr::isList([1, 2, 3]);              // true

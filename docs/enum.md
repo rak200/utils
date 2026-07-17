@@ -19,6 +19,7 @@ use Rak200\Utils\Enum;
 - [`toArray`](#toarray)
 - [`scalar`](#scalar)
 - [`isBackedInt` / `isBackedStr`](#isbackedint--isbackedstr)
+- [`isInt` / `isStr`](#isint--isstr)
 
 ---
 
@@ -155,7 +156,7 @@ Enum::scalar(Priority::High);  // 10
 
 ## `isBackedInt` / `isBackedStr`
 
-Predicates for the *kind* of backing on an enum case: `isBackedInt` is true for int-backed cases, `isBackedStr` is true for string-backed cases, both are false for pure (unbacked) cases. The `@phpstan-assert-if-true BackedEnum` PHPDoc narrows the case to `BackedEnum` inside the guarded branch.
+Predicates for the *kind* of backing on an enum case: `isBackedInt` is true for int-backed cases, `isBackedStr` is true for string-backed cases, both are false for pure (unbacked) cases. The `@phpstan-assert-if-true BackedEnum` PHPDoc narrows the case to `BackedEnum` inside the guarded branch, making `$case->value` readable there as `int|string`. For the exact `int` / `string` narrowing of `$case->value`, use [`isInt` / `isStr`](#isint--isstr) on a case already known to be backed.
 
 ```php
 Enum::isBackedInt(Priority::Low);    // true
@@ -165,6 +166,30 @@ Enum::isBackedInt(Suit::Hearts);     // false (pure)
 Enum::isBackedStr(Status::Active);   // true
 Enum::isBackedStr(Priority::Low);    // false (int-backed)
 Enum::isBackedStr(Suit::Hearts);     // false (pure)
+```
+
+[↑ Back to top](#enum)
+
+---
+
+## `isInt` / `isStr`
+
+Predicates for the value type of a case **already known to be backed** — the `BackedEnum`-typed counterparts of [`isBackedInt` / `isBackedStr`](#isbackedint--isbackedstr). Because the parameter is `BackedEnum`, the PHPDoc asserts narrow `$case->value` exactly, in **both** branches: after `isInt`, the value is `int` in the true branch and `string` in the false branch (`isStr` mirrors this). Starting from a plain `UnitEnum`, guard with [`isBacked`](#isbacked) first.
+
+```php
+Enum::isInt(Priority::Low);      // true
+Enum::isInt(Status::Active);     // false (string-backed)
+
+if (Enum::isInt($case)) {
+    $case->value;                // int
+} else {
+    $case->value;                // string
+}
+
+// from a UnitEnum, narrow in two steps:
+if (Enum::isBacked($e) && Enum::isInt($e)) {
+    $e->value;                   // int
+}
 ```
 
 [↑ Back to top](#enum)

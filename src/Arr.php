@@ -85,6 +85,8 @@ final class Arr
      * Returns true if $value is an array with sequential integer keys
      * starting at 0. An empty array qualifies. Accepts `mixed` so it can be
      * used as a guard on values whose type is not yet known.
+     *
+     * @phpstan-assert-if-true list<mixed> $value
      */
     public static function isList(mixed $value): bool
     {

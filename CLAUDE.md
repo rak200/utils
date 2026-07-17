@@ -34,6 +34,7 @@ utils/
 │   ├── Enum.php      # class-level enum operations (Tier 2)
 │   └── Filter.php    # input sanitisation + mixed-to-typed coercion (Tier 2)
 └── tests/            # mirrors src/ layout (one *Test.php per class)
+    └── StaticAnalysis/  # PHPStan-only assertType fixtures (no Test suffix; never run by PHPUnit)
 ```
 
 Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes live under `Rak200\Utils\Tests\` (PSR-4 from `tests/`, dev-only).
@@ -68,9 +69,12 @@ The suite targets **pragmatic** line coverage — currently **~97.5%** — closi
 
 Forcing these to **literal 100%** would need fragile, platform-specific setups (read-only dirs via `chmod`/`icacls`, invalidated handles, mocking `finfo`) that contradict the suite's clean style. **Deferred:** decide later whether to pursue literal 100%, and how.
 
+### Mutation testing (adopt Infection)
+
+Wire up `infection/infection` as `rak200/caster` does — `infection.json5.dist`, a `composer infection` script, and a floor-only CI step (see the shared conventions' *Mutation testing (Infection)* section). Provably-equivalent survivors are ignored in-code with `@infection-ignore-all` anchored on the smallest node; the threshold is never lowered. Gate **`minCoveredMsi: 100`** now (it scopes to covered code, so it is independent of the ~97.5% line coverage); **`minMsi: 100`** is contingent on the literal-100%-coverage decision above (uncovered lines' mutants can't be killed).
+
 ### Contingent (additive — ships in any minor when there's demand)
 
-- **Assert annotations surfaced by http-input (PHPDoc-only, BC-safe).** Two more analyzer-level gaps hit downstream: **(a)** `Arr::isList` carries no `@phpstan-assert-if-true list<mixed> $value`, so a guarded `foreach` still sees `mixed` and callers must pair it with `Arr::is` just for the narrowing; **(b)** `Enum::isBackedInt`/`isBackedStr` declare the malformed compound `@phpstan-assert-if-true BackedEnum $case && int $case->value`, which PHPStan half-honours — calling either on an already-narrowed `BackedEnum` reports "always evaluates to true", forcing callers to branch *before* narrowing. Fix: assert `list<mixed>` on `isList`; replace the compound with the valid `@phpstan-assert-if-true BackedEnum $case` (the `->value` type cannot be asserted this way).
 - **`Math`** — only worth splitting out if trigonometry, logarithms, number theory, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad`, and number-theory helpers such as `gcd` / `lcm` (no native; `gcd` via Euclid, `lcm` derived from it), belong here, **not** in `Num`. Purely additive — there's no point creating an empty class, so it lands in a minor release when real demand appears.
 - **Lib-scoped catch (marker interface).** 4.0.0 mapped every throw-site to the precise SPL type (`InvalidArgumentException` malformed input, `OutOfBoundsException` lookup miss, `UnderflowException` empty source, `UnexpectedValueException` bad callback result, `RuntimeException` environment failures), so callers can already branch on the failure *kind*. What SPL cannot express is "a failure from *this* library" as one catch — that would need a marker interface (e.g. `Rak200\Utils\Exception\UtilsException`) implemented by thin subclasses of each SPL type used. Only worth it when a real call-site needs the lib-scoped catch; messages and the SPL base types would be unchanged (BC-safe minor).
 

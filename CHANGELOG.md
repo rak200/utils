@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-07-17
+
+### Added
+
+- **`Enum::isInt` / `Enum::isStr`** — value-type predicates on a case already known to be backed, the `BackedEnum`-typed counterparts of `isBackedInt` / `isBackedStr`. The `BackedEnum` parameter makes the property assert well-formed, so `$case->value` narrows exactly in **both** branches (`isInt`: `int` when true, `string` when false; `isStr` mirrors) — the narrowing the `UnitEnum`-typed pair cannot express, since asserting on `$case->value` is rejected when the parameter type lacks the property.
+
+### Changed
+
+- **Assert annotations for `Arr::isList` and `Enum::isBackedInt` / `isBackedStr`** (PHPDoc-only, BC-safe). `Arr::isList` now declares `@phpstan-assert-if-true list<mixed> $value`, so a guarded `foreach` narrows on `isList` alone without pairing it with `Arr::is`. `Enum::isBackedInt` / `isBackedStr` replace the malformed compound `@phpstan-assert-if-true BackedEnum $case && … $case->value` (PHPStan silently dropped the `$case->value` clause) with the well-formed `@phpstan-assert-if-true BackedEnum $case`, so the true branch narrows a `UnitEnum` to `BackedEnum` and makes `$case->value` readable. PHPStan has no int- vs string-backed enum type, so calling either predicate on a subject already typed `BackedEnum` still reports "always evaluates to true" — a PHPStan limitation, unchanged by this cleanup. New `tests/StaticAnalysis` fixtures pin the narrowing under `composer phpstan` (a reverted annotation leaves the runtime suite green but breaks these). No runtime behaviour change.
+
 ## [4.1.0] - 2026-07-15
 
 ### Changed
@@ -452,6 +462,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[4.2.0]: https://github.com/rak200/utils/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/rak200/utils/compare/4.0.0...4.1.0
 [4.0.0]: https://github.com/rak200/utils/compare/3.1.0...4.0.0
 [3.1.0]: https://github.com/rak200/utils/compare/3.0.0...3.1.0

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use BackedEnum;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -190,6 +191,42 @@ final class EnumTest extends TestCase
         yield 'int-backed' => [EnumPriority::Low, false];
 
         yield 'pure' => [EnumSuit::Hearts, false];
+    }
+
+    #[DataProvider('isIntProvider')]
+    public function testIsInt(BackedEnum $case, bool $expected): void
+    {
+        $this->assertSame($expected, Enum::isInt($case));
+    }
+
+    /**
+     * @return iterable<string, array{BackedEnum, bool}>
+     */
+    public static function isIntProvider(): iterable
+    {
+        yield 'int Low' => [EnumPriority::Low, true];
+
+        yield 'int High' => [EnumPriority::High, true];
+
+        yield 'string-backed' => [EnumStatus::Active, false];
+    }
+
+    #[DataProvider('isStrProvider')]
+    public function testIsStr(BackedEnum $case, bool $expected): void
+    {
+        $this->assertSame($expected, Enum::isStr($case));
+    }
+
+    /**
+     * @return iterable<string, array{BackedEnum, bool}>
+     */
+    public static function isStrProvider(): iterable
+    {
+        yield 'string Active' => [EnumStatus::Active, true];
+
+        yield 'string Inactive' => [EnumStatus::Inactive, true];
+
+        yield 'int-backed' => [EnumPriority::Low, false];
     }
 }
 

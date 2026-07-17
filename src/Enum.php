@@ -184,7 +184,7 @@ final class Enum
     /**
      * Returns true when $case is an int-backed enum case.
      *
-     * @phpstan-assert-if-true BackedEnum $case && int $case->value
+     * @phpstan-assert-if-true BackedEnum $case
      */
     public static function isBackedInt(UnitEnum $case): bool
     {
@@ -194,10 +194,40 @@ final class Enum
     /**
      * Returns true when $case is a string-backed enum case.
      *
-     * @phpstan-assert-if-true BackedEnum $case && string $case->value
+     * @phpstan-assert-if-true BackedEnum $case
      */
     public static function isBackedStr(UnitEnum $case): bool
     {
         return self::isBacked($case) && Type::isStr($case->value);
+    }
+
+    /**
+     * Returns true when the backed case carries an int value. Unlike
+     * {@see isBackedInt()}, the input is already known to be backed, which
+     * lets the analyzer narrow $case->value exactly: int in the true branch,
+     * string in the false branch.
+     *
+     * @phpstan-assert-if-true int $case->value
+     *
+     * @phpstan-assert-if-false string $case->value
+     */
+    public static function isInt(BackedEnum $case): bool
+    {
+        return Num::isInt($case->value);
+    }
+
+    /**
+     * Returns true when the backed case carries a string value. Unlike
+     * {@see isBackedStr()}, the input is already known to be backed, which
+     * lets the analyzer narrow $case->value exactly: string in the true
+     * branch, int in the false branch.
+     *
+     * @phpstan-assert-if-true string $case->value
+     *
+     * @phpstan-assert-if-false int $case->value
+     */
+    public static function isStr(BackedEnum $case): bool
+    {
+        return Type::isStr($case->value);
     }
 }

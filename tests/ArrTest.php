@@ -54,15 +54,30 @@ final class ArrTest extends TestCase
         $this->assertTrue(Arr::isNotEmpty([1]));
     }
 
-    public function testIsList(): void
+    #[DataProvider('isListProvider')]
+    public function testIsList(mixed $value, bool $expected): void
     {
-        $this->assertTrue(Arr::isList([]));
-        $this->assertTrue(Arr::isList([1, 2, 3]));
-        $this->assertTrue(Arr::isList(['a', 'b']));
-        $this->assertFalse(Arr::isList(['a' => 1]));
-        $this->assertFalse(Arr::isList([1 => 'a', 0 => 'b']));
-        $this->assertFalse(Arr::isList('abc'));
-        $this->assertFalse(Arr::isList(null));
+        $this->assertSame($expected, Arr::isList($value));
+    }
+
+    /**
+     * @return iterable<string, array{mixed, bool}>
+     */
+    public static function isListProvider(): iterable
+    {
+        yield 'empty array' => [[], true];
+
+        yield 'list' => [[1, 2, 3], true];
+
+        yield 'string-valued list' => [['a', 'b'], true];
+
+        yield 'assoc' => [['a' => 1], false];
+
+        yield 'out-of-order int keys' => [[1 => 'a', 0 => 'b'], false];
+
+        yield 'string' => ['abc', false];
+
+        yield 'null' => [null, false];
     }
 
     public function testIsAssoc(): void

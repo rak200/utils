@@ -218,6 +218,10 @@ final class TypeTest extends TestCase
         $this->assertFalse(Type::usesTrait(new UsesComposed(), NestedTrait::class));
         $this->assertTrue(Type::usesTrait(new UsesComposed(), NestedTrait::class, recursive: true));
 
+        // Recursive lookup keeps the traits of every level, not just the last parent's.
+        $this->assertTrue(Type::usesTrait(new ChildUsesExtra(), ExtraTrait::class, recursive: true));
+        $this->assertTrue(Type::usesTrait(new ChildUsesExtra(), GreetTrait::class, recursive: true));
+
         $this->assertFalse(Type::usesTrait(new stdClass(), GreetTrait::class));
         $this->assertFalse(Type::usesTrait('NotAClass_xyz123', GreetTrait::class));
         $this->assertFalse(Type::usesTrait(42, GreetTrait::class));
@@ -540,6 +544,13 @@ class UsesGreet
 }
 
 class ChildUsesGreet extends UsesGreet {}
+
+trait ExtraTrait {}
+
+class ChildUsesExtra extends UsesGreet
+{
+    use ExtraTrait;
+}
 
 class UsesComposed
 {

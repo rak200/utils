@@ -680,4 +680,77 @@ final class ArrTest extends TestCase
         $this->assertSame(['a' => 0, 'b' => 0], Arr::fillKeys(['a', 'b'], 0));
         $this->assertSame([], Arr::fillKeys([], 0));
     }
+
+    public function testLastKeyOrNullNonEmpty(): void
+    {
+        $this->assertSame('b', Arr::lastKeyOrNull(['a' => 1, 'b' => 2]));
+    }
+
+    public function testChunkSizeOne(): void
+    {
+        $this->assertSame([[1], [2], [3]], Arr::chunk([1, 2, 3], 1));
+    }
+
+    public function testUndotMultipleTopLevelKeys(): void
+    {
+        $this->assertSame(
+            ['a' => ['b' => 1], 'c' => 2],
+            Arr::undot(['a.b' => 1, 'c' => 2]),
+        );
+    }
+
+    public function testZipReindexesStringKeys(): void
+    {
+        $this->assertSame(
+            [[1, 3], [2, 4]],
+            Arr::zip(['x' => 1, 'y' => 2], [3, 4]),
+        );
+    }
+
+    public function testSearchIsStrictByDefault(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        Arr::search([0], '0');
+    }
+
+    public function testSortByExtractedKeyNotValue(): void
+    {
+        $this->assertSame(['a', 'bb', 'ccc'], Arr::sortBy(['bb', 'a', 'ccc'], static fn (string $v): int => strlen($v)));
+    }
+
+    public function testShiftEmptyMessage(): void
+    {
+        $this->expectException(UnderflowException::class);
+        $this->expectExceptionMessage('Cannot shift from an empty array.');
+        Arr::shift([]);
+    }
+
+    public function testPopEmptyMessage(): void
+    {
+        $this->expectException(UnderflowException::class);
+        $this->expectExceptionMessage('Cannot pop from an empty array.');
+        Arr::pop([]);
+    }
+
+    public function testGetWithIntKey(): void
+    {
+        $this->assertSame(10, Arr::get([10, 20], 0));
+    }
+
+    public function testForgetKeepsSiblings(): void
+    {
+        $this->assertSame(
+            ['a' => 1, 'c' => 3],
+            Arr::forget(['a' => 1, 'b' => 2, 'c' => 3], 'b'),
+        );
+        $this->assertSame(
+            ['a' => ['y' => 2], 'b' => 3, 'c' => 4],
+            Arr::forget(['a' => ['x' => 1, 'y' => 2], 'b' => 3, 'c' => 4], 'a.x'),
+        );
+    }
+
+    public function testDotWithNestedIntKeys(): void
+    {
+        $this->assertSame(['0.0' => 1], Arr::dot([[1]]));
+    }
 }

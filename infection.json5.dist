@@ -1,0 +1,16 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["src"]
+    },
+    "timeout": 10,
+    // minMsi is deliberately absent: uncovered lines are deliberate (see CLAUDE.md
+    // "Test coverage") and their mutants cannot be killed; gate only covered code.
+    "minCoveredMsi": 100,
+    "logs": {
+        "text": "infection.log"
+    },
+    "mutators": {
+        "@default": true
+    }
+}

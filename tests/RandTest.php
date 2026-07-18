@@ -279,4 +279,134 @@ final class RandTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         Rand::ulidTime('nope');
     }
+
+    public function testIntAllowsMinEqualToMax(): void
+    {
+        $this->assertSame(5, Rand::int(5, 5));
+    }
+
+    public function testFloatAllowsMinEqualToMax(): void
+    {
+        $this->assertSame(2.5, Rand::float(2.5, 2.5));
+    }
+
+    public function testFloatStaysWithinPositiveRange(): void
+    {
+        for ($i = 0; $i < 100; ++$i) {
+            $value = Rand::float(2.0, 4.0);
+            $this->assertGreaterThanOrEqual(2.0, $value);
+            $this->assertLessThanOrEqual(4.0, $value);
+        }
+    }
+
+    public function testStringAcceptsLengthOne(): void
+    {
+        $this->assertSame(1, strlen(Rand::string(1)));
+    }
+
+    public function testStringReachesWholeAlphabet(): void
+    {
+        $value = Rand::string(200, 'xy');
+        $this->assertMatchesRegularExpression('/^[xy]{200}$/', $value);
+        $this->assertStringContainsString('x', $value);
+        $this->assertStringContainsString('y', $value);
+    }
+
+    public function testMaskedReachesWholeAlphabet(): void
+    {
+        $value = Rand::masked(str_repeat('#', 200), 'xy');
+        $this->assertMatchesRegularExpression('/^[xy]{200}$/', $value);
+        $this->assertStringContainsString('x', $value);
+        $this->assertStringContainsString('y', $value);
+    }
+
+    public function testNanoidAcceptsLengthOne(): void
+    {
+        $this->assertSame(1, strlen(Rand::nanoid(1)));
+    }
+
+    public function testUuidV4NibblesAreIndependent(): void
+    {
+        $this->assertUuidNibblesIndependent(Rand::uuidV4(...));
+    }
+
+    public function testUuidV7NibblesAreIndependent(): void
+    {
+        $this->assertUuidNibblesIndependent(Rand::uuidV7(...));
+    }
+
+    public function testUuidV7TimeIsMillisecondAccurate(): void
+    {
+        for ($i = 0; $i < 20; ++$i) {
+            $before = (int) floor(microtime(true) * 1000);
+            $ms = (int) Rand::uuidV7Time(Rand::uuidV7())->format('Uv');
+            $after = (int) ceil(microtime(true) * 1000) + 1;
+            $this->assertGreaterThanOrEqual($before, $ms);
+            $this->assertLessThanOrEqual($after, $ms);
+        }
+    }
+
+    public function testIsUuidRejectsInvalidVariantNibble(): void
+    {
+        $this->assertFalse(Rand::isUuid('aaaaaaaa-aaaa-4aaa-caaa-aaaaaaaaaaaa', 4));
+    }
+
+    public function testChoiceReachesAllElements(): void
+    {
+        $seen = [];
+        for ($i = 0; $i < 100; ++$i) {
+            $seen[Rand::choice(['a', 'b'])] = true;
+        }
+        $this->assertCount(2, $seen);
+    }
+
+    public function testShuffleMovesEveryPosition(): void
+    {
+        $input = [1, 2, 3, 4, 5];
+        $firstMoved = false;
+        $lastMoved = false;
+        for ($i = 0; $i < 30; ++$i) {
+            $shuffled = Rand::shuffle($input);
+            $sorted = $shuffled;
+            sort($sorted);
+            $this->assertSame($input, $sorted);
+            $firstMoved = $firstMoved || $shuffled[0] !== 1;
+            $lastMoved = $lastMoved || $shuffled[4] !== 5;
+        }
+        $this->assertTrue($firstMoved);
+        $this->assertTrue($lastMoved);
+    }
+
+    /**
+     * The version/variant masks must read exactly their own byte: across draws
+     * the nibble right of the version (hex 13) and right of the variant (hex 17)
+     * take both parities (their low bit stays random) and decorrelate from the
+     * neighbouring bytes' nibbles (hex 11/15 and 15/19).
+     *
+     * @param callable(): string $generate
+     */
+    private function assertUuidNibblesIndependent(callable $generate): void
+    {
+        $h13Parities = [];
+        $h17Parities = [];
+        $h13DiffersFromH11 = false;
+        $h13DiffersFromH15 = false;
+        $h17DiffersFromH15 = false;
+        $h17DiffersFromH19 = false;
+        for ($i = 0; $i < 40; ++$i) {
+            $hex = str_replace('-', '', $generate());
+            $h13Parities[hexdec($hex[13]) % 2] = true;
+            $h17Parities[hexdec($hex[17]) % 2] = true;
+            $h13DiffersFromH11 = $h13DiffersFromH11 || $hex[13] !== $hex[11];
+            $h13DiffersFromH15 = $h13DiffersFromH15 || $hex[13] !== $hex[15];
+            $h17DiffersFromH15 = $h17DiffersFromH15 || $hex[17] !== $hex[15];
+            $h17DiffersFromH19 = $h17DiffersFromH19 || $hex[17] !== $hex[19];
+        }
+        $this->assertCount(2, $h13Parities);
+        $this->assertCount(2, $h17Parities);
+        $this->assertTrue($h13DiffersFromH11);
+        $this->assertTrue($h13DiffersFromH15);
+        $this->assertTrue($h17DiffersFromH15);
+        $this->assertTrue($h17DiffersFromH19);
+    }
 }

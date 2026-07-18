@@ -240,6 +240,8 @@ final class File
             throw new RuntimeException("Cannot open file: {$path}");
         }
 
+        // @infection-ignore-all: without the finally, the handle is still closed when its last reference drops;
+        // the explicit close only makes the release deterministic on early generator abandonment
         try {
             while (($line = fgets($handle)) !== false) {
                 yield Str::trimEnd($line, "\r\n");
@@ -301,11 +303,13 @@ final class File
      *
      * @throws RuntimeException when the directory cannot be created
      */
-    public static function mkdir(string $path, bool $recursive = true, int $mode = 0777): void
+    public static function mkdir(string $path, bool $recursive = true, int $mode = /* @infection-ignore-all: the effective permissions are masked by umask and ignored on Windows — not portably assertable */ 0777): void
     {
         if (is_dir($path)) {
             return;
         }
+        // @infection-ignore-all: the is_dir half only differs when a concurrent process creates the directory
+        // between the check above and this call — a race that cannot be arranged in a test
         if (!mkdir($path, $mode, $recursive) && !is_dir($path)) {
             throw new RuntimeException("Cannot create directory: {$path}");
         }
@@ -355,6 +359,8 @@ final class File
             throw new RuntimeException("Cannot open file: {$path}");
         }
 
+        // @infection-ignore-all: without the finally, the handle is still closed when its last reference drops;
+        // the explicit close only makes the release deterministic
         try {
             $rows = [];
             while (($row = fgetcsv($handle, null, $separator, $enclosure, $escape)) !== false) {
@@ -391,6 +397,8 @@ final class File
             throw new RuntimeException("Cannot open file for writing: {$path}");
         }
 
+        // @infection-ignore-all: without the finally, the handle is still closed when its last reference drops;
+        // the explicit close only makes the release deterministic
         try {
             foreach ($rows as $row) {
                 if (fputcsv($handle, $row, $separator, $enclosure, $escape, "\n") === false) {

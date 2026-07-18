@@ -63,10 +63,63 @@ final class BitTest extends TestCase
         $this->assertSame(3, Bit::trailingZeros(0b1000));
     }
 
+    public function testUnsetHigherBit(): void
+    {
+        $this->assertSame(0b1011, Bit::unset(0b1111, 2));
+    }
+
+    public function testToggleHigherBit(): void
+    {
+        $this->assertSame(0b0100, Bit::toggle(0, 2));
+    }
+
+    public function testCountNegative(): void
+    {
+        $this->assertSame(PHP_INT_SIZE * 8, Bit::count(-1));
+        $this->assertSame(1, Bit::count(PHP_INT_MIN));
+    }
+
+    public function testLeadingZerosNegative(): void
+    {
+        $this->assertSame(0, Bit::leadingZeros(-1));
+        $this->assertSame(0, Bit::leadingZeros(PHP_INT_MIN));
+    }
+
+    public function testTrailingZerosSkipsLowerZeroBitsOnly(): void
+    {
+        $this->assertSame(0, Bit::trailingZeros(-1));
+        $this->assertSame(1, Bit::trailingZeros(0b110));
+    }
+
     public function testRejectsNegativeBitIndex(): void
     {
         $this->expectException(InvalidArgumentException::class);
         Bit::set(0, -1);
+    }
+
+    public function testUnsetRejectsBitIndexOutOfRange(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Bit::unset(0, PHP_INT_SIZE * 8);
+    }
+
+    public function testToggleRejectsBitIndexOutOfRange(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Bit::toggle(0, PHP_INT_SIZE * 8);
+    }
+
+    public function testHasRejectsBitIndexOutOfRange(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Bit::has(0, PHP_INT_SIZE * 8);
+    }
+
+    public function testBitIndexErrorMessage(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Bit index must be between 0 and ' . (PHP_INT_SIZE * 8 - 1) . '.');
+        Bit::set(0, PHP_INT_SIZE * 8);
     }
 
     public function testRejectsBitIndexOutOfRange(): void

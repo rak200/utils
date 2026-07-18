@@ -5,6 +5,7 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch: # manual trigger for the full mutation-testing run
 
 permissions:
   contents: read
@@ -21,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history so Infection can diff against origin/master
 
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
@@ -54,3 +57,14 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      # Mutation-testing gate. On pull requests, only the changed lines are
+      # mutated (fast, blocking). The full run is expensive (~27 min), so it is
+      # kept off the PR/push path and triggered manually via workflow_dispatch.
+      - name: Infection (mutation testing, diff)
+        if: matrix.php == '8.4' && github.event_name == 'pull_request'
+        run: composer infection -- --git-diff-lines --git-diff-base=origin/master --logger-github --ignore-msi-with-no-mutations
+
+      - name: Infection (mutation testing, full)
+        if: matrix.php == '8.4' && github.event_name == 'workflow_dispatch'
+        run: composer infection -- --logger-github

@@ -253,6 +253,7 @@ final class Type
      */
     public static function isA(mixed $value, string $class): bool
     {
+        // @infection-ignore-all: is_a takes mixed and returns false for other types itself — the guard only spells it out
         if (!is_object($value) && !is_string($value)) {
             return false;
         }
@@ -275,6 +276,7 @@ final class Type
      */
     public static function isSubclass(mixed $value, string $class): bool
     {
+        // @infection-ignore-all: is_subclass_of takes mixed and returns false for other types itself — the guard only spells it out
         if (!is_object($value) && !is_string($value)) {
             return false;
         }

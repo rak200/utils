@@ -26,6 +26,7 @@ final class Base64
     public static function is(string $value): bool
     {
         if (base64_decode($value, true) !== false) {
+            // @infection-ignore-all: fast path — the URL-alphabet fallthrough re-pads and accepts every string the strict decode already accepted
             return true;
         }
         $encoded = Str::translate($value, '-_', '+/');

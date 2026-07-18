@@ -299,4 +299,57 @@ final class DtTest extends TestCase
         $this->assertSame(3030, Dt::diffMinutes($a, $b));
         $this->assertSame(181800, Dt::diffSeconds($a, $b));
     }
+
+    public function testFromEpochAppliesTimezone(): void
+    {
+        $tz = new DateTimeZone('America/Sao_Paulo');
+        $dt = Dt::fromEpoch(0, $tz);
+        $this->assertSame('America/Sao_Paulo', $dt->getTimezone()->getName());
+        $this->assertSame('1969-12-31 21:00:00', $dt->format('Y-m-d H:i:s'));
+    }
+
+    public function testFromEpochMsWholeSecond(): void
+    {
+        $this->assertSame('1970-01-01 00:00:02.000000', Dt::fromEpochMs(2000)->format('Y-m-d H:i:s.u'));
+    }
+
+    public function testIsBeforeIsAfterAreStrict(): void
+    {
+        $dt = new DateTimeImmutable('2026-05-23 12:00:00');
+        $same = new DateTimeImmutable('2026-05-23 12:00:00');
+        $this->assertFalse(Dt::isBefore($dt, $same));
+        $this->assertFalse(Dt::isAfter($dt, $same));
+    }
+
+    public function testMinMaxSingleElementAndTies(): void
+    {
+        $a = new DateTimeImmutable('2026-05-23 12:00:00');
+        $b = new DateTimeImmutable('2026-05-23 12:00:00');
+        $this->assertSame($a, Dt::min($a));
+        $this->assertSame($a, Dt::max($a));
+        $this->assertSame($a, Dt::min($a, $b)); // ties keep the first
+        $this->assertSame($a, Dt::max($a, $b));
+    }
+
+    public function testEndOfDayAndYearMicroseconds(): void
+    {
+        $dt = new DateTimeImmutable('2026-05-23 12:34:56.123456');
+        $this->assertSame('23:59:59.999999', Dt::endOfDay($dt)->format('H:i:s.u'));
+        $this->assertSame('2026-12-31 23:59:59.999999', Dt::endOfYear($dt)->format('Y-m-d H:i:s.u'));
+    }
+
+    public function testDiffHoursTruncatesToWholeHours(): void
+    {
+        $a = new DateTimeImmutable('2026-05-23 12:00:00');
+        $this->assertSame(0, Dt::diffHours($a, $a->modify('+3599 seconds')));
+        $this->assertSame(2, Dt::diffHours($a, $a->modify('+7200 seconds')));
+    }
+
+    public function testAcceptsMutableDateTimeInput(): void
+    {
+        $mutable = new DateTime('2026-05-23 12:00:00');
+        $result = Dt::addDays($mutable, 1);
+        $this->assertSame('2026-05-24 12:00:00', $result->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-05-23 12:00:00', $mutable->format('Y-m-d H:i:s')); // input untouched
+    }
 }

@@ -56,6 +56,17 @@ General testing conventions are in the shared file. utils specifics:
 - Single file: `vendor/bin/phpunit tests/StrTest.php`.
 - Time-sensitive tests (`Rand::uuidV7`, `Dt::now`) assert structural properties rather than exact values.
 
+### Mutation testing — differential CI (utils-specific divergence)
+
+A full Infection run over `src/` takes ~27 minutes, so utils **diverges from the shared conventions' full-run-in-CI prescription** — waiting for it on every push was not viable. What changes is *when and what* gets mutated; the `minCoveredMsi: 100` gate itself is unchanged.
+
+- **Pull requests (blocking):** only the **changed lines** are mutated — `composer infection -- --git-diff-lines --git-diff-base=origin/master --ignore-msi-with-no-mutations`, floor `8.4` job. Needs `fetch-depth: 0` on checkout so `origin/master` is available to diff against; `--ignore-msi-with-no-mutations` lets a docs/tests-only PR pass instead of failing on zero mutants.
+- **Push to `master`:** no mutation step at all (`master` is branch-protected, so changes arrive through a PR that already passed the diff gate).
+- **Full run:** manual only, via the workflow's `workflow_dispatch` trigger. Run it before a significant release — it is the safety net for cross-file MSI drift, which the diff gate cannot see (a change in file A that stops a test from killing a mutant in untouched file B).
+- **Locally:** `composer infection-diff` mutates just your uncommitted changes against `master`.
+
+If this proves out, port the pattern to `~/.claude/rak200-php-conventions.md` + caster + http-input.
+
 ## Roadmap
 
 Planned additions and corrections. Released items live in `CHANGELOG.md`.
@@ -67,11 +78,7 @@ The suite targets **pragmatic** line coverage — currently **~97.5%** — closi
 - **Unreachable defensive code** — the 17 private `__construct() {}` of the static-only classes, and the post-loop `return self::BITS;` in `Bit::leadingZeros`/`trailingZeros` (a non-zero value always finds a set bit inside the loop).
 - **Branches that only fire when a native call fails despite valid preconditions** — `File::read`/`delete`/`size`/`lines`/`temp`/`list`/`readCsv`/`writeCsv` and `File::mime`'s finfo branches (the file exists / handle is valid but `file_get_contents`/`unlink`/`filesize`/`fopen`/`tempnam`/`glob`/`fputcsv`/`finfo_*` returns `false`), `Dt::fromEpochMs`'s `createFromFormat` failure (the format string is built from ints, so it always parses), and `Filter::ascii`'s iconv-unavailable fallback (iconv is present).
 
-Forcing these to **literal 100%** would need fragile, platform-specific setups (read-only dirs via `chmod`/`icacls`, invalidated handles, mocking `finfo`) that contradict the suite's clean style. **Deferred:** decide later whether to pursue literal 100%, and how.
-
-### Mutation testing (adopt Infection)
-
-Wire up `infection/infection` as `rak200/caster` does — `infection.json5.dist`, a `composer infection` script, and a floor-only CI step (see the shared conventions' *Mutation testing (Infection)* section). Provably-equivalent survivors are ignored in-code with `@infection-ignore-all` anchored on the smallest node; the threshold is never lowered. Gate **`minCoveredMsi: 100`** now (it scopes to covered code, so it is independent of the ~97.5% line coverage); **`minMsi: 100`** is contingent on the literal-100%-coverage decision above (uncovered lines' mutants can't be killed).
+Forcing these to **literal 100%** would need fragile, platform-specific setups (read-only dirs via `chmod`/`icacls`, invalidated handles, mocking `finfo`) that contradict the suite's clean style. **Deferred:** decide later whether to pursue literal 100%, and how — going literal would also unlock raising the Infection gate from the current `minCoveredMsi: 100` to the full `minMsi: 100` (uncovered lines' mutants cannot be killed, which is why `infection.json5.dist` deliberately omits `minMsi`).
 
 ### Contingent (additive — ships in any minor when there's demand)
 

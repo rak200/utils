@@ -201,6 +201,7 @@ final class Num
             $digit = match (true) {
                 $char >= '0' && $char <= '9' => ord($char) - ord('0'),
                 $char >= 'a' && $char <= 'z' => 10 + ord($char) - ord('a'),
+                // @infection-ignore-all: any negative sentinel is rejected by the $digit < 0 guard below
                 default => -1,
             };
             if ($digit < 0 || $digit >= $base) {
@@ -228,6 +229,7 @@ final class Num
             return '0';
         }
         $digits = '0123456789abcdefghijklmnopqrstuvwxyz';
+        // @infection-ignore-all: $value === 0 already returned above, so < and <= are indistinguishable
         $negative = $value < 0;
         $result = '';
         $n = $value;
@@ -284,7 +286,9 @@ final class Num
     {
         $parsed = self::parseNumberOrNull($value);
         if ($parsed === null) {
-            $display = is_float($value) && !is_finite($value) ? var_export($value, true) : (string) $value;
+            $display = is_float($value) && !is_finite($value)
+                ? var_export($value, true)
+                : /* @infection-ignore-all: every non-float parse failure is already a string, so the cast is an identity */ (string) $value;
 
             throw new InvalidArgumentException("Cannot parse \"{$display}\" as number.");
         }
@@ -316,7 +320,7 @@ final class Num
             return null;
         }
         $decimal = self::expandScientific($value);
-        if ($decimal === null || !is_numeric($decimal)) {
+        if (/* @infection-ignore-all: expandScientific never returns a non-numeric string, so the is_numeric half is defensive */ $decimal === null || !is_numeric($decimal)) {
             return null;
         }
 
@@ -483,6 +487,7 @@ final class Num
             throw new UnderflowException('Cannot compute average of empty input.');
         }
         if ($sum instanceof Number) {
+            // @infection-ignore-all: falling through would divide Number by int via operator overloading — identical result
             return $sum / new Number((string) $count);
         }
 
@@ -550,6 +555,7 @@ final class Num
      */
     public static function sign(float|int|Number $value): int
     {
+        // @infection-ignore-all: <=> between Number and int|float agrees with the scalar comparison, so both branches are interchangeable
         if ($value instanceof Number) {
             $zero = new Number('0');
 
@@ -606,11 +612,12 @@ final class Num
             return self::numberFloorCeil($value, $precision, false);
         }
         if ($precision === 0) {
+            // @infection-ignore-all: falling through with factor 10 ** 0 = 1 is an identity — same result
             return floor((float) $value);
         }
         $factor = 10 ** $precision;
 
-        return floor((float) $value * $factor) / $factor;
+        return floor($value * $factor) / $factor;
     }
 
     /**
@@ -622,11 +629,12 @@ final class Num
             return self::numberFloorCeil($value, $precision, true);
         }
         if ($precision === 0) {
+            // @infection-ignore-all: falling through with factor 10 ** 0 = 1 is an identity — same result
             return ceil((float) $value);
         }
         $factor = 10 ** $precision;
 
-        return ceil((float) $value * $factor) / $factor;
+        return ceil($value * $factor) / $factor;
     }
 
     /**
@@ -767,7 +775,7 @@ final class Num
      */
     private static function expandScientific(string $value): ?string
     {
-        $ePos = Str::indexOf($value, 'e', 0, true);
+        $ePos = Str::indexOf($value, 'e', ignoreCase: true);
         if ($ePos === -1) {
             return $value;
         }
@@ -784,6 +792,7 @@ final class Num
         }
 
         if (Str::contains($mantissa, '.')) {
+            // @infection-ignore-all: a strict-numeric mantissa holds at most one dot, so any limit >= 2 splits identically
             [$intPart, $fracPart] = Str::split($mantissa, '.', 2);
         } else {
             $intPart = $mantissa;
@@ -796,9 +805,9 @@ final class Num
         }
 
         $pointPos = Str::len($intPart) + $exp;
-        if ($pointPos <= 0) {
+        if (/* @infection-ignore-all: at 0 the else branch yields the '.'-prefixed form — same Number value */ $pointPos <= 0) {
             $result = '0.' . Str::repeat('0', -$pointPos) . $digits;
-        } elseif ($pointPos >= Str::len($digits)) {
+        } elseif (/* @infection-ignore-all: at len the '.'-suffixed form — same Number value */ $pointPos >= Str::len($digits)) {
             $result = $digits . Str::repeat('0', $pointPos - Str::len($digits));
         } else {
             $result = Str::sub($digits, 0, $pointPos) . '.' . Str::sub($digits, $pointPos);
@@ -827,8 +836,10 @@ final class Num
     private static function numberFloorCeil(Number $value, int $precision, bool $ceil): Number
     {
         if ($precision === 0) {
+            // @infection-ignore-all: falling through with factor pow10(0) = 1 is an identity — same result
             return $ceil ? $value->ceil() : $value->floor();
         }
+        // @infection-ignore-all: $precision === 0 already returned above, so < and <= are indistinguishable
         if ($precision < 0) {
             $factor = self::pow10(abs($precision));
 
@@ -871,12 +882,13 @@ final class Num
             $str = Str::sub($str, 1);
         }
         if (Str::contains($str, '.')) {
+            // @infection-ignore-all: a rounded Number string holds at most one dot, so any limit >= 2 splits identically
             [$intPart, $decPart] = Str::split($str, '.', 2);
         } else {
             $intPart = $str;
             $decPart = '';
         }
-        if ($decimals > 0) {
+        if (/* @infection-ignore-all: at 0 padEnd to length 0 also yields '', same as the else branch */ $decimals > 0) {
             $decPart = Str::padEnd(Str::sub($decPart, 0, $decimals), $decimals, '0');
         } else {
             $decPart = '';

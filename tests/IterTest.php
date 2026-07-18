@@ -612,4 +612,37 @@ final class IterTest extends TestCase
     {
         $this->assertSame([1, [2, [3]]], Iter::toArray(Iter::flatten([1, [2, [3]]], 0)));
     }
+
+    public function testFlattenDepthTwoOnTriplyNested(): void
+    {
+        $this->assertSame([1], Iter::toArray(Iter::flatten([[[1]]], 2)));
+    }
+
+    public function testTakeDropSlicePreserveKeys(): void
+    {
+        $src = ['a' => 1, 'b' => 2, 'c' => 3];
+        $this->assertSame(['a' => 1, 'b' => 2], Iter::toArray(Iter::take($src, 2), true));
+        $this->assertSame(['b' => 2, 'c' => 3], Iter::toArray(Iter::drop($src, 1), true));
+        $this->assertSame(['b' => 2], Iter::toArray(Iter::slice($src, 1, 1), true));
+    }
+
+    public function testUniquePreservesKeys(): void
+    {
+        $this->assertSame(['x' => 1, 'z' => 2], Iter::toArray(Iter::unique(['x' => 1, 'y' => 1, 'z' => 2]), true));
+    }
+
+    public function testBoundaryArgumentsAccepted(): void
+    {
+        $this->assertSame([1, 2], Iter::toArray(Iter::drop([1, 2], 0)));
+        $this->assertSame([[1], [2]], Iter::toArray(Iter::chunk([1, 2], 1)));
+        $this->assertSame([1, 2], Iter::toArray(Iter::slice([1, 2], 0)));
+        $this->assertSame([], Iter::toArray(Iter::slice([1, 2], 1, 0)));
+        $this->assertSame(1, Iter::nth([1, 2], 0));
+        $this->assertSame(1, Iter::nthOrNull([1, 2], 0));
+    }
+
+    public function testContainsLooseWithFalsyValues(): void
+    {
+        $this->assertTrue(Iter::contains([0], 0.0, false));
+    }
 }

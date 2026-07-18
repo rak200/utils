@@ -297,4 +297,10 @@ final class FilterTest extends TestCase
         $this->assertFalse(Filter::toBool('on', false) === null);
         $this->assertTrue(Filter::toBool('on', false));
     }
+
+    public function testToIntToFloatPreferParsedValueOverDefault(): void
+    {
+        $this->assertSame(42, Filter::toInt('42', 5));
+        $this->assertSame(4.2, Filter::toFloat('4.2', 9.9));
+    }
 }

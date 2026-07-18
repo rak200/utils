@@ -79,6 +79,7 @@ final class Url
     {
         $result = '';
         if (isset($components['scheme'])) {
+            // @infection-ignore-all: first append to the just-initialised empty string — .= and = agree
             $result .= $components['scheme'] . '://';
         }
         if (isset($components['user'])) {

@@ -365,6 +365,8 @@ final class Iter
             $tuple = [];
             foreach ($iterators as $iterator) {
                 if ($first) {
+                    // @infection-ignore-all: the iterators are freshly created and never advanced, so the explicit
+                    // rewind is a no-op formality (valid()/current() auto-prime a fresh Generator)
                     $iterator->rewind();
                 } else {
                     $iterator->next();
@@ -854,10 +856,10 @@ final class Iter
             return;
         }
         $value = $start;
-        while ($step > 0 ? $value <= $end : $value >= $end) {
+        while (/* @infection-ignore-all: step 0 is rejected upstream, so > and >= agree */ $step > 0 ? $value <= $end : $value >= $end) {
             yield $value;
             // Stop before $value += $step would pass $end or overflow the int domain.
-            if ($step > 0 ? $end - $value < $step : $value - $end < -$step) {
+            if (/* @infection-ignore-all: step 0 is rejected upstream, so > and >= agree */ $step > 0 ? $end - $value < $step : $value - $end < -$step) {
                 return;
             }
             $value += $step;

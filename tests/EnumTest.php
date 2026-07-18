@@ -116,6 +116,7 @@ final class EnumTest extends TestCase
     public function testRandomThrowsOnEmptyEnum(): void
     {
         $this->expectException(UnderflowException::class);
+        $this->expectExceptionMessage(EnumEmpty::class . ' has no cases.');
         Enum::random(EnumEmpty::class);
     }
 

@@ -89,6 +89,14 @@ final class RegexTest extends TestCase
         $this->assertSame(['1', '22', '333'], $result[0]);
     }
 
+    public function testMatchAllKeepsEveryCaptureGroup(): void
+    {
+        $this->assertSame(
+            [['a1', 'a2'], ['a', 'a'], ['1', '2']],
+            Regex::matchAll('/(a)(\d)/', 'a1 a2'),
+        );
+    }
+
     public function testReplace(): void
     {
         $this->assertSame('XbX', Regex::replace('/a/', 'X', 'aba'));

@@ -91,6 +91,7 @@ final class Bit
     public static function leadingZeros(int $value): int
     {
         if ($value === 0) {
+            // @infection-ignore-all: falling through reaches the defensive post-loop return of the same value
             return self::BITS;
         }
         for ($i = self::BITS - 1; $i >= 0; --$i) {
@@ -109,9 +110,10 @@ final class Bit
     public static function trailingZeros(int $value): int
     {
         if ($value === 0) {
+            // @infection-ignore-all: falling through reaches the defensive post-loop return of the same value
             return self::BITS;
         }
-        for ($i = 0; $i < self::BITS; ++$i) {
+        for ($i = 0; /* @infection-ignore-all: a nonzero value always finds a set bit before i reaches BITS */ $i < self::BITS; ++$i) {
             if ((($value >> $i) & 1) === 1) {
                 return $i;
             }
@@ -125,11 +127,11 @@ final class Bit
      * platform two's-complement form (PHP_INT_SIZE*8 bits). When $width is given,
      * the result is left-padded with '0' to at least $width characters.
      */
-    public static function toStr(int $value, int $width = 0): string
+    public static function toStr(int $value, int $width = /* @infection-ignore-all: -1 also skips padding, and 1 never pads (decbin is never empty) */ 0): string
     {
         $bits = decbin($value);
 
-        return $width > 0 ? Str::padStart($bits, $width, '0') : $bits;
+        return /* @infection-ignore-all: padding to width 0 is a no-op, so > and >= agree */ $width > 0 ? Str::padStart($bits, $width, '0') : $bits;
     }
 
     /**
@@ -140,6 +142,7 @@ final class Bit
     public static function rotateLeft(int $value, int $by): int
     {
         $by = ($by % self::BITS + self::BITS) % self::BITS;
+        // @infection-ignore-all: at 0 the general path is (value << 0) | uShr(value, BITS), and uShr by BITS masks to 0 — identity
         if ($by === 0) {
             return $value;
         }
@@ -155,6 +158,7 @@ final class Bit
     public static function rotateRight(int $value, int $by): int
     {
         $by = ($by % self::BITS + self::BITS) % self::BITS;
+        // @infection-ignore-all: at 0 the general path is uShr(value, 0) | (value << BITS), and both halves reduce to the value itself and 0 — identity
         if ($by === 0) {
             return $value;
         }

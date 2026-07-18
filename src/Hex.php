@@ -76,6 +76,7 @@ final class Hex
         }
         $bytes = [];
         foreach (Str::split($value, limit: 2) as $pair) {
+            // @infection-ignore-all: hexdec of a two-digit pair is always an int <= 255, so the cast only pins the type
             $bytes[] = (int) hexdec($pair);
         }
 

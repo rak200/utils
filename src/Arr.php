@@ -804,6 +804,7 @@ final class Arr
      */
     public static function sort(array $array, ?callable $comparator = null): array
     {
+        // @infection-ignore-all: usort reindexes its subject anyway; the explicit array_values only pins the list type
         $values = array_values($array);
         if ($comparator === null) {
             usort($values, static fn (mixed $a, mixed $b): int => $a <=> $b);
@@ -1186,11 +1187,13 @@ final class Arr
         if ($step === 0) {
             throw new InvalidArgumentException('Step cannot be zero.');
         }
+        // @infection-ignore-all: readability guard — for these inputs both loop conditions below fail on entry, so
+        // falling through (or mismatching the guard) still yields []
         if (($step > 0 && $start > $end) || ($step < 0 && $start < $end)) {
             return [];
         }
         $result = [];
-        if ($step > 0) {
+        if (/* @infection-ignore-all: step 0 already threw, so > and >= agree */ $step > 0) {
             for ($i = $start; $i <= $end; $i += $step) {
                 $result[] = $i;
             }
@@ -1264,6 +1267,7 @@ final class Arr
         if ($index === count($segments) - 1) {
             unset($array[$key]);
 
+            // @infection-ignore-all: falling through skips the recursion (the key was just unset) and returns the same array
             return $array;
         }
         if (isset($array[$key]) && is_array($array[$key])) {

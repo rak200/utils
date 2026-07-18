@@ -650,4 +650,120 @@ final class NumTest extends TestCase
         $this->assertFalse(Num::isNegative(1));
         $this->assertFalse(Num::isNegative(new Number('0')));
     }
+
+    public function testParseIntAcceptsHighestDigitOfBase(): void
+    {
+        $this->assertSame(35, Num::parseIntOrNull('z', 36));
+        $this->assertSame(35, Num::parseIntOrNull('Z', 36));
+    }
+
+    public function testParseIntOrNullRejectsPunctuationBetweenDigitAndLetterRanges(): void
+    {
+        $this->assertNull(Num::parseIntOrNull('_', 16));
+        $this->assertNull(Num::parseIntOrNull('5_0', 16));
+    }
+
+    public function testClampAllowsMinEqualToMax(): void
+    {
+        $this->assertSame(3, Num::clamp(5, 3, 3));
+        $this->assertSame(3, Num::clamp(1, 3, 3));
+    }
+
+    public function testClampReturnsValueItselfOnBoundaryEquality(): void
+    {
+        $this->assertSame(3, Num::clamp(3, 3.0, 5));
+        $this->assertSame(5, Num::clamp(5, 1, 5.0));
+    }
+
+    public function testRemapEmptyInputRangeMessage(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Input range cannot be empty (inMin equals inMax).');
+        Num::remap(5, 2, 2, 0, 10);
+    }
+
+    public function testMinMaxKeepFirstOfEqualElements(): void
+    {
+        $this->assertSame(3, Num::min([3, 3.0]));
+        $this->assertSame(3, Num::max([3, 3.0]));
+    }
+
+    public function testAbsReturnsZeroNumberAsIs(): void
+    {
+        $zero = new Number('0');
+        $this->assertSame($zero, Num::abs($zero));
+    }
+
+    public function testArithmeticWidensFloatOperandToNumber(): void
+    {
+        $this->assertSame('2.5', (string) Num::add(new Number('2'), 0.5));
+        $this->assertSame('2.5', (string) Num::add(0.5, new Number('2')));
+        $this->assertSame('1.5', (string) Num::sub(new Number('2'), 0.5));
+        $this->assertSame('-1.5', (string) Num::sub(0.5, new Number('2')));
+        $this->assertSame('1.0', (string) Num::mul(new Number('2'), 0.5));
+        $this->assertSame('1.0', (string) Num::mul(0.5, new Number('2')));
+        $this->assertSame('4', (string) Num::div(new Number('2'), 0.5));
+        $this->assertSame('0.25', (string) Num::div(0.5, new Number('2')));
+        $this->assertSame('2.0', (string) Num::mod(new Number('7'), 2.5));
+        $this->assertSame('0.0', (string) Num::mod(7.5, new Number('2.5')));
+        $this->assertSame('8', (string) Num::pow(new Number('2'), 3.0));
+        $this->assertSame('8', (string) Num::pow(2.0, new Number('3')));
+    }
+
+    public function testModByFloatZeroThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot mod by zero.');
+        Num::mod(5.0, 0.0);
+    }
+
+    public function testDivByFloatZeroThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot divide by zero.');
+        Num::div(5.0, 0.0);
+    }
+
+    public function testModIntByFloatUsesFmod(): void
+    {
+        $this->assertSame(2.0, Num::mod(7, 2.5));
+        $this->assertSame(1.5, Num::mod(7.5, 2));
+    }
+
+    public function testSqrtOfZero(): void
+    {
+        $this->assertSame(0.0, Num::sqrt(0));
+        $this->assertSame('0', (string) Num::sqrt(new Number('0')));
+    }
+
+    public function testFloorCeilWithNegativePrecisionOnFloats(): void
+    {
+        $this->assertSame(10.0, Num::floor(15.72, -1));
+        $this->assertSame(20.0, Num::ceil(15.12, -1));
+    }
+
+    public function testFloorCeilWithPrecisionTwo(): void
+    {
+        $this->assertSame(1.23, Num::floor(1.239, 2));
+        $this->assertSame(1.24, Num::ceil(1.231, 2));
+    }
+
+    public function testFloorCeilWithNumberAndNegativePrecisionShiftBackOut(): void
+    {
+        $this->assertSame('10', (string) Num::floor(new Number('15'), -1));
+        $this->assertSame('20', (string) Num::ceil(new Number('15'), -1));
+    }
+
+    public function testParseNumberNegativeScientificNotation(): void
+    {
+        $this->assertSame('-0.0015', (string) Num::parseNumber('-1.5e-3'));
+        $this->assertSame('0.0015', (string) Num::parseNumber('+1.5e-3'));
+    }
+
+    public function testParseNumberOrNullAcceptsExponentAtDigitLimit(): void
+    {
+        $parsed = Num::parseNumberOrNull('1e65535');
+        $this->assertNotNull($parsed);
+        $this->assertSame(65536, strlen((string) $parsed));
+    }
 }

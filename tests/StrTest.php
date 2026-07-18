@@ -661,4 +661,115 @@ final class StrTest extends TestCase
         $this->assertSame('ell', Str::sub('hello', 1, 3));
         $this->assertSame('he…', Str::trunc('hello world', 3));
     }
+
+    public function testCapitalizeUncapitalizeMultibyte(): void
+    {
+        $this->assertSame('Éxito', Str::capitalize('éxito'));
+        $this->assertSame('éxito', Str::uncapitalize('Éxito'));
+    }
+
+    public function testReplaceAtClampsOutOfRangeStart(): void
+    {
+        $this->assertSame('ééx', Str::replaceAt('ééé', -1, 1, 'x'));  // multibyte char count
+        $this->assertSame('Xbc', Str::replaceAt('abc', 0, 1, 'X'));   // start at zero replaces
+        $this->assertSame('Xc', Str::replaceAt('abc', -5, 2, 'X'));   // start clamped to 0
+        $this->assertSame('Xbc', Str::replaceAt('abc', -3, 1, 'X'));  // start == -len
+    }
+
+    public function testTranslateMultibyteReplacements(): void
+    {
+        $this->assertSame('éöc', Str::translate('abc', 'ab', 'éö'));
+    }
+
+    public function testTranslateLengthMismatchMessage(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Translation strings must have the same length.');
+        Str::translate('x', 'ab', 'xyz');
+    }
+
+    public function testSubMultibyteStart(): void
+    {
+        $this->assertSame('xito', Str::sub('éxito', 1));
+    }
+
+    public function testIndexOfCountsMultibyteChars(): void
+    {
+        $this->assertSame(2, Str::indexOf('ééa', 'a'));
+        $this->assertSame(2, Str::lastIndexOf('ééaé', 'a'));
+        $this->assertSame(2, Str::lastIndexOf('ééAé', 'a', 0, true));
+        $this->assertSame(0, Str::lastIndexOf('abc', 'a'));   // match at position 0
+        $this->assertSame(-1, Str::lastIndexOf('', 'x'));     // empty haystack
+    }
+
+    public function testAfterMatchAtPositionZero(): void
+    {
+        $this->assertSame('bc', Str::after('abc', 'a'));
+    }
+
+    public function testTruncBoundaries(): void
+    {
+        $this->assertSame('ééé', Str::trunc('ééé', 4));           // multibyte length fits
+        $this->assertSame('abcd', Str::trunc('abcd', 4));         // exact length untouched
+        $this->assertSame('..', Str::trunc('abcdef', 2, '...'));  // leading ellipsis chars
+        $this->assertSame('ééé…', Str::trunc('ééééé', 4));        // multibyte truncation
+    }
+
+    public function testSlugTransliteratesAccents(): void
+    {
+        // iconv translit output is platform-dependent ('cafe' on glibc, 'caf-e' on
+        // libiconv, whose "'e" apostrophe becomes a separator) — assert the shape
+        // instead of the exact slug: without transliteration the é is dropped ('caf').
+        $slug = Str::slug('café');
+        $this->assertStringStartsWith('caf', $slug);
+        $this->assertStringEndsWith('e', $slug);
+    }
+
+    public function testMaskClampsAndMultibyte(): void
+    {
+        $this->assertSame('éé*', Str::mask('ééé', -1));           // multibyte char count
+        $this->assertSame('**c', Str::mask('abc', -5, 2));        // start clamped to 0
+        $this->assertSame('*bc', Str::mask('abc', -3, 1));        // start == -len
+        $this->assertSame('xxc', Str::mask('abc', 0, 2, 'xy'));   // first mask char only
+        $this->assertSame('é*é', Str::mask('ééé', 1, 1));         // multibyte reconstruction
+    }
+
+    public function testSplitClampsNegativeChunkSize(): void
+    {
+        $this->assertSame(['a', 'b', 'c'], Str::split('abc', '', -5));
+    }
+
+    public function testJoinNaturalPrefixSuffixPlacement(): void
+    {
+        $this->assertSame('<a, b and c>', Str::joinNatural(['a', 'b', 'c'], ', ', '<', '>', ' and '));
+        $this->assertSame('', Str::joinNatural(['', ' '], ', ', '<', '>')); // all blank → no wrapping
+    }
+
+    public function testChrAcceptsCodepointBounds(): void
+    {
+        $this->assertSame("\0", Str::chr(0));
+        $this->assertSame("\u{10FFFF}", Str::chr(0x10FFFF));
+    }
+
+    public function testWordWrapDefaultWidthBoundary(): void
+    {
+        $fits = str_repeat('a', 37) . ' ' . str_repeat('b', 37);   // 75 chars
+        $this->assertSame($fits, Str::wordWrap($fits));
+
+        $wraps = str_repeat('a', 38) . ' ' . str_repeat('b', 37);  // 76 chars
+        $this->assertSame(str_repeat('a', 38) . "\n" . str_repeat('b', 37), Str::wordWrap($wraps));
+
+        $longWord = str_repeat('a', 80);
+        $this->assertSame($longWord, Str::wordWrap($longWord));    // cut defaults to false
+    }
+
+    public function testWordWrapAcceptsWidthOne(): void
+    {
+        $this->assertSame("a\nb", Str::wordWrap('a b', 1));
+    }
+
+    public function testWordCountInvalidUtf8ReturnsZero(): void
+    {
+        $this->assertSame(0, Str::wordCount("\xC3\x28"));
+    }
 }

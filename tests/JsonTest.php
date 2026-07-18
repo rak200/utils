@@ -77,4 +77,21 @@ final class JsonTest extends TestCase
 
         yield 'php object' => [new stdClass(), false];
     }
+
+    public function testEncodeDefaultFlagsAreZero(): void
+    {
+        $this->assertSame('"<"', Json::encode('<')); // any default flag bit (e.g. JSON_HEX_TAG) would escape this
+    }
+
+    public function testDecodeAcceptsNestingAtDepthLimit(): void
+    {
+        $depth511 = str_repeat('[', 511) . str_repeat(']', 511);
+        $this->assertIsArray(Json::decode($depth511));
+    }
+
+    public function testDecodeRejectsNestingBeyondDepthLimit(): void
+    {
+        $this->expectException(JsonException::class);
+        Json::decode(str_repeat('[', 512) . str_repeat(']', 512));
+    }
 }

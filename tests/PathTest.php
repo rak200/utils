@@ -196,4 +196,61 @@ final class PathTest extends TestCase
         $this->assertSame('.hidden', Path::filename('.hidden'));
         $this->assertSame('', Path::filename(''));
     }
+
+    public function testIsAbsoluteBackslashAndShortRelative(): void
+    {
+        $this->assertTrue(Path::isAbsolute('\x'));
+        $this->assertFalse(Path::isAbsolute('a'));
+    }
+
+    public function testNormalizeDriveWithoutBody(): void
+    {
+        $this->assertSame('C:', Path::normalize('C:'));
+        $this->assertSame('C:/foo', Path::normalize('C:foo'));
+    }
+
+    public function testRelativeAcrossDrivesMessage(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot compute relative path across drives C: and D:.');
+        Path::relative('C:/a', 'D:/b');
+    }
+
+    public function testRelativeAcrossDriveAndDrivelessMessage(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot compute relative path across drives (none) and C:.');
+        Path::relative('/a', 'C:/b');
+    }
+
+    public function testRelativeWithMatchingDrives(): void
+    {
+        $this->assertSame('../c', Path::relative('C:/a/b', 'C:/a/c'));
+    }
+
+    public function testRelativeFromBareDrive(): void
+    {
+        $this->assertSame('x', Path::relative('C:', 'C:/x'));
+    }
+
+    public function testRelativeKeepsWholeFirstSegments(): void
+    {
+        $this->assertSame('../../banana/y', Path::relative('apple/x', 'banana/y'));
+    }
+
+    public function testBasenameKeepsUnmatchedOrWholeSuffix(): void
+    {
+        $this->assertSame('file.txt', Path::basename('file.txt', '.md'));
+        $this->assertSame('.txt', Path::basename('.txt', '.txt'));
+    }
+
+    public function testDirnameOfDriveRoot(): void
+    {
+        $this->assertSame('C:/', Path::dirname('C:/'));
+    }
+
+    public function testFilenameOfDotDot(): void
+    {
+        $this->assertSame('..', Path::filename('..'));
+    }
 }

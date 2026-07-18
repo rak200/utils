@@ -231,6 +231,7 @@ final class Str
     public static function capitalize(string $value): string
     {
         if ($value === '') {
+            // @infection-ignore-all: falling through concatenates two empty substrings — same result
             return '';
         }
 
@@ -243,6 +244,7 @@ final class Str
     public static function uncapitalize(string $value): string
     {
         if ($value === '') {
+            // @infection-ignore-all: falling through concatenates two empty substrings — same result
             return '';
         }
 
@@ -398,6 +400,7 @@ final class Str
             throw new InvalidArgumentException('Translation strings must have the same length.');
         }
         if ($fromChars === []) {
+            // @infection-ignore-all: falling through calls strtr with an empty map — an identity
             return $value;
         }
 
@@ -465,6 +468,7 @@ final class Str
     public static function before(string $subject, string $search): string
     {
         if ($search === '') {
+            // @infection-ignore-all: falling through hits indexOf's empty-needle -1, whose branch also returns $subject
             return $subject;
         }
         $pos = self::indexOf($subject, $search);
@@ -479,6 +483,7 @@ final class Str
     public static function after(string $subject, string $search): string
     {
         if ($search === '') {
+            // @infection-ignore-all: falling through hits indexOf's empty-needle -1, whose branch also returns $subject
             return $subject;
         }
         $pos = self::indexOf($subject, $search);
@@ -502,7 +507,7 @@ final class Str
             return $value;
         }
         $ellipsisLen = mb_strlen($ellipsis);
-        if ($length <= $ellipsisLen) {
+        if (/* @infection-ignore-all: at equality both branches yield the full ellipsis */ $length <= $ellipsisLen) {
             return mb_substr($ellipsis, 0, $length);
         }
 
@@ -516,6 +521,8 @@ final class Str
      */
     public static function slug(string $value, string $separator = '-'): string
     {
+        // @infection-ignore-all: pre-lowering only changes the case iconv transliterates from; the divergent
+        // outputs are exotic case-only translit entries, which vary by iconv implementation — not portably assertable
         $value = mb_strtolower($value);
         if (function_exists('iconv')) {
             $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
@@ -523,6 +530,8 @@ final class Str
                 $value = $transliterated;
             }
         }
+        // @infection-ignore-all: defensive re-lower — after pre-lowering, only platform-dependent translit
+        // entries can emit uppercase ASCII, so the difference is not portably assertable
         $value = strtolower($value);
         $value = preg_replace('/[^a-z0-9]+/', $separator, $value) ?? '';
 
@@ -553,6 +562,7 @@ final class Str
         $to = $length === null
             ? $total
             : ($length < 0 ? max($from, $total + $length) : min($total, $from + $length));
+        // @infection-ignore-all: falling through with an empty window masks nothing and reassembles $value — same result
         if ($from >= $to) {
             return $value;
         }
@@ -576,7 +586,7 @@ final class Str
     public static function split(string $value, string $separator = '', ?int $limit = null): array
     {
         if ($separator === '') {
-            return mb_str_split($value, max(1, $limit ?? 1));
+            return mb_str_split($value, max(1, /* @infection-ignore-all: with a null limit, max(1, 0) is still 1 */ $limit ?? 1));
         }
 
         return $limit === null ? explode($separator, $value) : explode($separator, $value, $limit);
@@ -595,6 +605,7 @@ final class Str
     {
         $parts = [];
         foreach ($items as $item) {
+            // @infection-ignore-all: implode applies the identical string cast to each element
             $parts[] = (string) $item;
         }
 
@@ -826,6 +837,7 @@ final class Str
      */
     public static function similarity(string $a, string $b): float
     {
+        // @infection-ignore-all: similar_text always overwrites the reference (0.0 even for two empty strings)
         $percentage = 0.0;
         similar_text($a, $b, $percentage);
 

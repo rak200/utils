@@ -175,11 +175,12 @@ final class Path
         $unified = Str::replace($path, '\\', '/');
         $unified = Str::trimEnd($unified, '/');
         if ($unified === '') {
+            // @infection-ignore-all: falling through finds no separator in the empty string and returns it unchanged
             return '';
         }
         $pos = strrpos($unified, '/');
         $base = $pos === false ? $unified : substr($unified, $pos + 1);
-        if ($suffix !== '' && $suffix !== $base) {
+        if ($suffix !== '') {
             $suffixLen = Str::byteLen($suffix);
             if (Str::byteLen($base) > $suffixLen && substr($base, -$suffixLen) === $suffix) {
                 $base = substr($base, 0, -$suffixLen);
@@ -196,6 +197,7 @@ final class Path
     public static function dirname(string $path): string
     {
         if ($path === '') {
+            // @infection-ignore-all: falling through finds no separator and hits the same '.' fallback
             return '.';
         }
         $unified = Str::replace($path, '\\', '/');
@@ -225,6 +227,8 @@ final class Path
     public static function ext(string $path): string
     {
         $base = self::basename($path);
+        // @infection-ignore-all: falling through yields '' for all three anyway ('' finds no dot, '.' hits the pos-0
+        // guard, and '..' takes the empty substring after its last dot) — the guard only spells the contract out
         if ($base === '' || $base === '.' || $base === '..') {
             return '';
         }
@@ -279,6 +283,7 @@ final class Path
         }
         $body = Str::trimStart($body, '/');
         if (!Str::contains($body, '/')) {
+            // @infection-ignore-all: falling through splits on the absent separator and returns the same single segment
             return [$body];
         }
         $parts = [];

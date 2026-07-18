@@ -14,6 +14,7 @@ use InvalidArgumentException;
 use UnderflowException;
 
 use function checkdate;
+use function sprintf;
 
 /**
  * Date/time helpers built on {@see DateTimeImmutable}. Inputs accept any
@@ -142,7 +143,7 @@ final class Dt
             --$seconds;
         }
         $micro = $remainder * 1000;
-        $dt = DateTimeImmutable::createFromFormat('U.u', (string) $seconds . '.' . Str::padStart((string) $micro, 6, '0'));
+        $dt = DateTimeImmutable::createFromFormat('U.u', /* @infection-ignore-all: concatenation applies the identical string cast */ (string) $seconds . '.' . Str::padStart((string) $micro, 6, '0'));
         if ($dt === false) {
             throw new InvalidArgumentException("Cannot create date/time from epoch ms {$milliseconds}.");
         }
@@ -195,7 +196,7 @@ final class Dt
      */
     public static function addDays(DateTimeInterface $dt, int $days): DateTimeImmutable
     {
-        $signed = $days >= 0 ? "+{$days}" : (string) $days;
+        $signed = sprintf('%+d', $days);
 
         return self::immutable($dt)->modify("{$signed} days");
     }
@@ -205,7 +206,7 @@ final class Dt
      */
     public static function addHours(DateTimeInterface $dt, int $hours): DateTimeImmutable
     {
-        $signed = $hours >= 0 ? "+{$hours}" : (string) $hours;
+        $signed = sprintf('%+d', $hours);
 
         return self::immutable($dt)->modify("{$signed} hours");
     }
@@ -215,7 +216,7 @@ final class Dt
      */
     public static function addMinutes(DateTimeInterface $dt, int $minutes): DateTimeImmutable
     {
-        $signed = $minutes >= 0 ? "+{$minutes}" : (string) $minutes;
+        $signed = sprintf('%+d', $minutes);
 
         return self::immutable($dt)->modify("{$signed} minutes");
     }
@@ -225,7 +226,7 @@ final class Dt
      */
     public static function addSeconds(DateTimeInterface $dt, int $seconds): DateTimeImmutable
     {
-        $signed = $seconds >= 0 ? "+{$seconds}" : (string) $seconds;
+        $signed = sprintf('%+d', $seconds);
 
         return self::immutable($dt)->modify("{$signed} seconds");
     }
@@ -235,7 +236,7 @@ final class Dt
      */
     public static function addMonths(DateTimeInterface $dt, int $months): DateTimeImmutable
     {
-        $signed = $months >= 0 ? "+{$months}" : (string) $months;
+        $signed = sprintf('%+d', $months);
 
         return self::immutable($dt)->modify("{$signed} months");
     }
@@ -245,7 +246,7 @@ final class Dt
      */
     public static function addYears(DateTimeInterface $dt, int $years): DateTimeImmutable
     {
-        $signed = $years >= 0 ? "+{$years}" : (string) $years;
+        $signed = sprintf('%+d', $years);
 
         return self::immutable($dt)->modify("{$signed} years");
     }
@@ -365,7 +366,7 @@ final class Dt
      */
     public static function startOfWeek(DateTimeInterface $dt): DateTimeImmutable
     {
-        $dayOfWeek = (int) $dt->format('N');
+        $dayOfWeek = /* @infection-ignore-all: arithmetic on the numeric string is identical */ (int) $dt->format('N');
         $offset = $dayOfWeek - 1;
 
         return self::startOfDay($dt)->modify("-{$offset} days");
@@ -377,7 +378,7 @@ final class Dt
      */
     public static function endOfWeek(DateTimeInterface $dt): DateTimeImmutable
     {
-        $dayOfWeek = (int) $dt->format('N');
+        $dayOfWeek = /* @infection-ignore-all: arithmetic on the numeric string is identical */ (int) $dt->format('N');
         $offset = 7 - $dayOfWeek;
 
         return self::endOfDay($dt)->modify("+{$offset} days");
@@ -445,6 +446,7 @@ final class Dt
      */
     public static function isPast(DateTimeInterface $dt): bool
     {
+        // @infection-ignore-all: distinguishing < from <= needs microsecond equality with the live now() — not arrangeable
         return $dt < self::now();
     }
 
@@ -454,6 +456,7 @@ final class Dt
      */
     public static function isFuture(DateTimeInterface $dt): bool
     {
+        // @infection-ignore-all: distinguishing > from >= needs microsecond equality with the live now() — not arrangeable
         return $dt > self::now();
     }
 
@@ -470,7 +473,7 @@ final class Dt
      */
     public static function dayOfYear(DateTimeInterface $dt): int
     {
-        return (int) $dt->format('z') + 1;
+        return /* @infection-ignore-all: arithmetic on the numeric string is identical */ (int) $dt->format('z') + 1;
     }
 
     /**

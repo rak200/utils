@@ -61,6 +61,7 @@ final class Rand
         if ($min > $max) {
             throw new InvalidArgumentException('Min cannot be greater than max.');
         }
+        // @infection-ignore-all: shifting either random_int bound by one changes the draw by 1/2^63 — not assertable
         $ratio = random_int(0, PHP_INT_MAX) / PHP_INT_MAX;
 
         return $min + ($max - $min) * $ratio;
@@ -115,7 +116,7 @@ final class Rand
         $result = '';
         foreach (Str::split($pattern) as $char) {
             $result .= $char === '#'
-                ? $alphabet[random_int(0, $alphabetLen - 1)]
+                ? $alphabet[random_int(/* @infection-ignore-all: a -1 lower bound wraps to a valid negative offset — a distribution shift, not assertable */ 0, $alphabetLen - 1)]
                 : $char;
         }
 
@@ -153,6 +154,7 @@ final class Rand
      */
     public static function ulid(): string
     {
+        // @infection-ignore-all: an extra random byte is beyond the 130 bits the Base32 encoder reads — never observable
         $bytes = [...self::timestampBytes(), ...Str::toBytes(random_bytes(10))];
 
         return self::encodeCrockfordBase32($bytes);
@@ -172,7 +174,7 @@ final class Rand
             return true;
         }
 
-        return Str::lower(Str::sub($value, 14, 1)) === Num::toBase($version, 16)
+        return Str::lower(Str::sub($value, 14, 1)) === Num::toBase($version, /* @infection-ignore-all: the documented versions 1-8 render the same single digit in any base > 8 */ 16)
             && Str::contains('89ab', Str::lower(Str::sub($value, 19, 1)));
     }
 
@@ -253,6 +255,7 @@ final class Rand
      */
     public static function bool(): bool
     {
+        // @infection-ignore-all: bias and inversion of a fair coin flip are distribution-level properties — not assertable
         return random_int(0, 1) === 1;
     }
 
@@ -290,7 +293,7 @@ final class Rand
     public static function shuffle(array $items): array
     {
         $values = Arr::values($items);
-        for ($i = Arr::count($values) - 1; $i > 0; --$i) {
+        for ($i = Arr::count($values) - 1; /* @infection-ignore-all: an extra i = 0 pass can only swap index 0 with itself */ $i > 0; --$i) {
             $j = random_int(0, $i);
             if ($i !== $j) {
                 [$values[$i], $values[$j]] = [$values[$j], $values[$i]];
@@ -323,7 +326,7 @@ final class Rand
         $alphabetLen = Str::byteLen($alphabet);
         $result = '';
         for ($i = 0; $i < $length; ++$i) {
-            $result .= $alphabet[random_int(0, $alphabetLen - 1)];
+            $result .= $alphabet[random_int(/* @infection-ignore-all: a -1 lower bound wraps to a valid negative offset — a distribution shift, not assertable */ 0, $alphabetLen - 1)];
         }
 
         return $result;
@@ -337,8 +340,11 @@ final class Rand
      */
     private static function timestampBytes(): array
     {
+        // @infection-ignore-all: without the cast the shifts implicitly truncate the float to the same int (plus a deprecation notice)
         $ms = (int) (microtime(true) * 1000);
 
+        // @infection-ignore-all: bit-level corruptions of the live timestamp are observable only when the affected
+        // wall-clock bit happens to be set at run time — asserting them would make the gate flap with the clock
         return [
             ($ms >> 40) & 0xFF,
             ($ms >> 32) & 0xFF,
@@ -361,7 +367,7 @@ final class Rand
         $b = Str::sub($hex, 8, 4);
         $c = Str::sub($hex, 12, 4);
         $d = Str::sub($hex, 16, 4);
-        $e = Str::sub($hex, 20, 12);
+        $e = Str::sub($hex, 20);
 
         return "{$a}-{$b}-{$c}-{$d}-{$e}";
     }

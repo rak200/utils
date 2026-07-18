@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.1] - 2026-07-18
+
+Test-quality release: Infection mutation testing is wired up and gated at **100% covered MSI**. No behaviour change.
+
+### Added
+
+- **Infection mutation-testing gate** — `infection/infection` as a dev dependency, `infection.json5.dist` gating **`minCoveredMsi: 100`** (`minMsi` is deliberately absent: the deliberately-uncovered lines' mutants cannot be killed — see the roadmap's coverage decision), `composer infection` / `composer infection-diff` scripts, and a covered-MSI badge in the README.
+- **Differential CI gate** — because the full run is ~27 min, CI mutates only the changed lines on pull requests (`composer infection -- --git-diff-lines --git-diff-base=origin/master --ignore-msi-with-no-mutations`, floor job, blocking), keeping the full run off the PR/push path and behind a manual `workflow_dispatch` trigger. Locally, `composer infection-diff` mutates just your uncommitted changes against `master`.
+- **80 new tests** killing the initial run's 362 escaped mutants. Highlights: multibyte inputs across `Str` (`capitalize`, `sub`, `indexOf`, `trunc`, `mask`, `translate`, `replaceAt`); `BcMath\Number` × float widening across `Num` arithmetic (a float operand throws `TypeError` if the widening branch is bypassed, so every arm is pinned); boundary values (`clamp` with `min == max`, `floor`/`ceil` at precision ±2, `chunk`/`drop`/`slice`/`nth` at their limits, `chr` at 0 and 0x10FFFF, `wordWrap` at the default width 75, `json_decode` at nesting depth 511/512); exception-message pinning wherever a bypassed guard would surface as a different message from a deeper layer; key preservation for `Iter::take`/`drop`/`slice`/`unique`; and deterministic structure asserts for `Rand` (UUID version/variant nibble independence over 40 draws, Fisher-Yates movement of first/last positions over 30 draws, millisecond-accurate `uuidV7Time` round-trip windows).
+
+### Changed
+
+- **Provably-equivalent mutants are suppressed in-code** with narrowly-anchored `@infection-ignore-all` comments (71 across 14 classes), each stating its equivalence argument — operator-overload fallbacks (`Number` ↔ int), guards natives already enforce (`is_a` on mixed, `similar_text` always writing its ref), `10 ** 0 = 1` identity fallthroughs, refcount-closed file handles, umask-masked `mkdir` modes, distribution-only randomness shifts, and platform-dependent iconv transliteration (libiconv renders `é` as `'e`, so slug tests assert shape, not exact output).
+- **Behaviour-neutral simplifications** that eliminate whole mutant classes instead of suppressing them: the six `Dt::add*` sign-prefix ternaries collapse to `sprintf('%+d', …)`; `Rand`'s UUID formatter takes the rest-of-string `Str::sub($hex, 20)` so an oversized byte array now breaks the 8-4-4-4-12 shape (making extra-`random_bytes` mutants detectable); `Path::basename` drops the `$suffix !== $base` guard subsumed by its strict length check; `Num::expandScientific` passes `ignoreCase:` as a named argument; two redundant `(float)` casts in `Num::floor`/`ceil` removed.
+
 ## [4.2.0] - 2026-07-17
 
 ### Added
@@ -462,6 +477,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[4.2.1]: https://github.com/rak200/utils/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/rak200/utils/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/rak200/utils/compare/4.0.0...4.1.0
 [4.0.0]: https://github.com/rak200/utils/compare/3.1.0...4.0.0

@@ -70,4 +70,31 @@ final class Base64Test extends TestCase
         $this->expectException(InvalidArgumentException::class);
         Base64::decodeUrl('!!!');
     }
+
+    public function testIsAcceptsUrlAlphabetAtEveryUnpaddedLength(): void
+    {
+        // Bytes chosen so the encoding needs '-'/'_' — the standard-alphabet
+        // fast path fails and the padding-restore path is exercised at every
+        // unpadded length class (2, 3, 4 and 6 chars → pad 2, 1, 0, 2).
+        foreach (["\xFB", "\xFB\xFF", "\xFB\xFF\xFE", "\xFB\xFF\xFE\xFF"] as $bytes) {
+            $this->assertTrue(Base64::is(Base64::encodeUrl($bytes)));
+        }
+    }
+
+    public function testIsRepairsMangledPadding(): void
+    {
+        $this->assertTrue(Base64::is('QQ=')); // one '=' short — restored to 'QQ=='
+    }
+
+    public function testDecodeUrlRoundTripsEveryUnpaddedLength(): void
+    {
+        foreach (["\xFB", "\xFB\xFF", "\xFB\xFF\xFE", "\xFB\xFF\xFE\xFF"] as $bytes) {
+            $this->assertSame($bytes, Base64::decodeUrl(Base64::encodeUrl($bytes)));
+        }
+    }
+
+    public function testDecodeUrlRepairsMangledPadding(): void
+    {
+        $this->assertSame('A', Base64::decodeUrl('QQ='));
+    }
 }

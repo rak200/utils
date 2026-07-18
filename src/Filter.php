@@ -194,7 +194,7 @@ final class Filter
     public static function toFloat(mixed $value, ?float $default = null): ?float
     {
         if (Num::isInt($value) || Num::isFloat($value)) {
-            return (float) $value;
+            return /* @infection-ignore-all: the ?float return type widens an uncast int to the same float */ (float) $value;
         }
         if (Str::is($value)) {
             return Num::parseFloatOrNull(Str::trim($value)) ?? $default;

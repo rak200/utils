@@ -1,7 +1,7 @@
 {
     "name": "rak200/utils",
     "description": "General-purpose static utility helpers for PHP 8.4+ (Str, Arr, Iter, Num, Rand, Regex, Hash, Bit, File, Json, Base64, Hex, Dt, Url, Path, Type, Enum, Filter).",
-    "version": "4.3.0",
+    "version": "4.4.0",
     "type": "library",
     "license": "MIT",
     "keywords": ["utils", "helpers", "string", "array", "iterator", "lazy", "generator", "uuid", "ulid", "datetime", "sanitize", "php84"],

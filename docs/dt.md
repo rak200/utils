@@ -17,6 +17,8 @@ use DateTimeZone;
 - [`of`](#of)
 - [`parse` / `parseOrNull`](#parse--parseornull)
 - [`fromEpoch` / `fromEpochMs`](#fromepoch--fromepochms)
+- [`fromInterface`](#frominterface)
+- [`toEpoch` / `toEpochFloat`](#toepoch--toepochfloat)
 - [`format`](#format)
 - [`iso`](#iso)
 - [`sql`](#sql)
@@ -117,6 +119,44 @@ Dt::fromEpoch(1700000000);         // 2023-11-14 22:13:20 +00:00
 Dt::fromEpochMs(1700000000123);    // 2023-11-14 22:13:20.123000 +00:00
 Dt::fromEpoch(1700000000, new DateTimeZone('Europe/Lisbon'));
 // 2023-11-14 22:13:20 +00:00 (Lisbon is on WET in November)
+```
+
+[↑ Back to top](#dt)
+
+---
+
+## `fromInterface`
+
+Normalises any `DateTimeInterface` to `DateTimeImmutable` — the entry point for a date-time arriving from outside, a mutable `DateTime` included. Dates in this library are always immutable, so this is where foreign instances become canonical.
+
+An instance that is already immutable is returned **as-is**; the native `DateTimeImmutable::createFromInterface()` always allocates a new object.
+
+```php
+$mutable = new DateTime('2026-05-23 14:30:45');
+$immutable = new DateTimeImmutable('2026-05-23 14:30:45');
+
+Dt::fromInterface($mutable);                    // DateTimeImmutable — a snapshot, decoupled from $mutable
+Dt::fromInterface($immutable) === $immutable;   // true — same instance, no allocation
+```
+
+[↑ Back to top](#dt)
+
+---
+
+## `toEpoch` / `toEpochFloat`
+
+The inverse of [`fromEpoch`](#fromepoch--fromepochms): `toEpoch` returns whole seconds and drops any sub-second component; `toEpochFloat` keeps the microsecond fraction.
+
+`toEpochFloat` is built from the whole seconds plus the microseconds read separately, never from `format('U.u')` — that pattern glues a negative seconds part to the always-positive microsecond fraction, so a **pre-epoch** instant comes out skewed by up to a second. That trap is the reason this helper exists.
+
+```php
+Dt::toEpoch(Dt::fromEpoch(1700000000));         // 1700000000
+Dt::toEpoch(Dt::fromEpochMs(1500));             // 1     (0.5s dropped)
+Dt::toEpochFloat(Dt::fromEpochMs(1500));        // 1.5
+
+$preEpoch = Dt::fromEpochMs(-500);              // 500 ms before the epoch
+Dt::toEpochFloat($preEpoch);                    // -0.5
+(float) $preEpoch->format('U.u');               // -1.5   ← the native trap
 ```
 
 [↑ Back to top](#dt)

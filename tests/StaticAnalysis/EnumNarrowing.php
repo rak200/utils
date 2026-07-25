@@ -78,3 +78,25 @@ function enumStrOrNullReturnsNullableString(UnitEnum $case): void
 {
     assertType('string|null', Enum::strOrNull($case));
 }
+
+/*
+ * `Enum::fromValue` / `tryFromValue` resolve their `@template T of UnitEnum`
+ * from the `class-string<T>` argument, so the caller gets the concrete case
+ * type back — not the bare `UnitEnum` of the signature. `tryFromValue` adds the
+ * `null` of its miss; `fromValue` never returns null, it throws.
+ */
+
+function enumFromValueResolvesTheConcreteCase(): void
+{
+    assertType(NarrowingStatus::class, Enum::fromValue(NarrowingStatus::class, 'active'));
+}
+
+function enumTryFromValueResolvesTheConcreteCase(): void
+{
+    assertType(NarrowingStatus::class . '|null', Enum::tryFromValue(NarrowingStatus::class, 'active'));
+}
+
+enum NarrowingStatus: string
+{
+    case Active = 'active';
+}

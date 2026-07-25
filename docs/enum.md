@@ -2,7 +2,7 @@
 
 [← Reference](README.md)
 
-Class-level operations on enums. PHP ships `cases()`, `from()`, `tryFrom()` directly on the enum; this class fills the gaps — listing names/values, looking up cases by **name** (no native `fromName()`), random pick, and form-friendly `[name => value]` maps. The instance-side predicate (*is this value an enum case?*) is [`Enum::is`](#is); [`Type::isEnum`](type.md#isenum) is its alias.
+Class-level operations on enums. PHP ships `cases()`, `from()`, `tryFrom()` directly on the enum; this class fills the gaps — listing names/values, looking up cases by **name** (no native `fromName()`) or loosely by **backed value** (the native `tryFrom()` is strictly typed), random pick, and form-friendly `[name => value]` maps. The instance-side predicate (*is this value an enum case?*) is [`Enum::is`](#is); [`Type::isEnum`](type.md#isenum) is its alias.
 
 ```php
 use Rak200\Utils\Enum;
@@ -15,6 +15,7 @@ use Rak200\Utils\Enum;
 - [`names`](#names)
 - [`values`](#values)
 - [`fromName` / `tryFromName`](#fromname--tryfromname)
+- [`fromValue` / `tryFromValue`](#fromvalue--tryfromvalue)
 - [`random`](#random)
 - [`toArray`](#toarray)
 - [`scalar`](#scalar)
@@ -102,6 +103,38 @@ Enum::fromName(Suit::class, 'Clubs');        // OutOfBoundsException
 
 Enum::tryFromName(Status::class, 'Active');  // Status::Active
 Enum::tryFromName(Status::class, 'Unknown'); // null
+```
+
+[↑ Back to top](#enum)
+
+---
+
+## `fromValue` / `tryFromValue`
+
+Looks up a case by its **backed value**, loosely — the counterpart of [`fromName` / `tryFromName`](#fromname--tryfromname). The native `from()` / `tryFrom()` are *strictly typed*: they reject `'2'` against an int-backed enum and `2` against a string-backed one, which is exactly the shape scalars arrive in from query strings, form posts and JSON. These coerce the scalar to the enum's backing type first, then delegate.
+
+Accepts an `int` or a `string`. For an int-backed enum a string goes through [`Num::parseIntOrNull`](num.md#parseint--parseintornull) — **strict**, so surrounding whitespace is rejected, matching [`Num::is`](num.md#is). Any other type misses.
+
+`tryFromValue` is total and never throws: a pure enum and an enum with no cases both return `null`, so it composes with `tryFromName` as a fallback chain without a prior guard. `fromValue` distinguishes the two failures instead — `InvalidArgumentException` when the class is not a backed enum, `OutOfBoundsException` when no case carries the value.
+
+```php
+enum Priority: int { case Low = 1; case High = 10; }
+enum Status: string { case Active = 'active'; }
+enum Suit { case Hearts; }
+
+Enum::tryFromValue(Priority::class, 1);        // Priority::Low
+Enum::tryFromValue(Priority::class, '10');     // Priority::High   (native tryFrom would TypeError)
+Enum::tryFromValue(Status::class, 'active');   // Status::Active
+Enum::tryFromValue(Priority::class, ' 1 ');    // null   (whitespace is not numeric)
+Enum::tryFromValue(Priority::class, 'Low');    // null   (that is a name — see tryFromName)
+Enum::tryFromValue(Suit::class, 'Hearts');     // null   (pure enum has no values)
+
+// value first, name as the fallback
+Enum::tryFromValue(Status::class, 'Active') ?? Enum::tryFromName(Status::class, 'Active');   // Status::Active
+
+Enum::fromValue(Priority::class, '10');        // Priority::High
+Enum::fromValue(Priority::class, 7);           // OutOfBoundsException
+Enum::fromValue(Suit::class, 'Hearts');        // InvalidArgumentException (not a backed enum)
 ```
 
 [↑ Back to top](#enum)

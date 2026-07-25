@@ -105,6 +105,95 @@ final class EnumTest extends TestCase
         $this->assertNull(Enum::tryFromName(EnumStatus::class, 'Unknown'));
     }
 
+    public function testFromValue(): void
+    {
+        $this->assertSame(EnumPriority::Low, Enum::fromValue(EnumPriority::class, 1));
+        $this->assertSame(EnumPriority::High, Enum::fromValue(EnumPriority::class, '10'));
+        $this->assertSame(EnumStatus::Active, Enum::fromValue(EnumStatus::class, 'active'));
+    }
+
+    public function testFromValueThrowsOnPureEnum(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageIs(EnumSuit::class . ' is not a backed enum.');
+        Enum::fromValue(EnumSuit::class, 'Hearts');
+    }
+
+    public function testFromValueThrowsOnMiss(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        $this->expectExceptionMessageIs(EnumPriority::class . ' has no case with value "7".');
+        Enum::fromValue(EnumPriority::class, 7);
+    }
+
+    public function testFromValueThrowsOnAnUnrenderableValue(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        $this->expectExceptionMessageIs(EnumPriority::class . ' has no case with value "array".');
+        Enum::fromValue(EnumPriority::class, []);
+    }
+
+    /**
+     * @param class-string<UnitEnum> $enumClass
+     */
+    #[DataProvider('tryFromValueProvider')]
+    public function testTryFromValue(string $enumClass, mixed $value, ?UnitEnum $expected): void
+    {
+        $this->assertSame($expected, Enum::tryFromValue($enumClass, $value));
+    }
+
+    /**
+     * @return iterable<string, array{class-string<UnitEnum>, mixed, null|UnitEnum}>
+     */
+    public static function tryFromValueProvider(): iterable
+    {
+        yield 'int against int-backed' => [EnumPriority::class, 1, EnumPriority::Low];
+
+        yield 'numeric string against int-backed' => [EnumPriority::class, '10', EnumPriority::High];
+
+        yield 'signed numeric string against int-backed' => [EnumPriority::class, '+1', EnumPriority::Low];
+
+        yield 'string against string-backed' => [EnumStatus::class, 'active', EnumStatus::Active];
+
+        yield 'int against string-backed' => [EnumNumericStr::class, 2, EnumNumericStr::Two];
+
+        yield 'numeric string against string-backed' => [EnumNumericStr::class, '2', EnumNumericStr::Two];
+
+        yield 'unknown int' => [EnumPriority::class, 7, null];
+
+        yield 'unknown string' => [EnumStatus::class, 'archived', null];
+
+        yield 'non-numeric string against int-backed' => [EnumPriority::class, 'Low', null];
+
+        yield 'whitespace-padded numeric string' => [EnumPriority::class, ' 1 ', null];
+
+        yield 'decimal string against int-backed' => [EnumPriority::class, '1.0', null];
+
+        yield 'case name, not value' => [EnumStatus::class, 'Active', null];
+
+        yield 'pure enum' => [EnumSuit::class, 'Hearts', null];
+
+        yield 'backed enum with no cases' => [EnumEmptyBacked::class, 1, null];
+
+        // the backing type is read off the first case, so an enum with exactly
+        // one case pins that index
+        yield 'single-case backed enum' => [EnumSolo::class, 1, EnumSolo::Only];
+
+        // a non-scalar against a string-backed enum must miss, not be cast:
+        // (string) 2.0 would match EnumNumericStr::Two
+        yield 'float against string-backed' => [EnumNumericStr::class, 2.0, null];
+
+        yield 'float' => [EnumPriority::class, 1.0, null];
+
+        yield 'bool' => [EnumPriority::class, true, null];
+
+        yield 'null' => [EnumPriority::class, null, null];
+
+        yield 'array' => [EnumPriority::class, [1], null];
+
+        yield 'enum case itself' => [EnumPriority::class, EnumPriority::Low, null];
+    }
+
     public function testRandomReturnsAValidCase(): void
     {
         $cases = EnumSuit::cases();
@@ -290,3 +379,16 @@ enum EnumPriority: int
 }
 
 enum EnumEmpty {}
+
+enum EnumEmptyBacked: int {}
+
+enum EnumNumericStr: string
+{
+    case Two = '2';
+    case Three = '3';
+}
+
+enum EnumSolo: int
+{
+    case Only = 1;
+}

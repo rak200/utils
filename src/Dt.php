@@ -152,6 +152,43 @@ final class Dt
     }
 
     /**
+     * Normalises any {@see DateTimeInterface} to the library's canonical type.
+     * Dates here are always immutable, so this is the entry point for one
+     * arriving from outside — a mutable {@see \DateTime} included.
+     *
+     * An instance that is already immutable is returned as-is; the native
+     * `DateTimeImmutable::createFromInterface()` always allocates a new object.
+     */
+    public static function fromInterface(DateTimeInterface $dt): DateTimeImmutable
+    {
+        return $dt instanceof DateTimeImmutable ? $dt : DateTimeImmutable::createFromInterface($dt);
+    }
+
+    /**
+     * Returns the Unix timestamp of $dt in whole seconds. Inverse of
+     * {@see fromEpoch()}; any sub-second component is dropped — see
+     * {@see toEpochFloat()} to keep it.
+     */
+    public static function toEpoch(DateTimeInterface $dt): int
+    {
+        return $dt->getTimestamp();
+    }
+
+    /**
+     * Returns the Unix timestamp of $dt in seconds, keeping the microsecond
+     * fraction.
+     *
+     * Built from the whole seconds plus the microseconds read separately, never
+     * from `format('U.u')`: that pattern glues a negative seconds part to the
+     * always-positive microsecond fraction, so a pre-epoch instant comes out
+     * skewed by up to a second (`-0.5s` renders as `-1.500000`).
+     */
+    public static function toEpochFloat(DateTimeInterface $dt): float
+    {
+        return self::toEpoch($dt) + /* @infection-ignore-all: the numeric microsecond string divides identically uncast */ (int) $dt->format('u') / 1e6;
+    }
+
+    /**
      * Formats $dt with the given format pattern (see {@see date()} pattern).
      */
     public static function format(DateTimeInterface $dt, string $pattern): string

@@ -115,6 +115,68 @@ final class DtTest extends TestCase
         $this->assertSame('1969-12-31 23:59:59.500000', $dt->format('Y-m-d H:i:s.u'));
     }
 
+    public function testFromInterfaceConvertsMutable(): void
+    {
+        $mutable = new DateTime('2026-05-23 14:30:45', new DateTimeZone('UTC'));
+        $dt = Dt::fromInterface($mutable);
+        $this->assertInstanceOf(DateTimeImmutable::class, $dt);
+        $this->assertSame('2026-05-23 14:30:45', $dt->format('Y-m-d H:i:s'));
+    }
+
+    public function testFromInterfaceReturnsAnImmutableAsIs(): void
+    {
+        $immutable = new DateTimeImmutable('2026-05-23 14:30:45');
+        $this->assertSame($immutable, Dt::fromInterface($immutable));
+    }
+
+    public function testFromInterfaceDoesNotAliasTheMutableSource(): void
+    {
+        $mutable = new DateTime('2026-05-23 14:30:45', new DateTimeZone('UTC'));
+        $dt = Dt::fromInterface($mutable);
+        $mutable->modify('+1 day');
+        $this->assertSame('2026-05-23 14:30:45', $dt->format('Y-m-d H:i:s'));
+    }
+
+    public function testToEpoch(): void
+    {
+        $this->assertSame(0, Dt::toEpoch(new DateTimeImmutable('@0')));
+        $this->assertSame(1_750_000_000, Dt::toEpoch(new DateTimeImmutable('@1750000000')));
+        $this->assertSame(-1, Dt::toEpoch(new DateTimeImmutable('@-1')));
+    }
+
+    public function testToEpochRoundTripsWithFromEpoch(): void
+    {
+        $this->assertSame(1_750_000_000, Dt::toEpoch(Dt::fromEpoch(1_750_000_000)));
+    }
+
+    public function testToEpochDropsTheSubSecondComponent(): void
+    {
+        $this->assertSame(1, Dt::toEpoch(Dt::fromEpochMs(1500, new DateTimeZone('UTC'))));
+    }
+
+    public function testToEpochFloatKeepsMicroseconds(): void
+    {
+        $dt = Dt::fromEpochMs(1500, new DateTimeZone('UTC'));
+        $this->assertSame(1.5, Dt::toEpochFloat($dt));
+    }
+
+    public function testToEpochFloatIsExactOnAWholeSecond(): void
+    {
+        $this->assertSame(2.0, Dt::toEpochFloat(Dt::fromEpoch(2)));
+    }
+
+    /**
+     * The reason this helper exists: `format('U.u')` would render this instant
+     * as `-1.500000` — the negative seconds glued to the positive microsecond
+     * fraction — instead of the true -0.5s.
+     */
+    public function testToEpochFloatIsCorrectForAPreEpochInstant(): void
+    {
+        $dt = Dt::fromEpochMs(-500, new DateTimeZone('UTC'));   // 500 ms before the epoch
+        $this->assertSame(-0.5, Dt::toEpochFloat($dt));
+        $this->assertSame(-1.5, (float) $dt->format('U.u'));   // the trap, pinned
+    }
+
     public function testFormatters(): void
     {
         $dt = new DateTimeImmutable('2026-05-23T14:30:45+00:00');

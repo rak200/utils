@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-07-25
+
+### Added
+
+- **`Enum::fromValue` / `Enum::tryFromValue`** — lookup by **backed value**, the counterpart of `fromName` / `tryFromName`. The native `from()` / `tryFrom()` are strictly typed and reject `'2'` against an int-backed enum (and `2` against a string-backed one) — exactly the shape scalars arrive in from query strings, form posts and JSON. These coerce the scalar to the enum's backing type first, then delegate. Accepts an `int` or a `string`; for an int-backed enum a string goes through `Num::parseIntOrNull`, strictly (surrounding whitespace rejected, matching `Num::is`). `tryFromValue` is total — a pure enum and an enum with no cases both yield `null`, so it chains into `tryFromName` as a fallback with no prior guard — while `fromValue` distinguishes the failures: `InvalidArgumentException` for a class that is not a backed enum, `OutOfBoundsException` for a value no case carries. New `tests/StaticAnalysis` fixtures pin the `@template T` resolution under `composer phpstan`.
+- **`Dt::fromInterface`** — normalises any `DateTimeInterface` to `DateTimeImmutable`, the entry point for a date-time arriving from outside (a mutable `DateTime` included), since dates in this library are always immutable. An already-immutable instance is returned **as-is**, where the native `DateTimeImmutable::createFromInterface()` always allocates a new object.
+- **`Dt::toEpoch` / `Dt::toEpochFloat`** — the inverse of `fromEpoch`, which had no return path. `toEpoch` gives whole seconds (sub-second component dropped); `toEpochFloat` keeps the microsecond fraction. `toEpochFloat` is built from the whole seconds plus the microseconds read separately, never from `format('U.u')`: that pattern glues a negative seconds part to the always-positive microsecond fraction, so a pre-epoch instant comes out skewed by up to a second (`-0.5s` renders as `-1.5`). The trap is pinned by a test.
+
 ## [4.3.0] - 2026-07-25
 
 ### Added
@@ -483,6 +491,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[4.4.0]: https://github.com/rak200/utils/compare/4.3.0...4.4.0
 [4.3.0]: https://github.com/rak200/utils/compare/4.2.1...4.3.0
 [4.2.1]: https://github.com/rak200/utils/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/rak200/utils/compare/4.1.0...4.2.0

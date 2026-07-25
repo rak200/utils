@@ -14,7 +14,8 @@ use UnitEnum;
  * Class-level operations on enums. Complements the language: PHP ships
  * `cases()`, `from()`, `tryFrom()` on the enum itself; this class fills the
  * gaps — listing names/values, looking up cases by name (no native
- * `fromName()`), random pick, and form-friendly `[name => value]` maps.
+ * `fromName()`) or loosely by backed value (the native `tryFrom()` is strictly
+ * typed), random pick, and form-friendly `[name => value]` maps.
  *
  * The instance-side predicate (*is this value an enum case?*) lives at
  * {@see Type::isEnum()}.
@@ -131,6 +132,73 @@ final class Enum
         }
 
         return null;
+    }
+
+    /**
+     * Returns the case of $enumClass whose backed value is $value, coercing the
+     * scalar to the backing type first — so `'2'` matches an int-backed case and
+     * `2` a string-backed `'2'`, where the native `from()` is strictly typed and
+     * rejects both. See {@see tryFromValue()} for the accepted scalars.
+     *
+     * @template T of UnitEnum
+     *
+     * @param class-string<T> $enumClass
+     *
+     * @return T
+     *
+     * @throws InvalidArgumentException when $enumClass is not a backed enum
+     * @throws OutOfBoundsException     when no case carries that value
+     */
+    public static function fromValue(string $enumClass, mixed $value): UnitEnum
+    {
+        if (!Type::isSubclass($enumClass, BackedEnum::class)) {
+            throw new InvalidArgumentException("{$enumClass} is not a backed enum.");
+        }
+        $case = self::tryFromValue($enumClass, $value);
+        if ($case === null) {
+            $display = Filter::toStr($value) ?? Type::of($value);
+
+            throw new OutOfBoundsException("{$enumClass} has no case with value \"{$display}\".");
+        }
+
+        return $case;
+    }
+
+    /**
+     * Returns the case of $enumClass whose backed value is $value, or null when
+     * none matches. The loose counterpart of the native `tryFrom()`: the scalar
+     * is coerced to the enum's backing type first, so `'2'` matches an int-backed
+     * case and `2` a string-backed `'2'`.
+     *
+     * Accepts an `int` or a `string` — for an int-backed enum a string is parsed
+     * by {@see Num::parseIntOrNull()}, strictly (surrounding whitespace is
+     * rejected, matching {@see Num::is()}). Any other type yields null; extract
+     * the scalar (from a {@see \Stringable}, say) before calling.
+     *
+     * A total, throw-free read: a pure enum and an enum with no cases both yield
+     * null rather than throwing, so a caller can fall back to
+     * {@see tryFromName()} without a prior guard.
+     *
+     * @template T of UnitEnum
+     *
+     * @param class-string<T> $enumClass
+     *
+     * @return null|T
+     */
+    public static function tryFromValue(string $enumClass, mixed $value): ?UnitEnum
+    {
+        if (!Type::isSubclass($enumClass, BackedEnum::class)) {
+            return null;
+        }
+        $cases = $enumClass::cases();
+        if ($cases === []) {
+            return null;
+        }
+        $backing = self::isInt($cases[0])
+            ? (Num::isInt($value) ? $value : (Type::isStr($value) ? Num::parseIntOrNull($value) : null))
+            : (Num::isInt($value) || Type::isStr($value) ? (string) $value : null);
+
+        return $backing === null ? null : $enumClass::tryFrom($backing);
     }
 
     /**

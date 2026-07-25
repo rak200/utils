@@ -61,3 +61,20 @@ function enumIsStrNarrowsValueBothBranches(BackedEnum $case): void
         assertType('int', $case->value);
     }
 }
+
+/*
+ * `Enum::intOrNull` / `strOrNull` are the value-extracting complements of
+ * `isInt` / `isStr`: they take the broad `UnitEnum` and read the backing
+ * directly, yielding `int|null` / `string|null` — a total, throw-free read
+ * where the predicates only narrow a case already known to be backed.
+ */
+
+function enumIntOrNullReturnsNullableInt(UnitEnum $case): void
+{
+    assertType('int|null', Enum::intOrNull($case));
+}
+
+function enumStrOrNullReturnsNullableString(UnitEnum $case): void
+{
+    assertType('string|null', Enum::strOrNull($case));
+}

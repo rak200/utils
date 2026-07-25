@@ -229,6 +229,46 @@ final class EnumTest extends TestCase
 
         yield 'int-backed' => [EnumPriority::Low, false];
     }
+
+    #[DataProvider('intOrNullProvider')]
+    public function testIntOrNull(UnitEnum $case, ?int $expected): void
+    {
+        $this->assertSame($expected, Enum::intOrNull($case));
+    }
+
+    /**
+     * @return iterable<string, array{UnitEnum, null|int}>
+     */
+    public static function intOrNullProvider(): iterable
+    {
+        yield 'int Low' => [EnumPriority::Low, 1];
+
+        yield 'int High' => [EnumPriority::High, 10];
+
+        yield 'string-backed' => [EnumStatus::Active, null];
+
+        yield 'pure' => [EnumSuit::Hearts, null];
+    }
+
+    #[DataProvider('strOrNullProvider')]
+    public function testStrOrNull(UnitEnum $case, ?string $expected): void
+    {
+        $this->assertSame($expected, Enum::strOrNull($case));
+    }
+
+    /**
+     * @return iterable<string, array{UnitEnum, null|string}>
+     */
+    public static function strOrNullProvider(): iterable
+    {
+        yield 'string Active' => [EnumStatus::Active, 'active'];
+
+        yield 'string Inactive' => [EnumStatus::Inactive, 'inactive'];
+
+        yield 'int-backed' => [EnumPriority::Low, null];
+
+        yield 'pure' => [EnumSuit::Hearts, null];
+    }
 }
 
 enum EnumSuit

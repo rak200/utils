@@ -20,6 +20,7 @@ use Rak200\Utils\Enum;
 - [`scalar`](#scalar)
 - [`isBackedInt` / `isBackedStr`](#isbackedint--isbackedstr)
 - [`isInt` / `isStr`](#isint--isstr)
+- [`intOrNull` / `strOrNull`](#intornull--strornull)
 
 ---
 
@@ -190,6 +191,27 @@ if (Enum::isInt($case)) {
 if (Enum::isBacked($e) && Enum::isInt($e)) {
     $e->value;                   // int
 }
+```
+
+[↑ Back to top](#enum)
+
+---
+
+## `intOrNull` / `strOrNull`
+
+Value-extracting complements of [`isInt` / `isStr`](#isint--isstr): `intOrNull` returns the case's backing when it is an `int`, `strOrNull` when it is a `string`, and both return `null` otherwise. Unlike the predicates — which take a `BackedEnum` and only *narrow* — these take the broad `UnitEnum` and *read* the value directly, so a pure-enum case or a wrong-typed backing collapses to `null` with **no** prior [`isBacked`](#isbacked) guard. A total, throw-free read; the return type is `?int` / `?string`.
+
+```php
+Enum::intOrNull(Priority::Low);     // 1
+Enum::intOrNull(Status::Active);    // null (string-backed)
+Enum::intOrNull(Suit::Hearts);      // null (pure)
+
+Enum::strOrNull(Status::Active);    // 'active'
+Enum::strOrNull(Priority::Low);     // null (int-backed)
+Enum::strOrNull(Suit::Hearts);      // null (pure)
+
+// direct read, no isBacked/isInt dance:
+$timeout = Enum::intOrNull($case) ?? 30;
 ```
 
 [↑ Back to top](#enum)

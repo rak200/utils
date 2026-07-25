@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-07-25
+
+### Added
+
+- **`Enum::intOrNull` / `Enum::strOrNull`** — value-extracting complements of `isInt` / `isStr`, both signed `(UnitEnum $case)`. `intOrNull` returns the case's backing when it is an `int` (else `null`); `strOrNull` returns it when it is a `string` (else `null`). Unlike the `BackedEnum`-typed predicates — which only *narrow* — these take the broad `UnitEnum` and *read* the value directly, so a pure-enum case or a wrong-typed backing collapses to `null` with no prior `isBacked` guard: a total, throw-free read (return type `?int` / `?string`). New `tests/StaticAnalysis` fixtures pin the `int|null` / `string|null` return types under `composer phpstan`.
+
 ## [4.2.1] - 2026-07-18
 
 Test-quality release: Infection mutation testing is wired up and gated at **100% covered MSI**. No behaviour change.
@@ -477,6 +483,7 @@ First stable release. The public API is now covered by SemVer: breaking changes 
 - Alphabet constants on `Rand`: `NUM`, `HEX`, `ALPHA`, `ALNUM`.
 - UUID v4, UUID v7, ULID (Crockford base32, bit-stream encoded) and nanoid generators on `Rand`.
 
+[4.3.0]: https://github.com/rak200/utils/compare/4.2.1...4.3.0
 [4.2.1]: https://github.com/rak200/utils/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/rak200/utils/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/rak200/utils/compare/4.0.0...4.1.0

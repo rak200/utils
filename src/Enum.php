@@ -230,4 +230,29 @@ final class Enum
     {
         return Type::isStr($case->value);
     }
+
+    /**
+     * Returns the int backing of $case, or null when $case is not int-backed
+     * (a pure enum case, or a string-backed one). The value-extracting
+     * complement to {@see isInt()}: a total, throw-free read that takes the
+     * broad {@see UnitEnum} — so a pure or wrong-typed case collapses to null
+     * with no prior {@see isBacked()} guard, where {@see isInt()} only narrows.
+     */
+    public static function intOrNull(UnitEnum $case): ?int
+    {
+        return self::isBacked($case) && Num::isInt($case->value) ? $case->value : null;
+    }
+
+    /**
+     * Returns the string backing of $case, or null when $case is not
+     * string-backed (a pure enum case, or an int-backed one). The
+     * value-extracting complement to {@see isStr()}: a total, throw-free read
+     * that takes the broad {@see UnitEnum} — so a pure or wrong-typed case
+     * collapses to null with no prior {@see isBacked()} guard, where
+     * {@see isStr()} only narrows.
+     */
+    public static function strOrNull(UnitEnum $case): ?string
+    {
+        return self::isBacked($case) && Type::isStr($case->value) ? $case->value : null;
+    }
 }

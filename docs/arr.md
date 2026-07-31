@@ -237,7 +237,7 @@ Arr::flatMap(['a' => [1, 2], 'b' => [3]], fn(array $vs, string $k) => Arr::map($
 // [['a', 1], ['a', 2], ['b', 3]]
 ```
 
-Any iterable works as the callback's result, not just an array — a `Generator` is fine. Returning a non-iterable throws `UnexpectedValueException`.
+Any iterable works as the callback's result, not just an array — a `Generator` is fine. Returning a non-iterable throws `BadCallbackException`.
 
 [↑ Back to top](#arr)
 
@@ -352,12 +352,12 @@ $data = ['user' => ['name' => 'rak', 'roles' => ['admin']]];
 Arr::get($data, 'user.name');            // 'rak'
 Arr::get($data, 'user.roles.0');         // 'admin'
 Arr::getOrNull($data, 'user.email');     // null
-Arr::get($data, 'user.email');           // throws OutOfBoundsException
+Arr::get($data, 'user.email');           // throws LookupException
 
 Arr::getKey(['a.b' => 1], 'a.b');               // 1     (literal key, no traversal)
 Arr::getKeyOrNull(['a.b' => 1], 'a.b');         // 1
 Arr::getKeyOrNull(['a' => ['b' => 1]], 'a.b');  // null  (no traversal)
-Arr::getKey(['a' => ['b' => 1]], 'a.b');        // throws OutOfBoundsException
+Arr::getKey(['a' => ['b' => 1]], 'a.b');        // throws LookupException
 ```
 
 [↑ Back to top](#arr)
@@ -720,7 +720,7 @@ Immutable `array_shift`: returns the `[firstElement, rest]` pair without mutatin
 [$first, $rest] = Arr::shift([10, 20, 30]);          // [10, [20, 30]]
 [$first, $rest] = Arr::shift(['a' => 1, 'b' => 2]);  // [1, ['b' => 2]]
 Arr::shiftOrNull([]);                                 // null
-Arr::shift([]);                                       // UnderflowException
+Arr::shift([]);                                       // EmptySourceException
 ```
 
 [↑ Back to top](#arr)
@@ -735,7 +735,7 @@ Immutable `array_pop`: returns the `[lastElement, rest]` pair without mutating t
 [$last, $rest] = Arr::pop([10, 20, 30]);            // [30, [10, 20]]
 [$last, $rest] = Arr::pop(['a' => 1, 'b' => 2]);    // [2, ['a' => 1]]
 Arr::popOrNull([]);                                  // null
-Arr::pop([]);                                        // UnderflowException
+Arr::pop([]);                                        // EmptySourceException
 ```
 
 [↑ Back to top](#arr)

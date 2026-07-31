@@ -22,10 +22,11 @@ Per-class API reference with runnable examples. For installation and a package o
 | `Type`   | [type.md](type.md)     | Type-checking predicates (`mixed` → `bool`) |
 | `Enum`   | [enum.md](enum.md)     | Class-level operations on enums (names, values, name lookup, random, `[name => value]` maps) |
 | `Filter` | [filter.md](filter.md) | Input sanitisation, format predicates, and lenient `mixed`-to-typed coercion |
+| `Exception\*` | [exceptions.md](exceptions.md) | The `UtilsException` marker and the domain exception classes |
 
 ## Conventions used in these docs
 
 - Output is shown in trailing `// …` comments next to each call.
 - Time-sensitive helpers (`Rand::uuidV7`, `Dt::now`, …) get a *shape* example, not a literal value.
-- `bare` and `*OrNull` variants are documented together: the bare method throws a precise SPL exception (`InvalidArgumentException` for malformed input, `OutOfBoundsException` for a lookup with no result, `UnderflowException` for an empty source; `RuntimeException` only for environment failures), the `*OrNull` variant returns `?T`.
+- `bare` and `*OrNull` variants are documented together: the bare method throws the precise domain exception (`MalformedArgumentException` for malformed input, `LookupException` for a lookup with no result, `EmptySourceException` for an empty source; `FilesystemException` — under the abstract `IOException` — only for filesystem failures; see [exceptions.md](exceptions.md)), the `*OrNull` variant returns `?T`.
 - All snippets assume the relevant `use Rak200\Utils\X;` import shown at the top of each file.

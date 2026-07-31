@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Base64;
+use Rak200\Utils\Exception\MalformedArgumentException;
 
 /**
  * @internal
@@ -44,7 +44,7 @@ final class Base64Test extends TestCase
 
     public function testDecodeRejectsInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Base64::decode('!!!not-base64!!!');
     }
 
@@ -67,7 +67,7 @@ final class Base64Test extends TestCase
 
     public function testDecodeUrlRejectsInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Base64::decodeUrl('!!!');
     }
 

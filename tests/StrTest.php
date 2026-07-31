@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Str;
 use stdClass;
 use Stringable;
-use UnderflowException;
 
 /**
  * @internal
@@ -284,13 +284,13 @@ final class StrTest extends TestCase
 
     public function testPadRejectsEmptyPad(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::padStart('abc', 5, '');
     }
 
     public function testPadEndRejectsEmptyPad(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::padEnd('abc', 5, '');
     }
 
@@ -302,7 +302,7 @@ final class StrTest extends TestCase
 
     public function testRepeatRejectsNegative(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::repeat('a', -1);
     }
 
@@ -366,7 +366,7 @@ final class StrTest extends TestCase
 
     public function testTruncateRejectsNegativeLength(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::trunc('x', -1);
     }
 
@@ -416,7 +416,7 @@ final class StrTest extends TestCase
 
     public function testMaskRejectsEmptyMask(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::mask('hello', 0, 2, '');
     }
 
@@ -448,13 +448,13 @@ final class StrTest extends TestCase
 
     public function testOrdRejectsEmptyString(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         Str::ord('');
     }
 
     public function testOrdRejectsInvalidUtf8(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::ord("\xFF");
     }
 
@@ -467,13 +467,13 @@ final class StrTest extends TestCase
 
     public function testChrRejectsNegativeCodePoint(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::chr(-1);
     }
 
     public function testChrRejectsCodePointAboveMax(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::chr(0x110000);
     }
 
@@ -503,7 +503,7 @@ final class StrTest extends TestCase
 
     public function testTranslateRejectsLengthMismatch(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::translate('hello', 'el', 'x');
     }
 
@@ -580,7 +580,7 @@ final class StrTest extends TestCase
 
     public function testWordWrapThrowsForBadWidth(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::wordWrap('abc', 0);
     }
 
@@ -650,7 +650,7 @@ final class StrTest extends TestCase
 
     public function testFromBytesRejectsOutOfRange(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Str::fromBytes([0, 256]);
     }
 
@@ -683,7 +683,7 @@ final class StrTest extends TestCase
 
     public function testTranslateLengthMismatchMessage(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage('Translation strings must have the same length.');
         Str::translate('x', 'ab', 'xyz');
     }

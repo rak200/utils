@@ -153,7 +153,7 @@ Iter::toArray(Iter::flatMap([1, 2, 3], fn (int $n): array => [$n, $n * 10]));
 // [1, 10, 2, 20, 3, 30]
 ```
 
-Returning a non-iterable from `$callback` throws `UnexpectedValueException` — raised while the result is being **consumed**, not when `flatMap` is called, since this is a generator.
+Returning a non-iterable from `$callback` throws `BadCallbackException` — raised while the result is being **consumed**, not when `flatMap` is called, since this is a generator.
 
 [↑ Back to top](#iter)
 

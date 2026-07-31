@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\FilesystemException;
 use Rak200\Utils\File;
-use RuntimeException;
 
 /**
  * @internal
@@ -44,7 +44,7 @@ final class FileTest extends TestCase
 
     public function testReadThrowsForMissingFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::read($this->tempDir . '/no_such_file_' . uniqid());
     }
 
@@ -186,7 +186,7 @@ final class FileTest extends TestCase
 
     public function testListThrowsForMissingDirectory(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::list($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
     }
 
@@ -219,7 +219,7 @@ final class FileTest extends TestCase
 
     public function testRealpathThrowsForMissingPath(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::realpath($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
     }
 
@@ -247,7 +247,7 @@ final class FileTest extends TestCase
 
     public function testReadCsvThrowsForMissingFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::readCsv($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid() . '.csv');
     }
 
@@ -261,25 +261,25 @@ final class FileTest extends TestCase
 
     public function testMimeThrowsForMissingFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::mime($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
     }
 
     public function testSizeThrowsForMissingFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::size($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid());
     }
 
     public function testLinesThrowsForMissingFile(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         iterator_to_array(File::lines($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid()));
     }
 
     public function testCopyThrowsForMissingSource(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::copy(
             $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid(),
             $this->makeTempPath('utils_copy_dst_' . uniqid() . '.txt'),
@@ -288,7 +288,7 @@ final class FileTest extends TestCase
 
     public function testMoveThrowsForMissingSource(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         File::move(
             $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_' . uniqid(),
             $this->makeTempPath('utils_move_dst_' . uniqid() . '.txt'),
@@ -299,19 +299,19 @@ final class FileTest extends TestCase
     {
         // The parent directory does not exist, so the underlying write fails;
         // @ suppresses the expected warning while we assert the throw.
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         @File::write($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt', 'x');
     }
 
     public function testAppendThrowsWhenTargetDirIsMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         @File::append($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt', 'x');
     }
 
     public function testTouchThrowsWhenParentDirIsMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         @File::touch($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt');
     }
 
@@ -319,7 +319,7 @@ final class FileTest extends TestCase
     {
         $src = $this->makeTempPath('utils_copy_src_' . uniqid() . '.txt');
         File::write($src, 'x');
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         @File::copy($src, $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt');
     }
 
@@ -327,7 +327,7 @@ final class FileTest extends TestCase
     {
         $src = $this->makeTempPath('utils_move_src_' . uniqid() . '.txt');
         File::write($src, 'x');
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         @File::move($src, $this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'f.txt');
     }
 
@@ -335,13 +335,13 @@ final class FileTest extends TestCase
     {
         $path = $this->makeTempPath('utils_mkdir_file_' . uniqid() . '.txt');
         File::write($path, 'x');
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         @File::mkdir($path);
     }
 
     public function testWriteCsvThrowsWhenTargetDirIsMissing(): void
     {
-        $this->expectException(RuntimeException::class);
+        $this->expectException(FilesystemException::class);
         @File::writeCsv($this->tempDir . DIRECTORY_SEPARATOR . 'no_such_dir_' . uniqid() . DIRECTORY_SEPARATOR . 'o.csv', [['a', 'b']]);
     }
 

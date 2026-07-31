@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests;
 
 use BackedEnum;
-use InvalidArgumentException;
-use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Enum;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\LookupException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use stdClass;
-use UnderflowException;
 use UnitEnum;
 
 /**
@@ -82,7 +82,7 @@ final class EnumTest extends TestCase
 
     public function testValuesThrowsOnPureEnum(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Enum::values(EnumSuit::class);
     }
 
@@ -94,7 +94,7 @@ final class EnumTest extends TestCase
 
     public function testFromNameThrowsOnMiss(): void
     {
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(LookupException::class);
         Enum::fromName(EnumSuit::class, 'Clubs');
     }
 
@@ -114,21 +114,21 @@ final class EnumTest extends TestCase
 
     public function testFromValueThrowsOnPureEnum(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessageIs(EnumSuit::class . ' is not a backed enum.');
         Enum::fromValue(EnumSuit::class, 'Hearts');
     }
 
     public function testFromValueThrowsOnMiss(): void
     {
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(LookupException::class);
         $this->expectExceptionMessageIs(EnumPriority::class . ' has no case with value "7".');
         Enum::fromValue(EnumPriority::class, 7);
     }
 
     public function testFromValueThrowsOnAnUnrenderableValue(): void
     {
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(LookupException::class);
         $this->expectExceptionMessageIs(EnumPriority::class . ' has no case with value "array".');
         Enum::fromValue(EnumPriority::class, []);
     }
@@ -204,7 +204,7 @@ final class EnumTest extends TestCase
 
     public function testRandomThrowsOnEmptyEnum(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         $this->expectExceptionMessage(EnumEmpty::class . ' has no cases.');
         Enum::random(EnumEmpty::class);
     }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Bit;
+use Rak200\Utils\Exception\MalformedArgumentException;
 
 /**
  * @internal
@@ -93,38 +93,38 @@ final class BitTest extends TestCase
 
     public function testRejectsNegativeBitIndex(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::set(0, -1);
     }
 
     public function testUnsetRejectsBitIndexOutOfRange(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::unset(0, PHP_INT_SIZE * 8);
     }
 
     public function testToggleRejectsBitIndexOutOfRange(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::toggle(0, PHP_INT_SIZE * 8);
     }
 
     public function testHasRejectsBitIndexOutOfRange(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::has(0, PHP_INT_SIZE * 8);
     }
 
     public function testBitIndexErrorMessage(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage('Bit index must be between 0 and ' . (PHP_INT_SIZE * 8 - 1) . '.');
         Bit::set(0, PHP_INT_SIZE * 8);
     }
 
     public function testRejectsBitIndexOutOfRange(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::set(0, PHP_INT_SIZE * 8);
     }
 
@@ -151,20 +151,20 @@ final class BitTest extends TestCase
 
     public function testFromStrRejectsInvalidChars(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::fromStr('102');
     }
 
     public function testFromStrRejectsEmpty(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::fromStr('');
     }
 
     public function testFromStrRejectsValueExceedingIntRange(): void
     {
         // one more '1' bit than the platform int width → bindec overflows to a float
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Bit::fromStr(str_repeat('1', PHP_INT_SIZE * 8 + 1));
     }
 

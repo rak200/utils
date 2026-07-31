@@ -147,7 +147,7 @@ Resolves `$path` to its canonical absolute form, following symlinks and collapsi
 ```php
 File::realpath('/tmp/../tmp/./app.log');     // '/tmp/app.log'
 File::realpath('relative/file.txt');         // absolute path from the CWD
-File::realpath('/no/such/path');             // throws RuntimeException
+File::realpath('/no/such/path');             // throws FilesystemException
 ```
 
 [↑ Back to top](#file)

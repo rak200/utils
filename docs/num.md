@@ -212,11 +212,11 @@ Num::toStr(PHP_INT_MIN);             // '-9223372036854775808'
 Num::toStr(new Number('1.500'));     // '1.500'
 ```
 
-Non-finite floats throw `InvalidArgumentException`: no string form of them reads back through `parseFloat`, so there is no round-trippable answer to give. Guard with [`isFinite`](#isfinite) when the input may be one.
+Non-finite floats throw `MalformedArgumentException`: no string form of them reads back through `parseFloat`, so there is no round-trippable answer to give. Guard with [`isFinite`](#isfinite) when the input may be one.
 
 ```php
-Num::toStr(NAN);   // InvalidArgumentException: Cannot represent NAN as an exact string.
-Num::toStr(INF);   // InvalidArgumentException: Cannot represent INF as an exact string.
+Num::toStr(NAN);   // MalformedArgumentException: Cannot represent NAN as an exact string.
+Num::toStr(INF);   // MalformedArgumentException: Cannot represent INF as an exact string.
 ```
 
 > Not to be confused with [`Filter::toStr`](filter.md#tostr), which is the lenient `mixed` → `?string` coercer for untrusted input. This one is the precision-preserving formatter; the shared name is the only thing they have in common.
@@ -289,7 +289,7 @@ Num::remap(5, 0, 10, 0, 100);                   // 50    (int — all-int, evenl
 Num::remap(0.5, 0, 1, -100, 100);               // 0.0
 Num::remap(120, 0, 100, 0, 1);                  // 1.2   (no clamp)
 Num::lerp(new Number('0'), new Number('10'), new Number('0.5')); // BcMath\Number('5')
-Num::remap(5, 0, 0, 0, 100);                    // throws InvalidArgumentException
+Num::remap(5, 0, 0, 0, 100);                    // throws MalformedArgumentException
 ```
 
 [↑ Back to top](#num)
@@ -492,7 +492,7 @@ Integer division, truncated toward zero (matching PHP's `intdiv()`). The compani
 Num::intDiv(7, 2);       // 3
 Num::intDiv(-7, 2);      // -3   (truncates toward zero)
 Num::intDiv(7, -2);      // -3
-Num::intDiv(1, 0);       // throws InvalidArgumentException
+Num::intDiv(1, 0);       // throws MalformedArgumentException
 ```
 
 [↑ Back to top](#num)
@@ -509,7 +509,7 @@ Num::sub(5, 2);        // 3
 Num::mul(4, 2.5);      // 10.0
 Num::div(7, 2);        // 3.5
 Num::div(6, 3);        // 2     (int, evenly divisible)
-Num::div(1, 0);        // throws InvalidArgumentException
+Num::div(1, 0);        // throws MalformedArgumentException
 Num::add(new Number('0.1'), new Number('0.2'));   // BcMath\Number('0.3')
 Num::mul(new Number('2'), 3);                      // BcMath\Number('6')
 ```

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use InvalidArgumentException;
-use OutOfBoundsException;
-use UnderflowException;
-use UnexpectedValueException;
+use Rak200\Utils\Exception\BadCallbackException;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\LookupException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 
 use function array_chunk;
 use function array_combine;
@@ -113,12 +113,12 @@ final class Arr
      *
      * @return T
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function first(array $array): mixed
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get first element of an empty array.');
+            throw new EmptySourceException('Cannot get first element of an empty array.');
         }
 
         return $array[array_key_first($array)];
@@ -151,12 +151,12 @@ final class Arr
      *
      * @return T
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function last(array $array): mixed
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get last element of an empty array.');
+            throw new EmptySourceException('Cannot get last element of an empty array.');
         }
 
         return $array[array_key_last($array)];
@@ -189,12 +189,12 @@ final class Arr
      *
      * @return K
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function firstKey(array $array): int|string
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get first key of an empty array.');
+            throw new EmptySourceException('Cannot get first key of an empty array.');
         }
 
         return array_key_first($array);
@@ -229,12 +229,12 @@ final class Arr
      *
      * @return K
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function lastKey(array $array): int|string
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get last key of an empty array.');
+            throw new EmptySourceException('Cannot get last key of an empty array.');
         }
 
         return array_key_last($array);
@@ -269,7 +269,7 @@ final class Arr
      *
      * @return T
      *
-     * @throws OutOfBoundsException when no element matches
+     * @throws LookupException when no element matches
      */
     public static function find(array $array, callable $predicate): mixed
     {
@@ -279,7 +279,7 @@ final class Arr
             }
         }
 
-        throw new OutOfBoundsException('No element matches the predicate.');
+        throw new LookupException('No element matches the predicate.');
     }
 
     /**
@@ -359,7 +359,7 @@ final class Arr
      *
      * @return list<R>
      *
-     * @throws UnexpectedValueException when $callback returns a non-iterable
+     * @throws BadCallbackException when $callback returns a non-iterable
      */
     public static function flatMap(array $array, callable $callback): array
     {
@@ -373,7 +373,7 @@ final class Arr
             // `foreach` over a non-iterable only warns and skips.
             // @phpstan-ignore staticMethod.alreadyNarrowedType
             if (!Type::isIterable($mapped)) {
-                throw new UnexpectedValueException('Callback must return an iterable. Got: ' . Type::of($mapped));
+                throw new BadCallbackException('Callback must return an iterable. Got: ' . Type::of($mapped));
             }
             foreach ($mapped as $sub) {
                 $result[] = $sub;
@@ -414,12 +414,12 @@ final class Arr
      *
      * @return list<mixed>
      *
-     * @throws InvalidArgumentException when $depth is negative
+     * @throws MalformedArgumentException when $depth is negative
      */
     public static function flatten(array $array, int $depth = PHP_INT_MAX): array
     {
         if ($depth < 0) {
-            throw new InvalidArgumentException('Depth must be non-negative.');
+            throw new MalformedArgumentException('Depth must be non-negative.');
         }
         $result = [];
         foreach ($array as $item) {
@@ -495,12 +495,12 @@ final class Arr
      *
      * @return list<non-empty-list<T>>
      *
-     * @throws InvalidArgumentException when $size is less than 1
+     * @throws MalformedArgumentException when $size is less than 1
      */
     public static function chunk(array $array, int $size): array
     {
         if ($size < 1) {
-            throw new InvalidArgumentException('Chunk size must be at least 1.');
+            throw new MalformedArgumentException('Chunk size must be at least 1.');
         }
 
         return array_chunk($array, $size);
@@ -561,13 +561,13 @@ final class Arr
      *
      * @param array<array-key, mixed> $array
      *
-     * @throws OutOfBoundsException when $path does not resolve
+     * @throws LookupException when $path does not resolve
      */
     public static function get(array $array, int|string $path): mixed
     {
         [$found, $value] = self::resolvePath($array, $path);
         if (!$found) {
-            throw new OutOfBoundsException("Path \"{$path}\" not found in array.");
+            throw new LookupException("Path \"{$path}\" not found in array.");
         }
 
         return $value;
@@ -591,12 +591,12 @@ final class Arr
      *
      * @param array<array-key, mixed> $array
      *
-     * @throws OutOfBoundsException when $key is not present
+     * @throws LookupException when $key is not present
      */
     public static function getKey(array $array, int|string $key): mixed
     {
         if (!array_key_exists($key, $array)) {
-            throw new OutOfBoundsException("Key \"{$key}\" not found in array.");
+            throw new LookupException("Key \"{$key}\" not found in array.");
         }
 
         return $array[$key];
@@ -755,7 +755,7 @@ final class Arr
      *
      * @return K
      *
-     * @throws OutOfBoundsException when $value is not present
+     * @throws LookupException when $value is not present
      */
     public static function search(array $array, mixed $value, bool $strict = true): int|string
     {
@@ -769,7 +769,7 @@ final class Arr
         // plus a list of every match where only the first is used.
         $keys = array_keys($array, $value, $strict);
         if ($keys === []) {
-            throw new OutOfBoundsException('Value not found in array.');
+            throw new LookupException('Value not found in array.');
         }
 
         return $keys[0];
@@ -814,13 +814,13 @@ final class Arr
      *
      * @return int<0, max>
      *
-     * @throws OutOfBoundsException when $key is not present
+     * @throws LookupException when $key is not present
      */
     public static function keyPosition(array $array, int|string $key): int
     {
         $position = self::keyPositionOrNull($array, $key);
         if ($position === null) {
-            throw new OutOfBoundsException("Key \"{$key}\" not found in array.");
+            throw new LookupException("Key \"{$key}\" not found in array.");
         }
 
         return $position;
@@ -863,8 +863,8 @@ final class Arr
      *
      * @return ($indexKey is null ? list<mixed> : array<int|string, mixed>)
      *
-     * @throws OutOfBoundsException     when $indexKey is given and an item lacks it
-     * @throws UnexpectedValueException when the resolved key is not an int or string
+     * @throws LookupException      when $indexKey is given and an item lacks it
+     * @throws BadCallbackException when the resolved key is not an int or string
      */
     public static function pluck(array $array, int|string $key, int|string|null $indexKey = null): array
     {
@@ -891,9 +891,9 @@ final class Arr
      *
      * @return array<int|string, T>
      *
-     * @throws OutOfBoundsException     when $key is a column name and an item is
-     *                                  not an array or lacks that column
-     * @throws UnexpectedValueException when the resolved key is not an int or string
+     * @throws LookupException      when $key is a column name and an item is
+     *                              not an array or lacks that column
+     * @throws BadCallbackException when the resolved key is not an int or string
      */
     public static function keyBy(array $array, callable|int|string $key): array
     {
@@ -905,12 +905,12 @@ final class Arr
                 $k = $key($item);
             } else {
                 if (!is_array($item) || !array_key_exists($key, $item)) {
-                    throw new OutOfBoundsException("Item missing key \"{$key}\"");
+                    throw new LookupException("Item missing key \"{$key}\"");
                 }
                 $k = $item[$key];
             }
             if (!Num::isInt($k) && !Str::is($k)) {
-                throw new UnexpectedValueException('Resolved key must be an int or string.');
+                throw new BadCallbackException('Resolved key must be an int or string.');
             }
             $result[$k] = $item;
         }
@@ -1128,12 +1128,12 @@ final class Arr
      *
      * @return array<array-key, T>
      *
-     * @throws InvalidArgumentException when $keys and $values differ in length
+     * @throws MalformedArgumentException when $keys and $values differ in length
      */
     public static function combine(array $keys, array $values): array
     {
         if (count($keys) !== count($values)) {
-            throw new InvalidArgumentException('Keys and values must have the same number of elements.');
+            throw new MalformedArgumentException('Keys and values must have the same number of elements.');
         }
 
         return array_combine($keys, $values);
@@ -1233,12 +1233,12 @@ final class Arr
      *
      * @return ($array is list<T> ? array{0: T, 1: list<T>} : array{0: T, 1: array<array-key, T>})
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function shift(array $array): array
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot shift from an empty array.');
+            throw new EmptySourceException('Cannot shift from an empty array.');
         }
 
         return [self::first($array), self::slice($array, 1)];
@@ -1270,12 +1270,12 @@ final class Arr
      *
      * @return ($array is list<T> ? array{0: T, 1: list<T>} : array{0: T, 1: array<array-key, T>})
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function pop(array $array): array
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot pop from an empty array.');
+            throw new EmptySourceException('Cannot pop from an empty array.');
         }
 
         return [self::last($array), self::slice($array, 0, -1)];
@@ -1326,12 +1326,12 @@ final class Arr
      *
      * @return list<T>
      *
-     * @throws InvalidArgumentException when $count is negative
+     * @throws MalformedArgumentException when $count is negative
      */
     public static function fill(int $count, mixed $value): array
     {
         if ($count < 0) {
-            throw new InvalidArgumentException('Count must be non-negative.');
+            throw new MalformedArgumentException('Count must be non-negative.');
         }
 
         return array_fill(0, $count, $value);
@@ -1359,12 +1359,12 @@ final class Arr
      *
      * @return list<int>
      *
-     * @throws InvalidArgumentException when $step is zero
+     * @throws MalformedArgumentException when $step is zero
      */
     public static function range(int $start, int $end, int $step = 1): array
     {
         if ($step === 0) {
-            throw new InvalidArgumentException('Step cannot be zero.');
+            throw new MalformedArgumentException('Step cannot be zero.');
         }
         // @infection-ignore-all: readability guard — for these inputs both loop conditions below fail on entry, so
         // falling through (or mismatching the guard) still yields []

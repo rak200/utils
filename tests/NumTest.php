@@ -6,12 +6,12 @@ namespace Rak200\Utils\Tests;
 
 use BcMath\Number;
 use Generator;
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Num;
 use RoundingMode;
-use UnderflowException;
 
 /**
  * @internal
@@ -109,7 +109,7 @@ final class NumTest extends TestCase
 
     public function testParseIntThrowsOnInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::parseInt('abc');
     }
 
@@ -130,7 +130,7 @@ final class NumTest extends TestCase
 
     public function testParseIntRejectsInvalidBase(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::parseIntOrNull('1', 37);
     }
 
@@ -143,7 +143,7 @@ final class NumTest extends TestCase
 
     public function testParseFloatThrowsOnInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::parseFloat('abc');
     }
 
@@ -221,7 +221,7 @@ final class NumTest extends TestCase
     #[DataProvider('toStrNonFiniteProvider')]
     public function testToStrThrowsOnNonFiniteFloat(float $value, string $expectedMessage): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);
         Num::toStr($value);
     }
@@ -249,7 +249,7 @@ final class NumTest extends TestCase
 
     public function testClampRejectsMinGreaterThanMax(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::clamp(5, 10, 0);
     }
 
@@ -281,7 +281,7 @@ final class NumTest extends TestCase
 
     public function testRemapRejectsEmptyInputRange(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::remap(5, 0, 0, 0, 100);
     }
 
@@ -296,7 +296,7 @@ final class NumTest extends TestCase
 
     public function testDivRejectsZero(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::div(1, 0);
     }
 
@@ -344,19 +344,19 @@ final class NumTest extends TestCase
 
     public function testAvgThrowsOnEmpty(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         Num::avg([]);
     }
 
     public function testMinThrowsOnEmpty(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         Num::min([]);
     }
 
     public function testMaxThrowsOnEmpty(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         Num::max([]);
     }
 
@@ -383,7 +383,7 @@ final class NumTest extends TestCase
 
     public function testSqrtRejectsNegative(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::sqrt(-1);
     }
 
@@ -406,7 +406,7 @@ final class NumTest extends TestCase
 
     public function testModRejectsZeroDivisor(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::mod(5, 0);
     }
 
@@ -486,13 +486,13 @@ final class NumTest extends TestCase
 
     public function testParseNumberThrowsOnNan(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::parseNumber(NAN);
     }
 
     public function testParseNumberThrowsOnInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::parseNumber('xyz');
     }
 
@@ -553,13 +553,13 @@ final class NumTest extends TestCase
 
     public function testModByZeroNumberThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::mod(new Number('5'), new Number('0'));
     }
 
     public function testSqrtRejectsNegativeNumber(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::sqrt(new Number('-1'));
     }
 
@@ -624,7 +624,7 @@ final class NumTest extends TestCase
 
     public function testIntDivByZeroThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::intDiv(1, 0);
     }
 
@@ -705,7 +705,7 @@ final class NumTest extends TestCase
 
     public function testToBaseThrowsForBadBase(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Num::toBase(10, 37);
     }
 
@@ -756,7 +756,7 @@ final class NumTest extends TestCase
 
     public function testRemapEmptyInputRangeMessage(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage('Input range cannot be empty (inMin equals inMax).');
         Num::remap(5, 2, 2, 0, 10);
     }
@@ -791,14 +791,14 @@ final class NumTest extends TestCase
 
     public function testModByFloatZeroThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage('Cannot mod by zero.');
         Num::mod(5.0, 0.0);
     }
 
     public function testDivByFloatZeroThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage('Cannot divide by zero.');
         Num::div(5.0, 0.0);
     }

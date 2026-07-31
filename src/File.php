@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use Generator;
-use RuntimeException;
+use Rak200\Utils\Exception\FilesystemException;
 use Stringable;
 
 use function basename;
@@ -47,16 +47,16 @@ final class File
     /**
      * Returns the full contents of the file at $path.
      *
-     * @throws RuntimeException when the file does not exist or cannot be read
+     * @throws FilesystemException when the file does not exist or cannot be read
      */
     public static function read(string $path): string
     {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: {$path}");
+            throw new FilesystemException("File not found: {$path}");
         }
         $contents = file_get_contents($path);
         if ($contents === false) {
-            throw new RuntimeException("Cannot read file: {$path}");
+            throw new FilesystemException("Cannot read file: {$path}");
         }
 
         return $contents;
@@ -65,24 +65,24 @@ final class File
     /**
      * Writes $content to $path, creating or overwriting as needed.
      *
-     * @throws RuntimeException when the file cannot be written
+     * @throws FilesystemException when the file cannot be written
      */
     public static function write(string $path, string $content): void
     {
         if (file_put_contents($path, $content) === false) {
-            throw new RuntimeException("Cannot write file: {$path}");
+            throw new FilesystemException("Cannot write file: {$path}");
         }
     }
 
     /**
      * Appends $content to the file at $path, creating the file when missing.
      *
-     * @throws RuntimeException when the file cannot be appended to
+     * @throws FilesystemException when the file cannot be appended to
      */
     public static function append(string $path, string $content): void
     {
         if (file_put_contents($path, $content, FILE_APPEND) === false) {
-            throw new RuntimeException("Cannot append to file: {$path}");
+            throw new FilesystemException("Cannot append to file: {$path}");
         }
     }
 
@@ -92,13 +92,13 @@ final class File
      *
      * @param null|int $time unix timestamp; null uses the current time
      *
-     * @throws RuntimeException when the file cannot be touched
+     * @throws FilesystemException when the file cannot be touched
      */
     public static function touch(string $path, ?int $time = null): void
     {
         $ok = $time === null ? touch($path) : touch($path, $time);
         if (!$ok) {
-            throw new RuntimeException("Cannot touch file: {$path}");
+            throw new FilesystemException("Cannot touch file: {$path}");
         }
     }
 
@@ -129,7 +129,7 @@ final class File
     /**
      * Deletes the file at $path. No-op when it does not exist.
      *
-     * @throws RuntimeException when the file exists but cannot be deleted
+     * @throws FilesystemException when the file exists but cannot be deleted
      */
     public static function delete(string $path): void
     {
@@ -137,7 +137,7 @@ final class File
             return;
         }
         if (!unlink($path)) {
-            throw new RuntimeException("Cannot delete file: {$path}");
+            throw new FilesystemException("Cannot delete file: {$path}");
         }
     }
 
@@ -170,13 +170,13 @@ final class File
      * Returns the canonical absolute path of $path, resolving symlinks and
      * `.`/`..` segments. The path must exist on disk.
      *
-     * @throws RuntimeException when $path does not exist or cannot be resolved
+     * @throws FilesystemException when $path does not exist or cannot be resolved
      */
     public static function realpath(string $path): string
     {
         $resolved = realpath($path);
         if ($resolved === false) {
-            throw new RuntimeException("Cannot resolve path: {$path}");
+            throw new FilesystemException("Cannot resolve path: {$path}");
         }
 
         return $resolved;
@@ -185,20 +185,20 @@ final class File
     /**
      * Returns the MIME type of $path (e.g. "image/png"), detected via fileinfo.
      *
-     * @throws RuntimeException when the file is missing or the type cannot be determined
+     * @throws FilesystemException when the file is missing or the type cannot be determined
      */
     public static function mime(string $path): string
     {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: {$path}");
+            throw new FilesystemException("File not found: {$path}");
         }
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         if ($finfo === false) {
-            throw new RuntimeException('Cannot open fileinfo database.');
+            throw new FilesystemException('Cannot open fileinfo database.');
         }
         $type = finfo_file($finfo, $path);
         if ($type === false) {
-            throw new RuntimeException("Cannot determine mime type: {$path}");
+            throw new FilesystemException("Cannot determine mime type: {$path}");
         }
 
         return $type;
@@ -207,16 +207,16 @@ final class File
     /**
      * Returns the size of the file at $path in bytes.
      *
-     * @throws RuntimeException when the file is missing or its size cannot be read
+     * @throws FilesystemException when the file is missing or its size cannot be read
      */
     public static function size(string $path): int
     {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: {$path}");
+            throw new FilesystemException("File not found: {$path}");
         }
         $size = filesize($path);
         if ($size === false) {
-            throw new RuntimeException("Cannot determine file size: {$path}");
+            throw new FilesystemException("Cannot determine file size: {$path}");
         }
 
         return $size;
@@ -228,16 +228,16 @@ final class File
      *
      * @return Generator<int, string>
      *
-     * @throws RuntimeException when the file is missing or cannot be opened
+     * @throws FilesystemException when the file is missing or cannot be opened
      */
     public static function lines(string $path): Generator
     {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: {$path}");
+            throw new FilesystemException("File not found: {$path}");
         }
         $handle = fopen($path, 'rb');
         if ($handle === false) {
-            throw new RuntimeException("Cannot open file: {$path}");
+            throw new FilesystemException("Cannot open file: {$path}");
         }
 
         // @infection-ignore-all: without the finally, the handle is still closed when its last reference drops;
@@ -255,13 +255,13 @@ final class File
      * Creates a new empty temporary file in the system temp dir and returns its
      * absolute path. $prefix defaults to "utl".
      *
-     * @throws RuntimeException when the temp file cannot be created
+     * @throws FilesystemException when the temp file cannot be created
      */
     public static function temp(?string $prefix = null): string
     {
         $path = tempnam(sys_get_temp_dir(), $prefix ?? 'utl');
         if ($path === false) {
-            throw new RuntimeException('Cannot create temp file.');
+            throw new FilesystemException('Cannot create temp file.');
         }
 
         return $path;
@@ -270,30 +270,30 @@ final class File
     /**
      * Copies $source to $target, overwriting an existing $target.
      *
-     * @throws RuntimeException when $source is missing or the copy fails
+     * @throws FilesystemException when $source is missing or the copy fails
      */
     public static function copy(string $source, string $target): void
     {
         if (!is_file($source)) {
-            throw new RuntimeException("Source file not found: {$source}");
+            throw new FilesystemException("Source file not found: {$source}");
         }
         if (!copy($source, $target)) {
-            throw new RuntimeException("Cannot copy {$source} to {$target}.");
+            throw new FilesystemException("Cannot copy {$source} to {$target}.");
         }
     }
 
     /**
      * Moves $source to $target (atomic rename when on the same filesystem).
      *
-     * @throws RuntimeException when $source is missing or the move fails
+     * @throws FilesystemException when $source is missing or the move fails
      */
     public static function move(string $source, string $target): void
     {
         if (!is_file($source)) {
-            throw new RuntimeException("Source file not found: {$source}");
+            throw new FilesystemException("Source file not found: {$source}");
         }
         if (!rename($source, $target)) {
-            throw new RuntimeException("Cannot move {$source} to {$target}.");
+            throw new FilesystemException("Cannot move {$source} to {$target}.");
         }
     }
 
@@ -301,7 +301,7 @@ final class File
      * Creates the directory at $path. Recursive by default. No-op when the
      * directory already exists.
      *
-     * @throws RuntimeException when the directory cannot be created
+     * @throws FilesystemException when the directory cannot be created
      */
     public static function mkdir(string $path, bool $recursive = true, int $mode = /* @infection-ignore-all: the effective permissions are masked by umask and ignored on Windows — not portably assertable */ 0777): void
     {
@@ -311,7 +311,7 @@ final class File
         // @infection-ignore-all: the is_dir half only differs when a concurrent process creates the directory
         // between the check above and this call — a race that cannot be arranged in a test
         if (!mkdir($path, $mode, $recursive) && !is_dir($path)) {
-            throw new RuntimeException("Cannot create directory: {$path}");
+            throw new FilesystemException("Cannot create directory: {$path}");
         }
     }
 
@@ -321,16 +321,16 @@ final class File
      *
      * @return list<string>
      *
-     * @throws RuntimeException when $dir is not a directory or cannot be listed
+     * @throws FilesystemException when $dir is not a directory or cannot be listed
      */
     public static function list(string $dir, string $pattern = '*'): array
     {
         if (!is_dir($dir)) {
-            throw new RuntimeException("Directory not found: {$dir}");
+            throw new FilesystemException("Directory not found: {$dir}");
         }
         $result = glob(Str::trimEnd($dir, '/\\') . DIRECTORY_SEPARATOR . $pattern);
         if ($result === false) {
-            throw new RuntimeException("Cannot list directory: {$dir}");
+            throw new FilesystemException("Cannot list directory: {$dir}");
         }
 
         return $result;
@@ -343,7 +343,7 @@ final class File
      *
      * @return list<list<null|string>>
      *
-     * @throws RuntimeException when the file is missing or cannot be opened
+     * @throws FilesystemException when the file is missing or cannot be opened
      */
     public static function readCsv(
         string $path,
@@ -352,11 +352,11 @@ final class File
         string $escape = '',
     ): array {
         if (!is_file($path)) {
-            throw new RuntimeException("File not found: {$path}");
+            throw new FilesystemException("File not found: {$path}");
         }
         $handle = fopen($path, 'rb');
         if ($handle === false) {
-            throw new RuntimeException("Cannot open file: {$path}");
+            throw new FilesystemException("Cannot open file: {$path}");
         }
 
         // @infection-ignore-all: without the finally, the handle is still closed when its last reference drops;
@@ -383,7 +383,7 @@ final class File
      *
      * @param iterable<array<array-key, null|bool|float|int|string|Stringable>> $rows
      *
-     * @throws RuntimeException when the file cannot be opened or a row cannot be written
+     * @throws FilesystemException when the file cannot be opened or a row cannot be written
      */
     public static function writeCsv(
         string $path,
@@ -394,7 +394,7 @@ final class File
     ): void {
         $handle = fopen($path, 'wb');
         if ($handle === false) {
-            throw new RuntimeException("Cannot open file for writing: {$path}");
+            throw new FilesystemException("Cannot open file for writing: {$path}");
         }
 
         // @infection-ignore-all: without the finally, the handle is still closed when its last reference drops;
@@ -402,7 +402,7 @@ final class File
         try {
             foreach ($rows as $row) {
                 if (fputcsv($handle, $row, $separator, $enclosure, $escape, "\n") === false) {
-                    throw new RuntimeException("Cannot write CSV row to: {$path}");
+                    throw new FilesystemException("Cannot write CSV row to: {$path}");
                 }
             }
         } finally {

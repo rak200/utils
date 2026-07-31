@@ -7,6 +7,7 @@ namespace Rak200\Utils\Tests;
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\MalformedJsonException;
 use Rak200\Utils\Json;
 use stdClass;
 
@@ -24,7 +25,7 @@ final class JsonTest extends TestCase
 
     public function testEncodeThrowsOnInvalid(): void
     {
-        $this->expectException(JsonException::class);
+        $this->expectException(MalformedJsonException::class);
         Json::encode("\xB1\x31");
     }
 
@@ -42,8 +43,36 @@ final class JsonTest extends TestCase
 
     public function testDecodeThrowsOnInvalid(): void
     {
-        $this->expectException(JsonException::class);
+        $this->expectException(MalformedJsonException::class);
         Json::decode('{invalid}');
+    }
+
+    public function testEncodeWrapPreservesMessageCodeAndPrevious(): void
+    {
+        try {
+            Json::encode("\xB1\x31");
+            $this->fail('Json::encode should have thrown on invalid UTF-8.');
+        } catch (MalformedJsonException $e) {
+            $this->assertSame(JSON_ERROR_UTF8, $e->getCode());
+            $previous = $e->getPrevious();
+            $this->assertInstanceOf(JsonException::class, $previous);
+            $this->assertNotInstanceOf(MalformedJsonException::class, $previous);
+            $this->assertSame($previous->getMessage(), $e->getMessage());
+        }
+    }
+
+    public function testDecodeWrapPreservesMessageCodeAndPrevious(): void
+    {
+        try {
+            Json::decode('{invalid}');
+            $this->fail('Json::decode should have thrown on invalid JSON.');
+        } catch (MalformedJsonException $e) {
+            $this->assertSame(JSON_ERROR_SYNTAX, $e->getCode());
+            $previous = $e->getPrevious();
+            $this->assertInstanceOf(JsonException::class, $previous);
+            $this->assertNotInstanceOf(MalformedJsonException::class, $previous);
+            $this->assertSame($previous->getMessage(), $e->getMessage());
+        }
     }
 
     #[DataProvider('isProvider')]
@@ -91,7 +120,7 @@ final class JsonTest extends TestCase
 
     public function testDecodeRejectsNestingBeyondDepthLimit(): void
     {
-        $this->expectException(JsonException::class);
+        $this->expectException(MalformedJsonException::class);
         Json::decode(str_repeat('[', 512) . str_repeat(']', 512));
     }
 }

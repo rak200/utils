@@ -71,10 +71,10 @@ Per-method reference with runnable examples lives in [`docs/`](docs/README.md).
 
 ## Conventions
 
-- All classes are `final` with a `private` constructor — pure static API, no instances.
+- All classes are `final` with a `private` constructor — pure static API, no instances. The one carve-out is `Rak200\Utils\Exception\*`: instantiable by nature, empty-bodied domain exceptions (see below).
 - Strict types everywhere (`declare(strict_types=1)`).
 - Multibyte-safe string operations by default.
-- "Not found" convention: bare method (`Arr::first`, `Num::parseInt`, ...) throws a precise SPL exception — `InvalidArgumentException` for malformed input, `OutOfBoundsException` for a lookup with no result, `UnderflowException` for an empty source (`RuntimeException` stays for environment failures, e.g. `File`); the `*OrNull` variant returns `?T`.
+- "Not found" convention: bare method (`Arr::first`, `Num::parseInt`, ...) throws the precise domain exception from `Rak200\Utils\Exception` — `MalformedArgumentException` for malformed input, `LookupException` for a lookup with no result, `EmptySourceException` for an empty source (`FilesystemException`, under the abstract `IOException`, stays for filesystem failures in `File`); the `*OrNull` variant returns `?T`. Each domain class extends the SPL type it replaced — existing catches keep working — and carries the `UtilsException` marker, so `catch (UtilsException)` means "any failure from this library". Details in [`docs/exceptions.md`](docs/exceptions.md).
 
 ## Versioning
 

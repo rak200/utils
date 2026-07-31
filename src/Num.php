@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use BcMath\Number;
-use InvalidArgumentException;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use RoundingMode;
-use UnderflowException;
 
 use function abs;
 use function assert;
@@ -159,13 +159,13 @@ final class Num
     /**
      * Parses $value as an integer in the given $base (2-36).
      *
-     * @throws InvalidArgumentException when $value is not a valid integer in $base, or $base is out of range
+     * @throws MalformedArgumentException when $value is not a valid integer in $base, or $base is out of range
      */
     public static function parseInt(string $value, int $base = 10): int
     {
         $parsed = self::parseIntOrNull($value, $base);
         if ($parsed === null) {
-            throw new InvalidArgumentException("Cannot parse \"{$value}\" as integer in base {$base}.");
+            throw new MalformedArgumentException("Cannot parse \"{$value}\" as integer in base {$base}.");
         }
 
         return $parsed;
@@ -174,12 +174,12 @@ final class Num
     /**
      * Parses $value as an integer in the given $base (2-36); returns null on failure.
      *
-     * @throws InvalidArgumentException when $base is outside 2-36
+     * @throws MalformedArgumentException when $base is outside 2-36
      */
     public static function parseIntOrNull(string $value, int $base = 10): ?int
     {
         if ($base < 2 || $base > 36) {
-            throw new InvalidArgumentException('Base must be between 2 and 36.');
+            throw new MalformedArgumentException('Base must be between 2 and 36.');
         }
         if ($value === '') {
             return null;
@@ -218,12 +218,12 @@ final class Num
      * using digits `0-9a-z` (lowercase). Negative values are prefixed with `-`.
      * Inverse of {@see parseInt()}: `parseInt(toBase($n, $b), $b) === $n`.
      *
-     * @throws InvalidArgumentException when $base is outside 2-36
+     * @throws MalformedArgumentException when $base is outside 2-36
      */
     public static function toBase(int $value, int $base): string
     {
         if ($base < 2 || $base > 36) {
-            throw new InvalidArgumentException('Base must be between 2 and 36.');
+            throw new MalformedArgumentException('Base must be between 2 and 36.');
         }
         if ($value === 0) {
             return '0';
@@ -244,13 +244,13 @@ final class Num
     /**
      * Parses $value as a float.
      *
-     * @throws InvalidArgumentException when $value is not numeric or has surrounding whitespace
+     * @throws MalformedArgumentException when $value is not numeric or has surrounding whitespace
      */
     public static function parseFloat(string $value): float
     {
         $parsed = self::parseFloatOrNull($value);
         if ($parsed === null) {
-            throw new InvalidArgumentException("Cannot parse \"{$value}\" as float.");
+            throw new MalformedArgumentException("Cannot parse \"{$value}\" as float.");
         }
 
         return $parsed;
@@ -284,15 +284,15 @@ final class Num
      * Not to be confused with {@see Filter::toStr()}, the lenient `mixed`
      * coercer for untrusted input; this one preserves precision.
      *
-     * @throws InvalidArgumentException when $value is a non-finite float (NAN,
-     *                                  INF, -INF): those have no string form
-     *                                  {@see parseFloat()} can read back
+     * @throws MalformedArgumentException when $value is a non-finite float (NAN,
+     *                                    INF, -INF): those have no string form
+     *                                    {@see parseFloat()} can read back
      */
     public static function toStr(float|int|Number $value): string
     {
         if (is_float($value)) {
             if (!is_finite($value)) {
-                throw new InvalidArgumentException(
+                throw new MalformedArgumentException(
                     'Cannot represent ' . var_export($value, true) . ' as an exact string.',
                 );
             }
@@ -311,10 +311,10 @@ final class Num
      * string in decimal or scientific notation (e.g. `1.5e3`, `2e-10`;
      * scientific input is expanded, so no precision is lost).
      *
-     * @throws InvalidArgumentException when $value cannot be represented as a Number —
-     *                                  non-numeric, surrounding whitespace, a
-     *                                  non-finite float (NAN, INF), or an
-     *                                  exponent so large the decimal form is impractical
+     * @throws MalformedArgumentException when $value cannot be represented as a Number —
+     *                                    non-numeric, surrounding whitespace, a
+     *                                    non-finite float (NAN, INF), or an
+     *                                    exponent so large the decimal form is impractical
      */
     public static function parseNumber(float|int|Number|string $value): Number
     {
@@ -324,7 +324,7 @@ final class Num
                 ? var_export($value, true)
                 : /* @infection-ignore-all: every non-float parse failure is already a string, so the cast is an identity */ (string) $value;
 
-            throw new InvalidArgumentException("Cannot parse \"{$display}\" as number.");
+            throw new MalformedArgumentException("Cannot parse \"{$display}\" as number.");
         }
 
         return $parsed;
@@ -364,7 +364,7 @@ final class Num
     /**
      * Constrains $value to the closed interval [$min, $max].
      *
-     * @throws InvalidArgumentException when $min > $max
+     * @throws MalformedArgumentException when $min > $max
      */
     public static function clamp(
         float|int|Number $value,
@@ -372,7 +372,7 @@ final class Num
         float|int|Number $max,
     ): float|int|Number {
         if ($min > $max) {
-            throw new InvalidArgumentException('Min cannot be greater than max.');
+            throw new MalformedArgumentException('Min cannot be greater than max.');
         }
         if ($value < $min) {
             return $min;
@@ -414,7 +414,7 @@ final class Num
      * range maps outside the output range (compose with {@see clamp()} to bound).
      * Widens to {@see Number} when any operand is one.
      *
-     * @throws InvalidArgumentException when $inMin equals $inMax (the input range is empty)
+     * @throws MalformedArgumentException when $inMin equals $inMax (the input range is empty)
      */
     public static function remap(
         float|int|Number $value,
@@ -424,7 +424,7 @@ final class Num
         float|int|Number $outMax,
     ): float|int|Number {
         if ($inMin == $inMax) {
-            throw new InvalidArgumentException('Input range cannot be empty (inMin equals inMax).');
+            throw new MalformedArgumentException('Input range cannot be empty (inMin equals inMax).');
         }
 
         return self::add(
@@ -523,7 +523,7 @@ final class Num
      *
      * @param iterable<float|int|Number> $values
      *
-     * @throws UnderflowException when $values is empty
+     * @throws EmptySourceException when $values is empty
      */
     public static function avg(iterable $values): float|Number
     {
@@ -534,7 +534,7 @@ final class Num
             ++$count;
         }
         if ($count === 0) {
-            throw new UnderflowException('Cannot compute average of empty input.');
+            throw new EmptySourceException('Cannot compute average of empty input.');
         }
         if ($sum instanceof Number) {
             // @infection-ignore-all: falling through would divide Number by int via operator overloading — identical result
@@ -552,7 +552,7 @@ final class Num
      *
      * @return ($values is iterable<int> ? int : float|int|Number)
      *
-     * @throws UnderflowException when $values is empty
+     * @throws EmptySourceException when $values is empty
      */
     public static function min(iterable $values): float|int|Number
     {
@@ -563,7 +563,7 @@ final class Num
             }
         }
         if ($min === null) {
-            throw new UnderflowException('Cannot compute min of empty input.');
+            throw new EmptySourceException('Cannot compute min of empty input.');
         }
 
         return $min;
@@ -577,7 +577,7 @@ final class Num
      *
      * @return ($values is iterable<int> ? int : float|int|Number)
      *
-     * @throws UnderflowException when $values is empty
+     * @throws EmptySourceException when $values is empty
      */
     public static function max(iterable $values): float|int|Number
     {
@@ -588,7 +588,7 @@ final class Num
             }
         }
         if ($max === null) {
-            throw new UnderflowException('Cannot compute max of empty input.');
+            throw new EmptySourceException('Cannot compute max of empty input.');
         }
 
         return $max;
@@ -641,19 +641,19 @@ final class Num
      * Returns the square root of $value. Returns a {@see Number} when $value is
      * one (preserves arbitrary precision); a float otherwise.
      *
-     * @throws InvalidArgumentException when $value is negative
+     * @throws MalformedArgumentException when $value is negative
      */
     public static function sqrt(float|int|Number $value): float|Number
     {
         if ($value instanceof Number) {
             if ($value < new Number('0')) {
-                throw new InvalidArgumentException('Cannot take square root of a negative number.');
+                throw new MalformedArgumentException('Cannot take square root of a negative number.');
             }
 
             return $value->sqrt();
         }
         if ($value < 0) {
-            throw new InvalidArgumentException('Cannot take square root of a negative number.');
+            throw new MalformedArgumentException('Cannot take square root of a negative number.');
         }
 
         return sqrt((float) $value);
@@ -697,16 +697,16 @@ final class Num
      * Returns the truncated modulo of $a divided by $b (sign of the result
      * follows the dividend, matching PHP's `%`).
      *
-     * @throws InvalidArgumentException when $b is zero
+     * @throws MalformedArgumentException when $b is zero
      */
     public static function mod(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($b instanceof Number) {
             if ($b == new Number('0')) {
-                throw new InvalidArgumentException('Cannot mod by zero.');
+                throw new MalformedArgumentException('Cannot mod by zero.');
             }
         } elseif ($b == 0) {
-            throw new InvalidArgumentException('Cannot mod by zero.');
+            throw new MalformedArgumentException('Cannot mod by zero.');
         }
         if ($a instanceof Number || $b instanceof Number) {
             $aN = $a instanceof Number ? $a : new Number((string) $a);
@@ -725,12 +725,12 @@ final class Num
      * Returns the integer quotient of $a divided by $b, truncated toward zero
      * (matching PHP's {@see intdiv()}).
      *
-     * @throws InvalidArgumentException when $b is zero
+     * @throws MalformedArgumentException when $b is zero
      */
     public static function intDiv(int $a, int $b): int
     {
         if ($b === 0) {
-            throw new InvalidArgumentException('Cannot divide by zero.');
+            throw new MalformedArgumentException('Cannot divide by zero.');
         }
 
         return intdiv($a, $b);
@@ -788,16 +788,16 @@ final class Num
      * and evenly divisible, a float otherwise, and a {@see Number} when either
      * operand is one.
      *
-     * @throws InvalidArgumentException when $b is zero
+     * @throws MalformedArgumentException when $b is zero
      */
     public static function div(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($b instanceof Number) {
             if ($b == new Number('0')) {
-                throw new InvalidArgumentException('Cannot divide by zero.');
+                throw new MalformedArgumentException('Cannot divide by zero.');
             }
         } elseif ($b == 0) {
-            throw new InvalidArgumentException('Cannot divide by zero.');
+            throw new MalformedArgumentException('Cannot divide by zero.');
         }
         if ($a instanceof Number || $b instanceof Number) {
             $aN = $a instanceof Number ? $a : new Number((string) $a);

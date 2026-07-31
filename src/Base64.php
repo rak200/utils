@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use InvalidArgumentException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 
 use function base64_decode;
 use function base64_encode;
@@ -47,13 +47,13 @@ final class Base64
      * Decodes a standard Base64 string. Strict: rejects any non-alphabet
      * character.
      *
-     * @throws InvalidArgumentException when $value is not valid Base64
+     * @throws MalformedArgumentException when $value is not valid Base64
      */
     public static function decode(string $value): string
     {
         $result = base64_decode($value, true);
         if ($result === false) {
-            throw new InvalidArgumentException('Invalid base64 input.');
+            throw new MalformedArgumentException('Invalid base64 input.');
         }
 
         return $result;
@@ -72,7 +72,7 @@ final class Base64
      * Decodes a URL-safe Base64 string. Missing '=' padding is restored before
      * decoding.
      *
-     * @throws InvalidArgumentException when $value is not valid URL-safe Base64
+     * @throws MalformedArgumentException when $value is not valid URL-safe Base64
      */
     public static function decodeUrl(string $value): string
     {
@@ -80,7 +80,7 @@ final class Base64
         $padded = $encoded . Str::repeat('=', (4 - Str::len($encoded) % 4) % 4);
         $result = base64_decode($padded, true);
         if ($result === false) {
-            throw new InvalidArgumentException('Invalid base64url input.');
+            throw new MalformedArgumentException('Invalid base64url input.');
         }
 
         return $result;

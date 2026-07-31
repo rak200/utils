@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Rand;
-use UnderflowException;
 
 /**
  * @internal
@@ -27,7 +27,7 @@ final class RandTest extends TestCase
 
     public function testIntRejectsMinGreaterThanMax(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::int(10, 5);
     }
 
@@ -42,7 +42,7 @@ final class RandTest extends TestCase
 
     public function testFloatRejectsMinGreaterThanMax(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::float(1.0, 0.0);
     }
 
@@ -54,7 +54,7 @@ final class RandTest extends TestCase
 
     public function testBytesRejectsZeroLength(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::bytes(0);
     }
 
@@ -73,13 +73,13 @@ final class RandTest extends TestCase
 
     public function testStringRejectsEmptyAlphabet(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::string(10, '');
     }
 
     public function testStringRejectsZeroLength(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::string(0);
     }
 
@@ -97,13 +97,13 @@ final class RandTest extends TestCase
 
     public function testMaskedRejectsEmptyPattern(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::masked('', Rand::NUM);
     }
 
     public function testMaskedRejectsEmptyAlphabet(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::masked('###', '');
     }
 
@@ -169,7 +169,7 @@ final class RandTest extends TestCase
 
     public function testNanoidRejectsZeroLength(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::nanoid(0);
     }
 
@@ -200,7 +200,7 @@ final class RandTest extends TestCase
 
     public function testChoiceRejectsEmpty(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         Rand::choice([]);
     }
 
@@ -256,7 +256,7 @@ final class RandTest extends TestCase
 
     public function testUuidV7TimeThrowsOnInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::uuidV7Time(Rand::uuidV4());
     }
 
@@ -276,7 +276,7 @@ final class RandTest extends TestCase
 
     public function testUlidTimeThrowsOnInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Rand::ulidTime('nope');
     }
 

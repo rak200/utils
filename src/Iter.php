@@ -8,6 +8,7 @@ use Generator;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use UnderflowException;
+use UnexpectedValueException;
 
 /**
  * Lazy iterable helpers — the streaming counterpart of {@see Arr}.
@@ -199,11 +200,23 @@ final class Iter
      * @param callable(TValue, TKey): iterable<TResult> $callback
      *
      * @return Generator<int, TResult>
+     *
+     * @throws UnexpectedValueException when $callback returns a non-iterable —
+     *                                  raised while the result is consumed, not
+     *                                  when flatMap() is called
      */
     public static function flatMap(iterable $iterable, callable $callback): Generator
     {
         foreach ($iterable as $key => $value) {
-            foreach ($callback($value, $key) as $sub) {
+            $mapped = $callback($value, $key);
+            // See the twin {@see Arr::flatMap()} for why this guard is kept
+            // despite being unreachable under the declared type.
+            // @phpstan-ignore staticMethod.alreadyNarrowedType
+            if (!Type::isIterable($mapped)) {
+                throw new UnexpectedValueException('Callback must return an iterable. Got: ' . Type::of($mapped));
+            }
+
+            foreach ($mapped as $sub) {
                 yield $sub;
             }
         }
@@ -743,9 +756,13 @@ final class Iter
     }
 
     /**
-     * Returns the number of elements, consuming the source.
+     * Returns the number of elements, consuming the source. Typed `int<0, max>`,
+     * so the result satisfies a {@see Countable::count()} implementation
+     * directly.
      *
      * @param iterable<mixed> $iterable
+     *
+     * @return int<0, max>
      */
     public static function count(iterable $iterable): int
     {

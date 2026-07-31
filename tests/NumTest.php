@@ -161,6 +161,85 @@ final class NumTest extends TestCase
         $this->assertNull(Num::parseFloatOrNull("1.5e3\t"));
     }
 
+    #[DataProvider('toStrRoundTripProvider')]
+    public function testToStrRoundTripsEveryFiniteFloat(float $value): void
+    {
+        $this->assertSame($value, Num::parseFloat(Num::toStr($value)));
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function toStrRoundTripProvider(): iterable
+    {
+        yield 'one tenth' => [0.1];
+
+        yield 'the classic 0.1 + 0.2' => [0.1 + 0.2];
+
+        yield 'one third' => [1 / 3];
+
+        yield 'epsilon' => [PHP_FLOAT_EPSILON];
+
+        yield 'smallest normal' => [PHP_FLOAT_MIN];
+
+        yield 'largest finite' => [PHP_FLOAT_MAX];
+
+        yield 'integral float' => [1.0];
+
+        yield 'negative zero' => [-0.0];
+
+        yield 'large exponent' => [1e100];
+    }
+
+    public function testToStrKeepsTheSignOfNegativeZero(): void
+    {
+        // -0.0 === 0.0 is true, so the round-trip assertion above cannot see a
+        // lost sign. Division is what exposes it: 1 / -0.0 is -INF.
+        $this->assertTrue(fdiv(1, Num::parseFloat(Num::toStr(-0.0))) < 0);
+    }
+
+    public function testToStrIsExactWhereTheCastIsNot(): void
+    {
+        // The reason the method exists: the cast goes through `precision` (14
+        // significant digits) and silently collapses distinct values.
+        $this->assertSame('0.30000000000000004', Num::toStr(0.1 + 0.2));
+        $this->assertSame('0.3', (string) (0.1 + 0.2));
+
+        // An integral float keeps its marker, which the cast drops.
+        $this->assertSame('1.0', Num::toStr(1.0));
+        $this->assertSame('1', (string) 1.0);
+    }
+
+    public function testToStrPassesThroughIntAndNumber(): void
+    {
+        $this->assertSame('5', Num::toStr(5));
+        $this->assertSame('-9223372036854775808', Num::toStr(PHP_INT_MIN));
+        // A Number keeps its trailing zeros — its cast is already exact.
+        $this->assertSame('1.500', Num::toStr(new Number('1.500')));
+    }
+
+    #[DataProvider('toStrNonFiniteProvider')]
+    public function testToStrThrowsOnNonFiniteFloat(float $value, string $expectedMessage): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+        Num::toStr($value);
+    }
+
+    /**
+     * @return iterable<string, array{float, string}>
+     */
+    public static function toStrNonFiniteProvider(): iterable
+    {
+        // No string form of these reads back through parseFloat, so there is
+        // no round-trippable answer to return.
+        yield 'NAN' => [NAN, 'Cannot represent NAN as an exact string.'];
+
+        yield 'INF' => [INF, 'Cannot represent INF as an exact string.'];
+
+        yield 'negative INF' => [-INF, 'Cannot represent -INF as an exact string.'];
+    }
+
     public function testClamp(): void
     {
         $this->assertSame(5, Num::clamp(5, 0, 10));

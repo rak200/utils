@@ -270,6 +270,40 @@ final class Num
     }
 
     /**
+     * Returns the exact string form of $value — the one that reads back as the
+     * same value, unlike the `(string)` cast, which goes through `precision`
+     * (14 significant digits) and silently collapses distinct floats: `0.1+0.2`
+     * casts to `0.3`, and `1/3` to `0.33333333333333`.
+     *
+     * The inverse of {@see parseFloat()}: `parseFloat(toStr($f)) === $f` holds
+     * for every finite float. Integral floats keep their marker (`1.0`, where
+     * the cast gives `1`), and `-0.0` keeps its sign. Ints and {@see Number}s
+     * are already exact under a cast and pass through — a Number keeps its
+     * trailing zeros (`1.500`).
+     *
+     * Not to be confused with {@see Filter::toStr()}, the lenient `mixed`
+     * coercer for untrusted input; this one preserves precision.
+     *
+     * @throws InvalidArgumentException when $value is a non-finite float (NAN,
+     *                                  INF, -INF): those have no string form
+     *                                  {@see parseFloat()} can read back
+     */
+    public static function toStr(float|int|Number $value): string
+    {
+        if (is_float($value)) {
+            if (!is_finite($value)) {
+                throw new InvalidArgumentException(
+                    'Cannot represent ' . var_export($value, true) . ' as an exact string.',
+                );
+            }
+
+            return var_export($value, true);
+        }
+
+        return (string) $value;
+    }
+
+    /**
      * Parses $value as an arbitrary-precision {@see Number}. Accepts exactly
      * the values {@see is()} reports as numeric: a Number (returned as-is), an
      * int, a finite float (expanded to its exact decimal form, so a value whose
@@ -439,7 +473,17 @@ final class Num
      * Returns the sum of $values. Widens to {@see Number} when any element is
      * one. Returns 0 (int) for an empty input.
      *
+     * An all-int input is typed `int`, so the result can be returned from an
+     * int-typed method. **One caveat, stated because the annotation cannot:** an
+     * int sum that overflows `PHP_INT_MAX` promotes to float at runtime, exactly
+     * as `array_sum()` does — and, as with `array_sum()`, the declared type says
+     * `int` regardless. Feed {@see Number} values instead when a sum can plausibly
+     * reach that magnitude. {@see min()} / {@see max()} carry no such caveat: they
+     * return one of the elements rather than computing.
+     *
      * @param iterable<float|int|Number> $values
+     *
+     * @return ($values is iterable<int> ? int : float|int|Number)
      */
     public static function sum(iterable $values): float|int|Number
     {
@@ -455,7 +499,13 @@ final class Num
      * Returns the product of $values. Widens to {@see Number} when any element is
      * one. Returns 1 (int) for an empty input.
      *
+     * An all-int input is typed `int`, with the same overflow caveat as
+     * {@see sum()} — and reached far sooner here, since a product grows
+     * multiplicatively.
+     *
      * @param iterable<float|int|Number> $values
+     *
+     * @return ($values is iterable<int> ? int : float|int|Number)
      */
     public static function product(iterable $values): float|int|Number
     {
@@ -495,9 +545,12 @@ final class Num
     }
 
     /**
-     * Returns the smallest of $values.
+     * Returns the smallest of $values. An all-int input is typed `int`, exactly
+     * — the result is one of the elements, so no arithmetic can widen it.
      *
      * @param iterable<float|int|Number> $values
+     *
+     * @return ($values is iterable<int> ? int : float|int|Number)
      *
      * @throws UnderflowException when $values is empty
      */
@@ -517,9 +570,12 @@ final class Num
     }
 
     /**
-     * Returns the largest of $values.
+     * Returns the largest of $values. An all-int input is typed `int`, exactly —
+     * the result is one of the elements, so no arithmetic can widen it.
      *
      * @param iterable<float|int|Number> $values
+     *
+     * @return ($values is iterable<int> ? int : float|int|Number)
      *
      * @throws UnderflowException when $values is empty
      */

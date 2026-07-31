@@ -2,7 +2,7 @@
 
 [← Reference](README.md)
 
-Input sanitisation and lenient coercion of untrusted values. Every method is total — none throws. **Sanitisers** are `string → string` transforms; **coercers** (`to*`) turn a `mixed` value into a typed result, returning the caller-supplied `$default` when the value cannot be represented.
+Input sanitisation and lenient coercion of untrusted values. Every method is total — none throws. **Sanitisers** are `string → string` transforms; **predicates** (`is*`) answer a `string → bool` format question without changing the value; **coercers** (`to*`) turn a `mixed` value into a typed result, returning the caller-supplied `$default` when the value cannot be represented.
 
 ```php
 use Rak200\Utils\Filter;
@@ -19,6 +19,7 @@ The coercers differ from the [`Num`](num.md) parsers on purpose: `Num::parseInt`
 - [`stripControl`](#stripcontrol)
 - [`ascii`](#ascii)
 - [`email` / `url`](#email--url)
+- [`isEmail`](#isemail)
 - [`toStr`](#tostr)
 - [`toInt`](#toint)
 - [`toFloat`](#tofloat)
@@ -115,13 +116,37 @@ Filter::ascii('café résumé');        // 'cafe resume'  (best-effort; ASCII-on
 
 ## `email` / `url`
 
-Sanitise by removing characters not allowed in an e-mail address (`FILTER_SANITIZE_EMAIL`) or URL (`FILTER_SANITIZE_URL`). Illegal characters are dropped — this is sanitisation, not validation (see [`Url::is`](url.md#is) to validate a URL).
+Sanitise by removing characters not allowed in an e-mail address (`FILTER_SANITIZE_EMAIL`) or URL (`FILTER_SANITIZE_URL`). Illegal characters are dropped — this is sanitisation, not validation (see [`isEmail`](#isemail) to validate an address, [`Url::is`](url.md#is) to validate a URL).
 
 ```php
 Filter::email('john doe@example.com');        // 'johndoe@example.com'
 Filter::email('a@b.com<script>');             // 'a@b.comscript'  (brackets dropped, text kept)
 
 Filter::url('https://example.com/path');      // 'https://example.com/path'
+```
+
+[↑ Back to top](#filter)
+
+---
+
+## `isEmail`
+
+True when `$value` is a syntactically valid e-mail address (`FILTER_VALIDATE_EMAIL`) — the validating counterpart of [`email`](#email--url), which only strips illegal characters. Structure only: no DNS lookup and no deliverability check. The empty string and surrounding whitespace are rejected, and so is a dot-less domain, so the check is stricter than RFC 5321 allows. This is [`Url::is`](url.md#is) for addresses.
+
+```php
+Filter::isEmail('john.doe@example.com');     // true
+Filter::isEmail('a+tag@sub.example.co.uk');  // true
+Filter::isEmail('john.doe');                 // false  (no @)
+Filter::isEmail(' john@example.com ');       // false  (surrounding whitespace)
+Filter::isEmail('john@localhost');           // false  (dot-less domain)
+```
+
+Sanitising is not validating — the sanitised *result* can pass a check the input never did:
+
+```php
+Filter::isEmail('a@b.com<script>');            // false
+Filter::email('a@b.com<script>');              // 'a@b.comscript'
+Filter::isEmail(Filter::email('a@b.com<script>')); // true
 ```
 
 [↑ Back to top](#filter)

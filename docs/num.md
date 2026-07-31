@@ -22,6 +22,7 @@ Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp
 - [`parseInt` / `parseIntOrNull`](#parseint--parseintornull)
 - [`toBase`](#tobase)
 - [`parseFloat` / `parseFloatOrNull`](#parsefloat--parsefloatornull)
+- [`toStr`](#tostr)
 - [`parseNumber` / `parseNumberOrNull`](#parsenumber--parsenumberornull)
 - [`clamp`](#clamp)
 - [`inRange`](#inrange)
@@ -186,6 +187,44 @@ Num::parseFloatOrNull(' 3.14 ');   // null  (surrounding whitespace rejected)
 
 ---
 
+## `toStr`
+
+The exact string form of a number — the one that reads back as the same value. The inverse of [`parseFloat`](#parsefloat--parsefloatornull): `Num::parseFloat(Num::toStr($f)) === $f` holds for **every finite float**.
+
+The `(string)` cast does not: it goes through `precision` (14 significant digits) and silently collapses distinct values.
+
+```php
+Num::toStr(0.1 + 0.2);       // '0.30000000000000004'
+(string) (0.1 + 0.2);        // '0.3'                 ← distinct values collapse
+
+Num::toStr(1 / 3);           // '0.3333333333333333'
+(string) (1 / 3);            // '0.33333333333333'
+
+Num::toStr(1.0);             // '1.0'   ← keeps the float marker
+(string) 1.0;                // '1'
+```
+
+`-0.0` keeps its sign. Ints and [`Number`](#parsenumber--parsenumberornull)s are already exact under a cast and pass straight through, a `Number` keeping its trailing zeros:
+
+```php
+Num::toStr(-0.0);                    // '-0.0'
+Num::toStr(PHP_INT_MIN);             // '-9223372036854775808'
+Num::toStr(new Number('1.500'));     // '1.500'
+```
+
+Non-finite floats throw `InvalidArgumentException`: no string form of them reads back through `parseFloat`, so there is no round-trippable answer to give. Guard with [`isFinite`](#isfinite) when the input may be one.
+
+```php
+Num::toStr(NAN);   // InvalidArgumentException: Cannot represent NAN as an exact string.
+Num::toStr(INF);   // InvalidArgumentException: Cannot represent INF as an exact string.
+```
+
+> Not to be confused with [`Filter::toStr`](filter.md#tostr), which is the lenient `mixed` → `?string` coercer for untrusted input. This one is the precision-preserving formatter; the shared name is the only thing they have in common.
+
+[↑ Back to top](#num)
+
+---
+
 ## `parseNumber` / `parseNumberOrNull`
 
 Arbitrary-precision parse. Accepts exactly the strings [`is`](#is) reports as numeric: decimal and scientific notation. Scientific input is expanded to its exact decimal form (no precision lost). Surrounding whitespace is rejected.
@@ -299,6 +338,18 @@ Num::sum([1.5, 2.5, 3.0]);                                // 7.0
 Num::sum([1, 2, new Number('0.5')]);                      // BcMath\Number('3.5')
 ```
 
+**An all-int input keeps its `int` type.** `sum` declares `($values is iterable<int> ? int : float|int|Number)`, so feeding it a `list<int>` (or any `iterable<int>` — the key type is irrelevant, and a generator qualifies) gives a plain `int`, which can be returned straight from an `int`-typed method. One non-int element takes the wide branch:
+
+```php
+/** @param list<int> $counts */
+public function total(array $counts): int
+{
+    return Num::sum($counts);      // int — no cast, no PHPStan complaint
+}
+```
+
+**The caveat the type cannot express:** an int sum that passes `PHP_INT_MAX` promotes to `float` at runtime. `sum` still declares `int` there, exactly as PHP's own `array_sum` does under PHPStan. If a sum can plausibly reach that magnitude, feed `BcMath\Number` values and take the wide branch deliberately. [`min` / `max`](#min--max) carry no such caveat.
+
 [↑ Back to top](#num)
 
 ---
@@ -313,6 +364,8 @@ Num::product([]);                                         // 1
 Num::product([5, 0, 3]);                                  // 0
 Num::product([3, new Number('2.5')]);                     // BcMath\Number('7.5')
 ```
+
+Preserves `int` through an all-int input just as [`sum`](#sum) does, with the same overflow caveat — reached far sooner here, since a product grows multiplicatively.
 
 [↑ Back to top](#num)
 
@@ -338,6 +391,8 @@ Num::min([3, 1, 4, 1, 5, 9]);                             // 1
 Num::max([3, 1, 4, 1, 5, 9]);                             // 9
 Num::max([1, new Number('2.5'), 2]);                      // BcMath\Number('2.5')
 ```
+
+Both preserve `int` through an all-int input, like [`sum`](#sum) — and here the guarantee is exact, with no overflow caveat: the result is one of the elements, so there is no arithmetic that could widen it.
 
 [↑ Back to top](#num)
 

@@ -19,8 +19,10 @@ use Rak200\Utils\Arr;
 - [`firstKey` / `firstKeyOrNull` / `lastKey` / `lastKeyOrNull`](#firstkey--firstkeyornull--lastkey--lastkeyornull)
 - [`find` / `findOrNull`](#find--findornull)
 - [`search` / `searchOrNull`](#search--searchornull)
+- [`keyPosition` / `keyPositionOrNull`](#keyposition--keypositionornull)
 - [`filter`](#filter)
 - [`map`](#map)
+- [`flatMap`](#flatmap)
 - [`reduce`](#reduce)
 - [`flatten`](#flatten)
 - [`groupBy`](#groupby)
@@ -41,6 +43,7 @@ use Rak200\Utils\Arr;
 - [`sortKeys`](#sortkeys)
 - [`reverse`](#reverse)
 - [`slice`](#slice)
+- [`removeAt`](#removeat)
 - [`flip`](#flip)
 - [`combine`](#combine)
 - [`diff` / `intersect`](#diff--intersect)
@@ -109,7 +112,7 @@ Arr::isAssoc([]);                    // false  (ambiguous — choose isList for 
 
 ## `count`
 
-Number of elements in the array.
+Number of elements in the array. Typed `int<0, max>`, so it can be returned straight out of a `Countable::count()` implementation — PHPStan analyses that method as returning a non-negative int, which a plain `int` does not satisfy.
 
 ```php
 Arr::count([]);                   // 0
@@ -160,6 +163,17 @@ Arr::firstKeyOrNull([]);               // null
 Arr::lastKeyOrNull([]);                // null
 ```
 
+All four carry the array's own key type, so over a `list` you get `int<0, max>` rather than a bare `int|string`. The `*OrNull` pair goes one step further: the `null` arm is dropped whenever the array is statically non-empty.
+
+| input | `firstKeyOrNull` returns |
+|---|---|
+| `list<string>` | `int<0, max>\|null` |
+| `non-empty-list<string>` | `int<0, max>` |
+| `array<string, int>` | `string\|null` |
+| `non-empty-array<string, int>` | `string` |
+
+That second row is the practical win: fed an array the analyser knows is non-empty, the result needs no `=== null` check, because there is no branch where one could fire. This is the one place [`searchOrNull`](#search--searchornull) cannot follow — a non-empty array always has a first key, but it may perfectly well not contain the value you searched for.
+
 [↑ Back to top](#arr)
 
 ---
@@ -201,6 +215,29 @@ Arr::map([1, 2, 3], fn(int $n) => $n * 10);
 Arr::map(['a' => 1, 'b' => 2], fn(int $n, string $k) => "$k:$n");
 // ['a' => 'a:1', 'b' => 'b:2']
 ```
+
+[↑ Back to top](#arr)
+
+---
+
+## `flatMap`
+
+Maps each element to an iterable (callback receives value and key) and flattens the results **one level**, re-indexed as a list. The eager twin of [`Iter::flatMap`](iter.md#flatmap). Unlike `Arr::flatten(Arr::map(…))`, the element type survives — [`flatten`](#flatten) has to erase it, since arbitrary depth cannot be expressed generically.
+
+```php
+Arr::flatMap([1, 2], fn(int $n) => [$n, $n * 10]);        // [1, 10, 2, 20]
+Arr::flatMap([1, 2], fn(int $n) => $n === 1 ? [] : [$n]); // [2]
+Arr::flatMap([1], fn(int $n) => [$n, [2]]);               // [1, [2]]  (one level only)
+```
+
+The key is the callback's second argument, which is what makes "flatten a map of lists, keeping track of which key each value came from" a one-liner:
+
+```php
+Arr::flatMap(['a' => [1, 2], 'b' => [3]], fn(array $vs, string $k) => Arr::map($vs, fn(int $v) => [$k, $v]));
+// [['a', 1], ['a', 2], ['b', 3]]
+```
+
+Any iterable works as the callback's result, not just an array — a `Generator` is fine. Returning a non-iterable throws `UnexpectedValueException`.
 
 [↑ Back to top](#arr)
 
@@ -381,6 +418,40 @@ Arr::searchOrNull([0, 1], '0');            // null  (strict)
 Arr::searchOrNull([0, 1], '0', strict: false); // 0
 ```
 
+The two differ in the *type* they return, which is usually what decides between them:
+
+| | returns | over a `list` |
+|---|---|---|
+| `search` | the array's own key type | `int<0, max>` |
+| `searchOrNull` | `int\|string\|null` | `int\|string\|null` |
+
+`search` is even more precise than the `array_search` it replaces (that one adds `\|false` for the miss, which `search` turns into an exception). `searchOrNull` cannot follow: its result is intrinsically "key or null", and PHPStan does not resolve a generic key type inside a union with `null`. Reach for `search` when you need the precise key and can treat a miss as exceptional; reach for `searchOrNull` when a miss is ordinary and you will branch on `null` anyway.
+
+Buying that precision costs `search` its early exit: it is built on `array_keys($array, $value, $strict)`, the one native whose stub does carry the key type, which always scans the whole array and materialises a key for every match. The cost is therefore flat — roughly 80 µs per 10,000 elements whether the match is the first element or the last — where `array_search` returns in ~2 µs on an early hit. Irrelevant for the short arrays this helper is usually pointed at; if you are scanning a large array in a hot path and do not need the typed key, reach for `array_search` directly. `searchOrNull` keeps the native and its early exit.
+
+[↑ Back to top](#arr)
+
+---
+
+## `keyPosition` / `keyPositionOrNull`
+
+The *other* axis: [`search`](#search--searchornull) answers value → key, `keyPosition` answers key → its 0-based position in iteration order. Bare throws when the key is absent; `*OrNull` returns `null`. Typed `int<0, max>`.
+
+```php
+Arr::keyPosition(['a' => 1, 'b' => 2, 'c' => 3], 'b');   // 1
+Arr::keyPosition(['x', 'y', 'z'], 2);                    // 2   (a list: position == key)
+Arr::keyPositionOrNull(['a' => 1], 'nope');              // null
+```
+
+Key matching follows [`hasKey`](#has--haskey), which means PHP's own rule: a numeric-string key is normalised to an int on write, so `'1'` and `1` both find the same key. A string that is *not* a canonical integer — `' 1'`, with a leading space — stays a distinct key and is simply absent.
+
+```php
+$array = ['1' => 'a', 'x' => 'b'];
+Arr::keyPosition($array, '1');            // 0
+Arr::keyPosition($array, 1);              // 0   (same key)
+Arr::keyPositionOrNull($array, ' 1');     // null
+```
+
 [↑ Back to top](#arr)
 
 ---
@@ -449,12 +520,27 @@ Arr::keyBy([1, 2, 3, 4], fn(int $n) => $n % 2 === 0 ? 'even' : 'odd');
 
 ## `sort`
 
-Returns a sorted, re-indexed list. Default comparator is `<=>`.
+Returns a sorted, re-indexed list. Default comparator is `<=>`. Immutable.
 
 ```php
 Arr::sort([3, 1, 2]);                                    // [1, 2, 3]
 Arr::sort([1, 2, 3], fn(int $a, int $b) => $b <=> $a);   // [3, 2, 1]
 ```
+
+Pass `preserveKeys: true` to keep each value under its own key — the pure equivalent of `uasort`/`asort`, and the only way to reorder values without destroying a meaningful key. Sorting is stable, so equal elements keep their insertion order.
+
+```php
+Arr::sort(['c' => 3, 'a' => 1, 'b' => 2], preserveKeys: true);
+// ['a' => 1, 'b' => 2, 'c' => 3]
+```
+
+Note the one surprising case: a `list` keeps its keys too, so preserving them does *not* give back a `list` — the type is `array<int, T>`.
+
+```php
+Arr::sort(['b', 'a'], preserveKeys: true);               // [1 => 'a', 0 => 'b']
+```
+
+The three sorts cover the three axes: `sort` by value, `sort` with `preserveKeys` by value keeping the association, and [`sortKeys`](#sortkeys) by key.
 
 [↑ Back to top](#arr)
 
@@ -462,7 +548,7 @@ Arr::sort([1, 2, 3], fn(int $a, int $b) => $b <=> $a);   // [3, 2, 1]
 
 ## `sortBy`
 
-Sorts by a derived key (callback receives value and key). Result is a re-indexed list.
+Sorts by a derived key (callback receives value and key). Result is a re-indexed list. Immutable.
 
 ```php
 $people = [
@@ -472,6 +558,13 @@ $people = [
 ];
 Arr::sortBy($people, fn(array $p) => $p['age']);
 // [['name' => 'a', 'age' => 10], ['name' => 'b', 'age' => 20], ['name' => 'c', 'age' => 30]]
+```
+
+`preserveKeys: true` behaves exactly as it does on [`sort`](#sort) — same axis, sorting by a derived key instead of by the value itself.
+
+```php
+Arr::sortBy(['long' => 'ccc', 'short' => 'a', 'mid' => 'bb'], fn(string $v) => strlen($v), true);
+// ['short' => 'a', 'mid' => 'bb', 'long' => 'ccc']
 ```
 
 [↑ Back to top](#arr)
@@ -515,6 +608,36 @@ Arr::slice([1, 2, 3, 4, 5], -2);              // [4, 5]
 Arr::slice([1, 2, 3, 4, 5], 1, -1);           // [2, 3, 4]
 Arr::slice([1, 2, 3], 1, 2, preserveKeys: true); // [1 => 2, 2 => 3]
 ```
+
+[↑ Back to top](#arr)
+
+---
+
+## `removeAt`
+
+Removes `$length` elements (default 1) starting at `$index` and closes the gap — the pure form of `array_splice`, which mutates. The input is untouched, and a `list` in gives a `list` out.
+
+```php
+Arr::removeAt([1, 2, 3, 4, 5], 1);        // [1, 3, 4, 5]
+Arr::removeAt([1, 2, 3, 4, 5], 1, 2);     // [1, 4, 5]
+Arr::removeAt([1, 2, 3, 4, 5], -1);       // [1, 2, 3, 4]   (negative index)
+Arr::removeAt([1, 2, 3, 4, 5], 1, -1);    // [1, 5]          (stop one before the end)
+```
+
+`$index` and `$length` follow [`slice`](#slice) exactly, including the asymmetry at the edges: an index **past the end** removes nothing, while an index **before the start** clamps to 0. Nothing here throws.
+
+```php
+Arr::removeAt([1, 2, 3], 10);             // [1, 2, 3]  (nothing to remove)
+Arr::removeAt([1, 2, 3], -10);            // [2, 3]     (clamped to the start)
+```
+
+String keys are kept and integer keys renumbered, matching `slice`:
+
+```php
+Arr::removeAt(['a' => 1, 'b' => 2, 'c' => 3], 1);   // ['a' => 1, 'c' => 3]
+```
+
+To drop the first or last element *and keep it*, use [`shift` / `pop`](#shift--shiftornull) instead.
 
 [↑ Back to top](#arr)
 
@@ -628,6 +751,8 @@ PHP's `array_shift` / `array_pop` are excluded by design — they mutate the arr
 | element **and** rest (full `array_shift` / `array_pop`) | `[$x, $rest] = Arr::shift($a)` / `Arr::pop($a)` |
 | the element only | `Arr::first($a)` / `Arr::last($a)` (or `*OrNull`) |
 | the rest only | `Arr::slice($a, 1)` (drop first) / `Arr::slice($a, 0, -1)` (drop last) |
+
+The same reasoning covers `array_splice` for the general case — dropping element(s) from *anywhere*, discarding them: the mutating native is out, its pure form is [`removeAt`](#removeat).
 
 [↑ Back to top](#arr)
 

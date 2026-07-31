@@ -11,6 +11,7 @@ use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Iter;
 use UnderflowException;
+use UnexpectedValueException;
 
 /**
  * @internal
@@ -133,6 +134,24 @@ final class IterTest extends TestCase
     {
         $result = Iter::flatMap([1, 2, 3], static fn (int $n): array => [$n, $n * 10]);
         $this->assertSame([1, 10, 2, 20, 3, 30], Iter::toArray($result));
+    }
+
+    public function testFlatMapThrowsWhenCallbackReturnsNonIterable(): void
+    {
+        // Deliberately violates the declared `callable(TValue, TKey):
+        // iterable<TResult>` — which is the whole point: the guard exists for
+        // callers that do not honour a contract PHP cannot enforce. PHPStan is
+        // right to reject the call, so the rejection is what gets ignored here.
+        // @phpstan-ignore argument.type, argument.templateType
+        $result = Iter::flatMap([1], static fn (): mixed => 42);
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('Callback must return an iterable. Got: int');
+
+        // Lazy: the call itself was fine, the throw comes with consumption.
+        foreach ($result as $ignored) {
+            // draining the generator is what raises
+        }
     }
 
     public function testTake(): void

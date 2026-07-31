@@ -17,10 +17,12 @@ use function strip_tags;
 /**
  * Input sanitisation and lenient coercion of untrusted values.
  *
- * Two groups of helpers, both total — no method throws:
+ * Three groups of helpers, all total — no method throws:
  * - **Sanitisers** are `string → string` transforms: HTML escaping, tag
  *   stripping, character whitelists, whitespace/control-char cleanup, ASCII
  *   transliteration.
+ * - **Predicates** (`is*`) answer a `string → bool` format question without
+ *   changing the value, the validating counterpart of the sanitisers.
  * - **Coercers** (`to*`) turn a `mixed` value into a typed result, returning the
  *   caller-supplied `$default` when the value cannot be represented. Built for
  *   request data, where every value arrives as an untrusted string and a
@@ -130,7 +132,7 @@ final class Filter
     /**
      * Removes characters not allowed in an e-mail address
      * ({@see FILTER_SANITIZE_EMAIL}). Sanitisation only — it does not validate;
-     * use {@see Type} guards or PHP's validation filters for that.
+     * see {@see isEmail()} for that.
      */
     public static function email(string $value): string
     {
@@ -144,6 +146,21 @@ final class Filter
     public static function url(string $value): string
     {
         return (string) filter_var($value, FILTER_SANITIZE_URL);
+    }
+
+    /**
+     * Returns true when $value passes PHP's {@see FILTER_VALIDATE_EMAIL} check —
+     * a syntactically valid address, structure only. The validating counterpart
+     * of {@see email()}, which merely strips illegal characters; mirrors
+     * {@see Url::is()} for URLs.
+     *
+     * The empty string and surrounding whitespace are rejected, and so is a
+     * dot-less domain (`user@localhost` is false), so the check is stricter than
+     * RFC 5321 allows. Structure only — no DNS lookup, no deliverability check.
+     */
+    public static function isEmail(string $value): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     /**

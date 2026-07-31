@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use Generator;
 use InvalidArgumentException;
 use OutOfBoundsException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -165,6 +166,47 @@ final class ArrTest extends TestCase
     {
         $result = Arr::map(['a' => 1, 'b' => 2], fn (int $v): int => $v * 10);
         $this->assertSame(['a' => 10, 'b' => 20], $result);
+    }
+
+    public function testFlatMap(): void
+    {
+        $this->assertSame([1, 10, 2, 20], Arr::flatMap([1, 2], fn (int $n): array => [$n, $n * 10]));
+        $this->assertSame([], Arr::flatMap([], fn (int $n): array => [$n]));
+        // Elements mapping to an empty iterable simply contribute nothing.
+        $this->assertSame([2], Arr::flatMap([1, 2], fn (int $n): array => $n === 1 ? [] : [$n]));
+        // One level only: an inner array survives as an element.
+        $this->assertSame([1, [2]], Arr::flatMap([1], fn (int $n): array => [$n, [2]]));
+    }
+
+    public function testFlatMapReceivesKeyAndAcceptsAnyIterable(): void
+    {
+        // The shape a MultiMap-style snapshot needs: key plus each value.
+        $this->assertSame(
+            [['a', 1], ['a', 2], ['b', 3]],
+            Arr::flatMap(
+                ['a' => [1, 2], 'b' => [3]],
+                fn (array $values, string $k): array => Arr::map($values, fn (int $v): array => [$k, $v]),
+            ),
+        );
+        // Any iterable, not just an array — a Generator works too.
+        $this->assertSame([1, 2], Arr::flatMap([1], function (int $n): Generator {
+            yield $n;
+
+            yield $n + 1;
+        }));
+    }
+
+    public function testFlatMapThrowsWhenCallbackReturnsNonIterable(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('Callback must return an iterable. Got: int');
+
+        // Deliberately violates the declared `callable(T, K): iterable<R>` —
+        // which is the whole point: the guard exists for callers that do not
+        // honour a contract PHP cannot enforce. PHPStan is right to reject the
+        // call, so the rejection is what gets ignored here.
+        // @phpstan-ignore argument.type, argument.templateType
+        Arr::flatMap([1], fn (): mixed => 42);
     }
 
     public function testReduce(): void
@@ -464,6 +506,34 @@ final class ArrTest extends TestCase
         );
     }
 
+    public function testSortPreservingKeys(): void
+    {
+        $this->assertSame(
+            ['a' => 1, 'b' => 2, 'c' => 3],
+            Arr::sort(['c' => 3, 'a' => 1, 'b' => 2], preserveKeys: true),
+        );
+        $this->assertSame(
+            ['c' => 3, 'b' => 2, 'a' => 1],
+            Arr::sort(['c' => 3, 'a' => 1, 'b' => 2], fn (int $a, int $b): int => $b <=> $a, true),
+        );
+        // A list keeps its keys too, so the result is NOT a list.
+        $this->assertSame([1 => 'a', 0 => 'b'], Arr::sort(['b', 'a'], preserveKeys: true));
+
+        $original = ['c' => 3, 'a' => 1];
+        Arr::sort($original, preserveKeys: true);
+        $this->assertSame(['c' => 3, 'a' => 1], $original); // immutable
+    }
+
+    public function testSortPreservingKeysIsStableForEqualElements(): void
+    {
+        // PHP sorts have been stable since 8.0: a comparator that calls every
+        // pair equal must leave insertion order untouched.
+        $this->assertSame(
+            ['c' => 3, 'a' => 1, 'b' => 2],
+            Arr::sort(['c' => 3, 'a' => 1, 'b' => 2], fn (int $a, int $b): int => 0, true),
+        );
+    }
+
     public function testSortBy(): void
     {
         $people = [
@@ -473,6 +543,40 @@ final class ArrTest extends TestCase
         ];
         $sorted = Arr::sortBy($people, fn (array $p): int => $p['age']);
         $this->assertSame(['a', 'b', 'c'], array_column($sorted, 'name'));
+    }
+
+    public function testSortByPreservingKeys(): void
+    {
+        $this->assertSame(
+            ['short' => 'a', 'mid' => 'bb', 'long' => 'ccc'],
+            Arr::sortBy(
+                ['long' => 'ccc', 'short' => 'a', 'mid' => 'bb'],
+                static fn (string $v): int => strlen($v),
+                true,
+            ),
+        );
+        // The extractor still receives the key as its second argument.
+        $this->assertSame(
+            ['a' => 1, 'b' => 2],
+            Arr::sortBy(['b' => 2, 'a' => 1], static fn (int $v, string $k): string => $k, true),
+        );
+        // A list keeps its keys too, so the result is NOT a list.
+        $this->assertSame(
+            [1 => 'a', 0 => 'bb'],
+            Arr::sortBy(['bb', 'a'], static fn (string $v): int => strlen($v), true),
+        );
+
+        $original = ['b' => 2, 'a' => 1];
+        Arr::sortBy($original, static fn (int $v): int => $v, true);
+        $this->assertSame(['b' => 2, 'a' => 1], $original); // immutable
+    }
+
+    public function testSortByPreservingKeysIsStableForEqualElements(): void
+    {
+        $this->assertSame(
+            ['c' => 3, 'a' => 1, 'b' => 2],
+            Arr::sortBy(['c' => 3, 'a' => 1, 'b' => 2], static fn (int $v): int => 0, true),
+        );
     }
 
     public function testMerge(): void
@@ -511,6 +615,71 @@ final class ArrTest extends TestCase
         $this->assertSame([4, 5], Arr::slice([1, 2, 3, 4, 5], -2));         // negative offset
         $this->assertSame([2, 3, 4], Arr::slice([1, 2, 3, 4, 5], 1, -1));   // negative length
         $this->assertSame([1 => 2, 2 => 3], Arr::slice([1, 2, 3], 1, 2, true)); // preserve keys
+    }
+
+    public function testRemoveAt(): void
+    {
+        $list = [1, 2, 3, 4, 5];
+        $this->assertSame([1, 3, 4, 5], Arr::removeAt($list, 1));           // default length 1
+        $this->assertSame([1, 4, 5], Arr::removeAt($list, 1, 2));
+        $this->assertSame([1, 2, 3, 4], Arr::removeAt($list, -1));          // negative index
+        $this->assertSame([1, 2, 3, 4, 5], Arr::removeAt($list, 1, 0));     // nothing to remove
+        $this->assertSame([1], Arr::removeAt($list, 1, 99));                // length past the end
+
+        $original = [1, 2, 3];
+        Arr::removeAt($original, 1);
+        $this->assertSame([1, 2, 3], $original); // immutable
+    }
+
+    public function testRemoveAtOutOfRangeIndexClampsOnlyOnTheNegativeSide(): void
+    {
+        // Past the end removes nothing, but a far-negative index clamps to the
+        // start and removes the first element — array_splice's own asymmetry,
+        // which Arr::slice shares.
+        $this->assertSame([1, 2, 3], Arr::removeAt([1, 2, 3], 10));
+        $this->assertSame([2, 3], Arr::removeAt([1, 2, 3], -10));
+    }
+
+    public function testRemoveAtNegativeLengthStopsBeforeTheEnd(): void
+    {
+        // Same convention as Arr::slice's own $length, not an error.
+        $this->assertSame([1, 5], Arr::removeAt([1, 2, 3, 4, 5], 1, -1));
+        $this->assertSame([1, 2, 3, 4, 5], Arr::removeAt([1, 2, 3, 4, 5], 1, -9));
+    }
+
+    public function testRemoveAtKeepsStringKeysAndRenumbersIntegerOnes(): void
+    {
+        $this->assertSame(
+            ['a' => 1, 'c' => 3, 0 => 9],
+            Arr::removeAt(['a' => 1, 'b' => 2, 'c' => 3, 5 => 9], 1),
+        );
+    }
+
+    /**
+     * @param array<string, int>|list<int> $source
+     */
+    #[DataProvider('removeAtParityProvider')]
+    public function testRemoveAtMatchesArraySpliceExactly(array $source, int $index, int $length): void
+    {
+        $native = $source;
+        array_splice($native, $index, $length);
+
+        $this->assertSame($native, Arr::removeAt($source, $index, $length));
+    }
+
+    /**
+     * @return iterable<string, array{array<array-key, int>, int, int}>
+     */
+    public static function removeAtParityProvider(): iterable
+    {
+        $list = [1, 2, 3, 4, 5];
+        $map = ['a' => 1, 'b' => 2, 'c' => 3, 5 => 9];
+
+        foreach ([[1, 1], [0, 1], [-1, 1], [-10, 1], [10, 1], [1, 0], [1, 99], [1, -1], [1, -9]] as [$index, $length]) {
+            yield "list index {$index} length {$length}" => [$list, $index, $length];
+
+            yield "map index {$index} length {$length}" => [$map, $index, $length];
+        }
     }
 
     public function testFlip(): void
@@ -556,10 +725,61 @@ final class ArrTest extends TestCase
         $this->assertSame(0, Arr::searchOrNull([0, 1], '0', false)); // loose
     }
 
+    public function testSearchLooseComparison(): void
+    {
+        // The match must be at a non-zero key: a comparison that degenerated
+        // into an assignment would be truthy on the first element and answer 0.
+        $this->assertSame(1, Arr::search(['a', '2', 3], 2, false));
+        $this->assertSame(2, Arr::search([false, null, '7'], 7, false));
+        // Strict mode rejects what loose mode accepts, on the same input.
+        $this->assertSame(1, Arr::search(['a', '2', 3], '2'));
+    }
+
     public function testSearchThrowsWhenMissing(): void
     {
         $this->expectException(OutOfBoundsException::class);
         Arr::search([1, 2, 3], 9);
+    }
+
+    public function testKeyPosition(): void
+    {
+        $map = ['a' => 1, 'b' => 2, 'c' => 3];
+        $this->assertSame(0, Arr::keyPosition($map, 'a'));
+        $this->assertSame(1, Arr::keyPosition($map, 'b'));
+        $this->assertSame(2, Arr::keyPosition($map, 'c'));
+        // Over a list the position and the key coincide, which is why the
+        // interesting cases above are the keyed ones.
+        $this->assertSame(2, Arr::keyPosition(['x', 'y', 'z'], 2));
+
+        $this->assertSame(1, Arr::keyPositionOrNull($map, 'b'));
+        $this->assertNull(Arr::keyPositionOrNull($map, 'nope'));
+        $this->assertNull(Arr::keyPositionOrNull([], 'a'));
+    }
+
+    public function testKeyPositionFollowsHasKeyOnNumericStringKeys(): void
+    {
+        // PHP stores '1' as the int key 1, so both spellings must find it —
+        // otherwise keyPosition would disagree with hasKey on the same input.
+        $array = ['1' => 'a', 'x' => 'b', 7 => 'c'];
+        $this->assertSame(0, Arr::keyPosition($array, '1'));
+        $this->assertSame(0, Arr::keyPosition($array, 1));
+        $this->assertSame(2, Arr::keyPosition($array, '7'));
+        $this->assertSame(2, Arr::keyPosition($array, 7));
+
+        // ' 1' is never normalised, so it stays a distinct (absent) string key.
+        $this->assertNull(Arr::keyPositionOrNull($array, ' 1'));
+        $this->assertFalse(Arr::hasKey($array, ' 1'));
+        // The two agree on every spelling above.
+        foreach (['1', 1, '7', 7, 'x'] as $key) {
+            $this->assertSame(Arr::hasKey($array, $key), Arr::keyPositionOrNull($array, $key) !== null);
+        }
+    }
+
+    public function testKeyPositionThrowsWhenMissing(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        $this->expectExceptionMessage('Key "nope" not found in array.');
+        Arr::keyPosition(['a' => 1], 'nope');
     }
 
     public function testCountValues(): void
@@ -637,8 +857,16 @@ final class ArrTest extends TestCase
         $this->assertSame('y', Arr::lastKey(['x' => 1, 'y' => 2]));
         $this->assertSame(0, Arr::firstKey([10, 20]));
         $this->assertSame(1, Arr::lastKey([10, 20]));
-        $this->assertNull(Arr::firstKeyOrNull([]));
-        $this->assertNull(Arr::lastKeyOrNull([]));
+
+        // Through a variable, not the literal `[]`: the *OrNull pair now declares
+        // `($array is non-empty-array ? K : null)`, so over a literal empty array
+        // PHPStan folds the result to `null` and reports the assertion as always
+        // true. The runtime contract is still worth asserting — same idiom as
+        // testFirstOrNullReturnsNullOnEmpty().
+        /** @var array<string, int> $empty */
+        $empty = [];
+        $this->assertNull(Arr::firstKeyOrNull($empty));
+        $this->assertNull(Arr::lastKeyOrNull($empty));
         $this->assertSame('x', Arr::firstKeyOrNull(['x' => 1]));
     }
 

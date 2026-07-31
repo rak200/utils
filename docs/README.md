@@ -21,7 +21,7 @@ Per-class API reference with runnable examples. For installation and a package o
 | `Path`   | [path.md](path.md)     | Logical path manipulation (no disk access) |
 | `Type`   | [type.md](type.md)     | Type-checking predicates (`mixed` → `bool`) |
 | `Enum`   | [enum.md](enum.md)     | Class-level operations on enums (names, values, name lookup, random, `[name => value]` maps) |
-| `Filter` | [filter.md](filter.md) | Input sanitisation and lenient `mixed`-to-typed coercion |
+| `Filter` | [filter.md](filter.md) | Input sanitisation, format predicates, and lenient `mixed`-to-typed coercion |
 
 ## Conventions used in these docs
 

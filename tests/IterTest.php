@@ -6,11 +6,12 @@ namespace Rak200\Utils\Tests;
 
 use ArrayIterator;
 use Exception;
-use InvalidArgumentException;
-use OutOfBoundsException;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\BadCallbackException;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\LookupException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Iter;
-use UnderflowException;
 
 /**
  * @internal
@@ -48,7 +49,7 @@ final class IterTest extends TestCase
 
     public function testRangeThrowsOnZeroStep(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::range(1, 10, 0);
     }
 
@@ -69,7 +70,7 @@ final class IterTest extends TestCase
 
     public function testRepeatThrowsOnNegativeTimes(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::repeat('x', -1);
     }
 
@@ -106,7 +107,7 @@ final class IterTest extends TestCase
 
     public function testTimesThrowsOnNegativeCount(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::times(-1, static fn (int $i): int => $i);
     }
 
@@ -135,6 +136,24 @@ final class IterTest extends TestCase
         $this->assertSame([1, 10, 2, 20, 3, 30], Iter::toArray($result));
     }
 
+    public function testFlatMapThrowsWhenCallbackReturnsNonIterable(): void
+    {
+        // Deliberately violates the declared `callable(TValue, TKey):
+        // iterable<TResult>` — which is the whole point: the guard exists for
+        // callers that do not honour a contract PHP cannot enforce. PHPStan is
+        // right to reject the call, so the rejection is what gets ignored here.
+        // @phpstan-ignore argument.type, argument.templateType
+        $result = Iter::flatMap([1], static fn (): mixed => 42);
+
+        $this->expectException(BadCallbackException::class);
+        $this->expectExceptionMessage('Callback must return an iterable. Got: int');
+
+        // Lazy: the call itself was fine, the throw comes with consumption.
+        foreach ($result as $ignored) {
+            // draining the generator is what raises
+        }
+    }
+
     public function testTake(): void
     {
         $this->assertSame([1, 2], Iter::toArray(Iter::take([1, 2, 3, 4], 2)));
@@ -152,7 +171,7 @@ final class IterTest extends TestCase
 
     public function testTakeThrowsOnNegativeCount(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::take([1, 2, 3], -1);
     }
 
@@ -163,7 +182,7 @@ final class IterTest extends TestCase
 
     public function testDropThrowsOnNegativeCount(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::drop([1, 2, 3], -1);
     }
 
@@ -189,7 +208,7 @@ final class IterTest extends TestCase
 
     public function testChunkThrowsOnSizeBelowOne(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::chunk([1, 2, 3], 0);
     }
 
@@ -211,7 +230,7 @@ final class IterTest extends TestCase
 
     public function testFlattenThrowsOnNegativeDepth(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::flatten([1, [2]], -1);
     }
 
@@ -275,13 +294,13 @@ final class IterTest extends TestCase
 
     public function testSliceThrowsOnNegativeOffset(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::slice([1, 2, 3], -1);
     }
 
     public function testSliceThrowsOnNegativeLength(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::slice([1, 2, 3], 0, -1);
     }
 
@@ -304,7 +323,7 @@ final class IterTest extends TestCase
 
     public function testFirstThrowsOnEmpty(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         Iter::first([]);
     }
 
@@ -323,7 +342,7 @@ final class IterTest extends TestCase
 
     public function testLastThrowsOnEmpty(): void
     {
-        $this->expectException(UnderflowException::class);
+        $this->expectException(EmptySourceException::class);
         Iter::last([]);
     }
 
@@ -344,7 +363,7 @@ final class IterTest extends TestCase
     {
         /** @var list<int> $odd */
         $odd = [1, 3, 5];
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(LookupException::class);
         Iter::find($odd, static fn (int $n): bool => $n % 2 === 0);
     }
 
@@ -363,13 +382,13 @@ final class IterTest extends TestCase
 
     public function testNthThrowsWhenOutOfRange(): void
     {
-        $this->expectException(OutOfBoundsException::class);
+        $this->expectException(LookupException::class);
         Iter::nth([10], 5);
     }
 
     public function testNthThrowsOnNegativeIndex(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::nth([10, 20], -1);
     }
 
@@ -381,7 +400,7 @@ final class IterTest extends TestCase
 
     public function testNthOrNullThrowsOnNegativeIndex(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Iter::nthOrNull([10, 20], -1);
     }
 

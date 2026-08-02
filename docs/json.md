@@ -2,7 +2,7 @@
 
 [← Reference](README.md)
 
-JSON helpers — always throw `JsonException` on malformed input/output (`JSON_THROW_ON_ERROR` is forced).
+JSON helpers — always throw [`MalformedJsonException`](exceptions.md) on malformed input/output (`JSON_THROW_ON_ERROR` is forced; the native `JsonException` stays readable as `getPrevious()`).
 
 ```php
 use Rak200\Utils\Json;

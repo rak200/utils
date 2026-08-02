@@ -39,7 +39,7 @@ Url::is('http://');                           // false  (incomplete)
 
 ## `parse` / `parseOrNull`
 
-Splits a URL into its components. `parse` throws `InvalidArgumentException` on malformed input; `parseOrNull` returns `null`. Keys present mirror `parse_url`: `scheme`, `host`, `port`, `user`, `pass`, `path`, `query`, `fragment` (only those present in the input appear).
+Splits a URL into its components. `parse` throws `MalformedArgumentException` on malformed input; `parseOrNull` returns `null`. Keys present mirror `parse_url`: `scheme`, `host`, `port`, `user`, `pass`, `path`, `query`, `fragment` (only those present in the input appear).
 
 ```php
 Url::parse('https://user:pass@example.com:8080/path?x=1#frag');

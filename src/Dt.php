@@ -10,8 +10,8 @@ use DateTimeInterface;
 use DateTimeZone;
 use Exception;
 use Generator;
-use InvalidArgumentException;
-use UnderflowException;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 
 use function checkdate;
 use function sprintf;
@@ -87,13 +87,13 @@ final class Dt
      * Parses $value. When $format is null, any expression accepted by
      * {@see DateTimeImmutable::__construct()} is allowed.
      *
-     * @throws InvalidArgumentException when $value cannot be parsed
+     * @throws MalformedArgumentException when $value cannot be parsed
      */
     public static function parse(string $value, ?string $format = null): DateTimeImmutable
     {
         $result = self::parseOrNull($value, $format);
         if ($result === null) {
-            throw new InvalidArgumentException("Cannot parse \"{$value}\" as date/time.");
+            throw new MalformedArgumentException("Cannot parse \"{$value}\" as date/time.");
         }
 
         return $result;
@@ -132,7 +132,7 @@ final class Dt
      * Builds a date/time from a Unix timestamp in milliseconds, optionally
      * shifted to $tz.
      *
-     * @throws InvalidArgumentException when the timestamp cannot be represented
+     * @throws MalformedArgumentException when the timestamp cannot be represented
      */
     public static function fromEpochMs(int $milliseconds, ?DateTimeZone $tz = null): DateTimeImmutable
     {
@@ -145,7 +145,7 @@ final class Dt
         $micro = $remainder * 1000;
         $dt = DateTimeImmutable::createFromFormat('U.u', /* @infection-ignore-all: concatenation applies the identical string cast */ (string) $seconds . '.' . Str::padStart((string) $micro, 6, '0'));
         if ($dt === false) {
-            throw new InvalidArgumentException("Cannot create date/time from epoch ms {$milliseconds}.");
+            throw new MalformedArgumentException("Cannot create date/time from epoch ms {$milliseconds}.");
         }
 
         return $tz !== null ? $dt->setTimezone($tz) : $dt;
@@ -317,12 +317,12 @@ final class Dt
     /**
      * Returns the earliest of the given date/times.
      *
-     * @throws UnderflowException when no arguments are given
+     * @throws EmptySourceException when no arguments are given
      */
     public static function min(DateTimeInterface ...$dts): DateTimeImmutable
     {
         if ($dts === []) {
-            throw new UnderflowException('Cannot compute min of empty input.');
+            throw new EmptySourceException('Cannot compute min of empty input.');
         }
         $min = $dts[0];
         foreach ($dts as $dt) {
@@ -337,12 +337,12 @@ final class Dt
     /**
      * Returns the latest of the given date/times.
      *
-     * @throws UnderflowException when no arguments are given
+     * @throws EmptySourceException when no arguments are given
      */
     public static function max(DateTimeInterface ...$dts): DateTimeImmutable
     {
         if ($dts === []) {
-            throw new UnderflowException('Cannot compute max of empty input.');
+            throw new EmptySourceException('Cannot compute max of empty input.');
         }
         $max = $dts[0];
         foreach ($dts as $dt) {
@@ -362,8 +362,8 @@ final class Dt
      *
      * @return Generator<int, DateTimeImmutable>
      *
-     * @throws InvalidArgumentException when $step does not move the date forward (a zero
-     *                                  or inverted interval), which would loop forever
+     * @throws MalformedArgumentException when $step does not move the date forward (a zero
+     *                                    or inverted interval), which would loop forever
      */
     public static function period(
         DateTimeInterface $start,
@@ -374,7 +374,7 @@ final class Dt
         $step ??= new DateInterval('P1D');
         $current = self::immutable($start);
         if ($current->add($step) <= $current) {
-            throw new InvalidArgumentException('Period step must move the date forward.');
+            throw new MalformedArgumentException('Period step must move the date forward.');
         }
         while ($inclusive ? $current <= $end : $current < $end) {
             yield $current;

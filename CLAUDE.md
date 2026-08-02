@@ -32,7 +32,8 @@ utils/
 │   ├── Path.php      # logical path manipulation, no disk access (Tier 2)
 │   ├── Type.php      # type-checking predicates accepting mixed (Tier 2)
 │   ├── Enum.php      # class-level enum operations (Tier 2)
-│   └── Filter.php    # input sanitisation + mixed-to-typed coercion (Tier 2)
+│   ├── Filter.php    # input sanitisation + mixed-to-typed coercion (Tier 2)
+│   └── Exception/    # UtilsException marker + domain exceptions (IOException → Filesystem branch)
 └── tests/            # mirrors src/ layout (one *Test.php per class)
     └── StaticAnalysis/  # PHPStan-only assertType fixtures (no Test suffix; never run by PHPUnit)
 ```
@@ -43,7 +44,7 @@ Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes 
 
 The general PHP conventions live in the imported shared file above. What follows is specific to this library:
 
-- **Static-only classes.** Every class is `final` with a `private` constructor and only `public static` methods — pure functions, no instances, no state. Public API takes/returns native PHP types; no custom wrapper objects.
+- **Static-only classes.** Every class is `final` with a `private` constructor and only `public static` methods — pure functions, no instances, no state. Public API takes/returns native PHP types; no custom wrapper objects. The one deliberate carve-out is `src/Exception/`: exception classes are instantiable by nature — empty-bodied domain classes over their SPL parents plus the `UtilsException` marker (`IOException` is the one abstract grouping node), carrying no behaviour of their own (see [docs/exceptions.md](docs/exceptions.md)).
 - **Purity is the contract.** No mutable / in-place / pointer natives, no global / impure / low-level state — see [Out of scope](#out-of-scope-by-design--wont-do). Impure concerns belong in a separate sibling library (e.g. `rak200/http-input`), not here.
 - **Per-class docs.** utils ships a full per-class reference under `docs/` (index: [docs/README.md](docs/README.md)); every new or changed public method must be reflected there, following the layout in the shared conventions.
 - **`Filter`'s prefer-lib-over-native carve-out.** The general rule is in the shared file; the notable utils exception: `Filter` sanitizers keep `preg_replace(...) ?? ''` rather than `Regex::replace`, because `Regex::replace` throws on the `null` that invalid UTF-8 yields under the `/u` modifier — which would violate `Filter`'s "never throws" guarantee.
@@ -65,29 +66,38 @@ A full Infection run over `src/` takes ~27 minutes, so utils **diverges from the
 - **Full run:** manual only, via the workflow's `workflow_dispatch` trigger. Run it before a significant release — it is the safety net for cross-file MSI drift, which the diff gate cannot see (a change in file A that stops a test from killing a mutant in untouched file B).
 - **Locally:** `composer infection-diff` mutates just your uncommitted changes against `master`.
 
-If this proves out, port the pattern to `~/.claude/rak200-php-conventions.md` + caster + http-input.
+Ported to http-input (0.4.1). Still to port if it keeps proving out: `~/.claude/rak200-php-conventions.md` + caster.
 
 ## Roadmap
 
 Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
+### Planned additions
+
+None outstanding. New entries go here; the sections below hold what is deferred. Work this library's releases unlock **in consumer libraries** is tracked in those repositories' own roadmaps, not here.
+
+### Type-annotation corrections (PHPDoc-only, BC-safe)
+
+**None outstanding.** This section holds annotations **less precise than what the implementation already guarantees**, which block a consumer from adopting the helper at all: the declared type is wider than the call site's contract, so the "fix" would be a PHPStan suppression, which the conventions forbid. Auditing a consumer library against the prefer-lib-over-native rule is what surfaces them. New entries go here; they are PHPDoc-only, so they ship in a minor with no runtime change.
+
 ### Test coverage (pragmatic; literal 100% is a deferred decision)
 
-The suite targets **pragmatic** line coverage — currently **~97.5%** — closing every reasonably-testable branch, error/`@throws` paths included (an invalid input that makes the native emit a warning is tested with `@` suppressing that expected warning, the same idiom `Regex::is` uses). The lines left uncovered are deliberate:
+The suite targets **pragmatic** line coverage — measured at **97.95%** (1625/1659) — closing every reasonably-testable branch, error/`@throws` paths included (an invalid input that makes the native emit a warning is tested with `@` suppressing that expected warning, the same idiom `Regex::is` uses). The 34 lines left uncovered are deliberate, and the two categories below account for **all** of them — anything outside this inventory is a gap, not a decision:
 
-- **Unreachable defensive code** — the 17 private `__construct() {}` of the static-only classes, and the post-loop `return self::BITS;` in `Bit::leadingZeros`/`trailingZeros` (a non-zero value always finds a set bit inside the loop).
-- **Branches that only fire when a native call fails despite valid preconditions** — `File::read`/`delete`/`size`/`lines`/`temp`/`list`/`readCsv`/`writeCsv` and `File::mime`'s finfo branches (the file exists / handle is valid but `file_get_contents`/`unlink`/`filesize`/`fopen`/`tempnam`/`glob`/`fputcsv`/`finfo_*` returns `false`), `Dt::fromEpochMs`'s `createFromFormat` failure (the format string is built from ints, so it always parses), and `Filter::ascii`'s iconv-unavailable fallback (iconv is present).
+- **Unreachable defensive code** (22) — the 18 private `__construct() {}` of the static-only classes; the post-loop `return self::BITS;` in `Bit::leadingZeros`/`trailingZeros` (a non-zero value always finds a set bit inside the loop); and the `return;` after `yield from` in `Iter::doRange`/`doRepeat` (both delegate to an infinite generator, which never completes, so control never reaches the line).
+- **Branches that only fire when a native call fails despite valid preconditions** (12) — `File::read`/`delete`/`size`/`lines`/`temp`/`list`/`readCsv`/`writeCsv` and `File::mime`'s finfo branches (the file exists / handle is valid but `file_get_contents`/`unlink`/`filesize`/`fopen`/`tempnam`/`glob`/`fputcsv`/`finfo_*` returns `false`), `Dt::fromEpochMs`'s `createFromFormat` failure (the format string is built from ints, so it always parses), and `Filter::ascii`'s iconv-unavailable fallback (iconv is present).
+
+The exhaustive count is the point: it is what turns a Codecov patch report into a decision. `Num::div`'s `BcMath\Number` divide-by-zero guard sat uncovered for several releases precisely because nobody could tell it apart from the deliberate list — and `minCoveredMsi` cannot flag it, since mutants on an uncovered line are not counted.
 
 Forcing these to **literal 100%** would need fragile, platform-specific setups (read-only dirs via `chmod`/`icacls`, invalidated handles, mocking `finfo`) that contradict the suite's clean style. **Deferred:** decide later whether to pursue literal 100%, and how — going literal would also unlock raising the Infection gate from the current `minCoveredMsi: 100` to the full `minMsi: 100` (uncovered lines' mutants cannot be killed, which is why `infection.json5.dist` deliberately omits `minMsi`).
 
 ### Contingent (additive — ships in any minor when there's demand)
 
 - **`Math`** — only worth splitting out if trigonometry, logarithms, number theory, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad`, and number-theory helpers such as `gcd` / `lcm` (no native; `gcd` via Euclid, `lcm` derived from it), belong here, **not** in `Num`. Purely additive — there's no point creating an empty class, so it lands in a minor release when real demand appears.
-- **Lib-scoped catch (marker interface).** 4.0.0 mapped every throw-site to the precise SPL type (`InvalidArgumentException` malformed input, `OutOfBoundsException` lookup miss, `UnderflowException` empty source, `UnexpectedValueException` bad callback result, `RuntimeException` environment failures), so callers can already branch on the failure *kind*. What SPL cannot express is "a failure from *this* library" as one catch — that would need a marker interface (e.g. `Rak200\Utils\Exception\UtilsException`) implemented by thin subclasses of each SPL type used. Only worth it when a real call-site needs the lib-scoped catch; messages and the SPL base types would be unchanged (BC-safe minor).
-
+- **`Email::local()` / `Email::domain()`** — splitting an address at the `@`. Deliberately *not* bundled with the 4.5.0 validator: extraction is not a `Filter` concern (that class is sanitisation, predicates and coercion), so these would need an `Email` topic class of their own, and a class born to hold two methods needs a real consumer first. Open decisions to settle when one appears: behaviour with no `@` at all, with multiple `@` (quoted local parts are legal), and throw vs `*OrNull` — none of which is worth deciding speculatively. Note the split would land `Email::is()` there too, moving the validator and leaving `Filter::isEmail()` as a deprecated alias, so this is not a free addition.
 ### Out of scope (by design — won't do)
 
 Deliberate exclusions, not pending work: these contradict the library's pure / immutable / stateless contract. Impure concerns belong in a separate sibling library (e.g. `rak200/http-input`), not here.
 
-- **Mutable / pointer / in-place natives** — `array_pop` / `array_shift` / `array_splice`, in-place `sort`, `end` / `reset` / `next` / `current`, `settype` — break the pure / immutable contract. The useful cases already have immutable equivalents: `array_push` / `array_unshift` → `Arr::append` / `prepend`, in-place `sort` → `Arr::sort` / `sortBy` / `sortKeys`, `settype` → `Filter::to*`, `end` / `reset` / `current` → `Arr::first` / `last`. The *mutating* `array_shift` / `array_pop` stay out, but their pure `[element, rest]` form ships as `Arr::shift` / `Arr::pop` (+ `*OrNull`) — both halves returned without touching the input; for a single half use `Arr::first` / `last` (element) or `Arr::slice` (remainder). See [docs/arr.md](docs/arr.md#dropping-the-first--last-element-array_shift--array_pop).
+- **Mutable / pointer / in-place natives** — `array_pop` / `array_shift` / `array_splice`, in-place `sort`, `end` / `reset` / `next` / `current`, `settype` — break the pure / immutable contract. The useful cases already have immutable equivalents: `array_push` / `array_unshift` → `Arr::append` / `prepend`, in-place `sort` → `Arr::sort` / `sortBy` / `sortKeys`, `settype` → `Filter::to*`, `end` / `reset` / `current` → `Arr::first` / `last`. The *mutating* `array_shift` / `array_pop` stay out, but their pure `[element, rest]` form ships as `Arr::shift` / `Arr::pop` (+ `*OrNull`) — both halves returned without touching the input; for a single half use `Arr::first` / `last` (element) or `Arr::slice` (remainder). The same qualifier covers `array_splice`: the in-place native stays out, its pure form ships as `Arr::removeAt` (remove from any position, discarding what was removed). Note that these pure forms may still *use* the in-place native internally on a by-value parameter — `removeAt` calls `array_splice`, `sortKeys` calls `ksort` — which is not a contradiction: the exclusion is of the mutating operation in the public API, and delegating is what keeps every edge case identical to the native. See [docs/arr.md](docs/arr.md#dropping-the-first--last-element-array_shift--array_pop).
 - **Global / impure / low-level** — `setlocale`, `ini_*`, raw stream / resource handling — out of scope for a pure helper library.

@@ -25,6 +25,7 @@ Every domain class also exposes a bare **`is`** as its canonical "is a member of
 - [`isNumeric`](#isnumeric)
 - [`isInstance` / `isA` / `isSubclass`](#isinstance--isa--issubclass)
 - [`isClassName` / `isInterfaceName`](#isclassname--isinterfacename)
+- [Checking against a class name you cannot annotate](#checking-against-a-class-name-you-cannot-annotate)
 - [`usesTrait`](#usestrait)
 
 ---
@@ -165,6 +166,41 @@ Type::isInterfaceName(Countable::class);     // true
 Type::isInterfaceName(Stringable::class);    // true
 Type::isInterfaceName(stdClass::class);      // false
 ```
+
+[↑ Back to top](#type)
+
+---
+
+## Checking against a class name you cannot annotate
+
+`isInstance` and `isA` declare `@param class-string<T>` — that is what gives them their narrowing, but it means PHPStan rejects a plain `string`. That is the shape a type name has when it arrives at runtime: a discriminator read from configuration, a constructor argument, a value from a decoded payload.
+
+Guard the name with **both** name predicates. Each declares `@phpstan-assert-if-true class-string`, so an `||` narrows the string in the true branch and `isInstance` then type-checks:
+
+```php
+function check(mixed $value, string $type): bool
+{
+    if (Type::isClassName($type) || Type::isInterfaceName($type)) {
+        return Type::isInstance($value, $type);   // $type is class-string here
+    }
+
+    return false;   // the name resolves to nothing
+}
+```
+
+Both halves are required, and the reason is a runtime one rather than a typing one:
+
+- `isClassName` is `class_exists()`, which is **false for an interface**. On its own the guard type-checks perfectly and silently rejects every interface — the trap worth knowing.
+- `isInterfaceName` covers that half.
+- Enums need nothing extra: an enum *is* a class, so `isClassName` already matches it.
+
+```php
+Type::isClassName(Countable::class);      // false  ← interface: this is the trap
+Type::isInterfaceName(Countable::class);  // true
+Type::isClassName(Suit::class);           // true   (an enum is a class)
+```
+
+Reach for [`isA`](#isinstance--isa--issubclass) instead when `$value` may itself be a class-name string rather than an object.
 
 [↑ Back to top](#type)
 

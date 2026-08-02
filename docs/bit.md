@@ -98,8 +98,8 @@ Bit::toStr(-1);            // '111…1'     (64 ones on a 64-bit build)
 
 Bit::fromStr('101');       // 5
 Bit::fromStr('00000101');  // 5
-Bit::fromStr('102');       // throws InvalidArgumentException (not binary)
-Bit::fromStr('');          // throws InvalidArgumentException (empty)
+Bit::fromStr('102');       // throws MalformedArgumentException (not binary)
+Bit::fromStr('');          // throws MalformedArgumentException (empty)
 ```
 
 [↑ Back to top](#bit)

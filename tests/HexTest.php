@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Hex;
 
 /**
@@ -60,13 +60,13 @@ final class HexTest extends TestCase
 
     public function testDecodeRejectsOddLength(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Hex::decode('abc');
     }
 
     public function testDecodeRejectsNonHex(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Hex::decode('zz');
     }
 
@@ -81,7 +81,7 @@ final class HexTest extends TestCase
 
     public function testToBytesRejectsInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Hex::toBytes('abc');
     }
 
@@ -95,13 +95,13 @@ final class HexTest extends TestCase
 
     public function testFromBytesRejectsOutOfRange(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Hex::fromBytes([0, 256]);
     }
 
     public function testFromBytesRejectsNegative(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Hex::fromBytes([-1]);
     }
 

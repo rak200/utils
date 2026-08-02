@@ -146,12 +146,14 @@ Iter::toArray($result, true);  // ['b' => 2, 'c' => 3]
 
 ## `flatMap`
 
-Maps each element to an iterable via `$callback` (called with value and key) and yields the results flattened one level, re-indexed.
+Maps each element to an iterable via `$callback` (called with value and key) and yields the results flattened one level, re-indexed. The lazy twin of [`Arr::flatMap`](arr.md#flatmap).
 
 ```php
 Iter::toArray(Iter::flatMap([1, 2, 3], fn (int $n): array => [$n, $n * 10]));
 // [1, 10, 2, 20, 3, 30]
 ```
+
+Returning a non-iterable from `$callback` throws `BadCallbackException` — raised while the result is being **consumed**, not when `flatMap` is called, since this is a generator.
 
 [↑ Back to top](#iter)
 
@@ -370,7 +372,7 @@ Iter::isNotEmpty(Iter::range(1));               // true  (probes a single elemen
 
 ## `count`
 
-Returns the number of elements, consuming the source.
+Returns the number of elements, consuming the source. Typed `int<0, max>`, so it can be returned straight out of a `Countable::count()` implementation, exactly like [`Arr::count`](arr.md#count).
 
 ```php
 Iter::count([1, 2, 3]);                          // 3

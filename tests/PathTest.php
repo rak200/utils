@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Path;
 
 /**
@@ -135,13 +135,13 @@ final class PathTest extends TestCase
 
     public function testRelativeRejectsMixedAnchors(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Path::relative('/a/b', 'c/d');
     }
 
     public function testRelativeRejectsDifferentDrives(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         Path::relative('C:/a', 'D:/a');
     }
 
@@ -211,14 +211,14 @@ final class PathTest extends TestCase
 
     public function testRelativeAcrossDrivesMessage(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage('Cannot compute relative path across drives C: and D:.');
         Path::relative('C:/a', 'D:/b');
     }
 
     public function testRelativeAcrossDriveAndDrivelessMessage(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(MalformedArgumentException::class);
         $this->expectExceptionMessage('Cannot compute relative path across drives (none) and C:.');
         Path::relative('/a', 'C:/b');
     }

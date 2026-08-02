@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use Generator;
-use InvalidArgumentException;
-use OutOfBoundsException;
-use UnderflowException;
+use Rak200\Utils\Exception\BadCallbackException;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\LookupException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 
 /**
  * Lazy iterable helpers — the streaming counterpart of {@see Arr}.
@@ -43,12 +44,12 @@ final class Iter
      *
      * @return Generator<int, int>
      *
-     * @throws InvalidArgumentException when $step is zero
+     * @throws MalformedArgumentException when $step is zero
      */
     public static function range(int $start, ?int $end = null, int $step = 1): Generator
     {
         if ($step === 0) {
-            throw new InvalidArgumentException('Step cannot be zero.');
+            throw new MalformedArgumentException('Step cannot be zero.');
         }
 
         return self::doRange($start, $end, $step);
@@ -63,12 +64,12 @@ final class Iter
      *
      * @return Generator<int, T>
      *
-     * @throws InvalidArgumentException when $times is negative
+     * @throws MalformedArgumentException when $times is negative
      */
     public static function repeat(mixed $value, ?int $times = null): Generator
     {
         if ($times !== null && $times < 0) {
-            throw new InvalidArgumentException('Times must be non-negative.');
+            throw new MalformedArgumentException('Times must be non-negative.');
         }
 
         return self::doRepeat($value, $times);
@@ -135,12 +136,12 @@ final class Iter
      *
      * @return Generator<int, T>
      *
-     * @throws InvalidArgumentException when $count is negative
+     * @throws MalformedArgumentException when $count is negative
      */
     public static function times(int $count, callable $fn): Generator
     {
         if ($count < 0) {
-            throw new InvalidArgumentException('Count must be non-negative.');
+            throw new MalformedArgumentException('Count must be non-negative.');
         }
 
         return self::doTimes($count, $fn);
@@ -199,11 +200,23 @@ final class Iter
      * @param callable(TValue, TKey): iterable<TResult> $callback
      *
      * @return Generator<int, TResult>
+     *
+     * @throws BadCallbackException when $callback returns a non-iterable —
+     *                              raised while the result is consumed, not
+     *                              when flatMap() is called
      */
     public static function flatMap(iterable $iterable, callable $callback): Generator
     {
         foreach ($iterable as $key => $value) {
-            foreach ($callback($value, $key) as $sub) {
+            $mapped = $callback($value, $key);
+            // See the twin {@see Arr::flatMap()} for why this guard is kept
+            // despite being unreachable under the declared type.
+            // @phpstan-ignore staticMethod.alreadyNarrowedType
+            if (!Type::isIterable($mapped)) {
+                throw new BadCallbackException('Callback must return an iterable. Got: ' . Type::of($mapped));
+            }
+
+            foreach ($mapped as $sub) {
                 yield $sub;
             }
         }
@@ -220,12 +233,12 @@ final class Iter
      *
      * @return Generator<TKey, TValue>
      *
-     * @throws InvalidArgumentException when $count is negative
+     * @throws MalformedArgumentException when $count is negative
      */
     public static function take(iterable $iterable, int $count): Generator
     {
         if ($count < 0) {
-            throw new InvalidArgumentException('Count must be non-negative.');
+            throw new MalformedArgumentException('Count must be non-negative.');
         }
 
         return self::doTake($iterable, $count);
@@ -241,12 +254,12 @@ final class Iter
      *
      * @return Generator<TKey, TValue>
      *
-     * @throws InvalidArgumentException when $count is negative
+     * @throws MalformedArgumentException when $count is negative
      */
     public static function drop(iterable $iterable, int $count): Generator
     {
         if ($count < 0) {
-            throw new InvalidArgumentException('Count must be non-negative.');
+            throw new MalformedArgumentException('Count must be non-negative.');
         }
 
         return self::doDrop($iterable, $count);
@@ -310,12 +323,12 @@ final class Iter
      *
      * @return Generator<int, non-empty-list<TValue>>
      *
-     * @throws InvalidArgumentException when $size is less than 1
+     * @throws MalformedArgumentException when $size is less than 1
      */
     public static function chunk(iterable $iterable, int $size): Generator
     {
         if ($size < 1) {
-            throw new InvalidArgumentException('Chunk size must be at least 1.');
+            throw new MalformedArgumentException('Chunk size must be at least 1.');
         }
 
         return self::doChunk($iterable, $size);
@@ -330,12 +343,12 @@ final class Iter
      *
      * @return Generator<int, mixed>
      *
-     * @throws InvalidArgumentException when $depth is negative
+     * @throws MalformedArgumentException when $depth is negative
      */
     public static function flatten(iterable $iterable, int $depth = PHP_INT_MAX): Generator
     {
         if ($depth < 0) {
-            throw new InvalidArgumentException('Depth must be non-negative.');
+            throw new MalformedArgumentException('Depth must be non-negative.');
         }
 
         return self::doFlatten($iterable, $depth);
@@ -469,15 +482,15 @@ final class Iter
      *
      * @return Generator<TKey, TValue>
      *
-     * @throws InvalidArgumentException when $offset or $length is negative
+     * @throws MalformedArgumentException when $offset or $length is negative
      */
     public static function slice(iterable $iterable, int $offset, ?int $length = null): Generator
     {
         if ($offset < 0) {
-            throw new InvalidArgumentException('Offset must be non-negative.');
+            throw new MalformedArgumentException('Offset must be non-negative.');
         }
         if ($length !== null && $length < 0) {
-            throw new InvalidArgumentException('Length must be non-negative.');
+            throw new MalformedArgumentException('Length must be non-negative.');
         }
 
         return self::doSlice($iterable, $offset, $length);
@@ -514,7 +527,7 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws UnderflowException when the source is empty
+     * @throws EmptySourceException when the source is empty
      */
     public static function first(iterable $iterable): mixed
     {
@@ -522,7 +535,7 @@ final class Iter
             return $value;
         }
 
-        throw new UnderflowException('Cannot get first element of an empty iterable.');
+        throw new EmptySourceException('Cannot get first element of an empty iterable.');
     }
 
     /**
@@ -552,7 +565,7 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws UnderflowException when the source is empty
+     * @throws EmptySourceException when the source is empty
      */
     public static function last(iterable $iterable): mixed
     {
@@ -563,7 +576,7 @@ final class Iter
             $found = true;
         }
         if (!$found) {
-            throw new UnderflowException('Cannot get last element of an empty iterable.');
+            throw new EmptySourceException('Cannot get last element of an empty iterable.');
         }
 
         return $last;
@@ -600,7 +613,7 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws OutOfBoundsException when no element matches
+     * @throws LookupException when no element matches
      */
     public static function find(iterable $iterable, callable $predicate): mixed
     {
@@ -610,7 +623,7 @@ final class Iter
             }
         }
 
-        throw new OutOfBoundsException('No element matches the predicate.');
+        throw new LookupException('No element matches the predicate.');
     }
 
     /**
@@ -644,13 +657,13 @@ final class Iter
      *
      * @return TValue
      *
-     * @throws InvalidArgumentException when $n is negative
-     * @throws OutOfBoundsException     when $n is beyond the last element
+     * @throws MalformedArgumentException when $n is negative
+     * @throws LookupException            when $n is beyond the last element
      */
     public static function nth(iterable $iterable, int $n): mixed
     {
         if ($n < 0) {
-            throw new InvalidArgumentException('Index must be non-negative.');
+            throw new MalformedArgumentException('Index must be non-negative.');
         }
         $index = 0;
         foreach ($iterable as $value) {
@@ -660,7 +673,7 @@ final class Iter
             ++$index;
         }
 
-        throw new OutOfBoundsException("No element at index {$n}.");
+        throw new LookupException("No element at index {$n}.");
     }
 
     /**
@@ -673,12 +686,12 @@ final class Iter
      *
      * @return null|TValue
      *
-     * @throws InvalidArgumentException when $n is negative
+     * @throws MalformedArgumentException when $n is negative
      */
     public static function nthOrNull(iterable $iterable, int $n): mixed
     {
         if ($n < 0) {
-            throw new InvalidArgumentException('Index must be non-negative.');
+            throw new MalformedArgumentException('Index must be non-negative.');
         }
         $index = 0;
         foreach ($iterable as $value) {
@@ -743,9 +756,13 @@ final class Iter
     }
 
     /**
-     * Returns the number of elements, consuming the source.
+     * Returns the number of elements, consuming the source. Typed `int<0, max>`,
+     * so the result satisfies a {@see Countable::count()} implementation
+     * directly.
      *
      * @param iterable<mixed> $iterable
+     *
+     * @return int<0, max>
      */
     public static function count(iterable $iterable): int
     {

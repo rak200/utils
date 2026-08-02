@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Rak200\Utils;
 
 use BackedEnum;
-use InvalidArgumentException;
-use OutOfBoundsException;
-use UnderflowException;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\LookupException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 use UnitEnum;
 
 /**
@@ -77,12 +77,12 @@ final class Enum
      *
      * @return list<int|string>
      *
-     * @throws InvalidArgumentException when $enumClass is not a backed enum
+     * @throws MalformedArgumentException when $enumClass is not a backed enum
      */
     public static function values(string $enumClass): array
     {
         if (!Type::isSubclass($enumClass, BackedEnum::class)) {
-            throw new InvalidArgumentException("{$enumClass} is not a backed enum.");
+            throw new MalformedArgumentException("{$enumClass} is not a backed enum.");
         }
         $values = [];
         foreach ($enumClass::cases() as $case) {
@@ -101,13 +101,13 @@ final class Enum
      *
      * @return T
      *
-     * @throws OutOfBoundsException when no case has that name
+     * @throws LookupException when no case has that name
      */
     public static function fromName(string $enumClass, string $name): UnitEnum
     {
         $case = self::tryFromName($enumClass, $name);
         if ($case === null) {
-            throw new OutOfBoundsException("{$enumClass} has no case named \"{$name}\".");
+            throw new LookupException("{$enumClass} has no case named \"{$name}\".");
         }
 
         return $case;
@@ -146,19 +146,19 @@ final class Enum
      *
      * @return T
      *
-     * @throws InvalidArgumentException when $enumClass is not a backed enum
-     * @throws OutOfBoundsException     when no case carries that value
+     * @throws MalformedArgumentException when $enumClass is not a backed enum
+     * @throws LookupException            when no case carries that value
      */
     public static function fromValue(string $enumClass, mixed $value): UnitEnum
     {
         if (!Type::isSubclass($enumClass, BackedEnum::class)) {
-            throw new InvalidArgumentException("{$enumClass} is not a backed enum.");
+            throw new MalformedArgumentException("{$enumClass} is not a backed enum.");
         }
         $case = self::tryFromValue($enumClass, $value);
         if ($case === null) {
             $display = Filter::toStr($value) ?? Type::of($value);
 
-            throw new OutOfBoundsException("{$enumClass} has no case with value \"{$display}\".");
+            throw new LookupException("{$enumClass} has no case with value \"{$display}\".");
         }
 
         return $case;
@@ -210,13 +210,13 @@ final class Enum
      *
      * @return T
      *
-     * @throws UnderflowException when $enumClass has no cases
+     * @throws EmptySourceException when $enumClass has no cases
      */
     public static function random(string $enumClass): UnitEnum
     {
         $cases = $enumClass::cases();
         if ($cases === []) {
-            throw new UnderflowException("{$enumClass} has no cases.");
+            throw new EmptySourceException("{$enumClass} has no cases.");
         }
 
         return Rand::choice($cases);

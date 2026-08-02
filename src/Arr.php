@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Rak200\Utils;
 
-use InvalidArgumentException;
-use OutOfBoundsException;
-use UnderflowException;
-use UnexpectedValueException;
+use Rak200\Utils\Exception\BadCallbackException;
+use Rak200\Utils\Exception\EmptySourceException;
+use Rak200\Utils\Exception\LookupException;
+use Rak200\Utils\Exception\MalformedArgumentException;
 
 use function array_chunk;
 use function array_combine;
@@ -30,6 +30,7 @@ use function array_merge;
 use function array_reverse;
 use function array_search;
 use function array_slice;
+use function array_splice;
 use function array_values;
 use function count;
 use function in_array;
@@ -37,6 +38,7 @@ use function is_array;
 use function krsort;
 use function ksort;
 use function max;
+use function uasort;
 use function usort;
 
 /**
@@ -111,12 +113,12 @@ final class Arr
      *
      * @return T
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function first(array $array): mixed
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get first element of an empty array.');
+            throw new EmptySourceException('Cannot get first element of an empty array.');
         }
 
         return $array[array_key_first($array)];
@@ -149,12 +151,12 @@ final class Arr
      *
      * @return T
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function last(array $array): mixed
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get last element of an empty array.');
+            throw new EmptySourceException('Cannot get last element of an empty array.');
         }
 
         return $array[array_key_last($array)];
@@ -187,12 +189,12 @@ final class Arr
      *
      * @return K
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function firstKey(array $array): int|string
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get first key of an empty array.');
+            throw new EmptySourceException('Cannot get first key of an empty array.');
         }
 
         return array_key_first($array);
@@ -201,11 +203,17 @@ final class Arr
     /**
      * Returns the first key of the array, or null if it is empty.
      *
+     * Carries the array's own key type, and drops the `null` arm outright when
+     * the array is statically non-empty. The conditional is true here — a
+     * non-empty array always has a first key — unlike on {@see searchOrNull()},
+     * where the same shape would claim a non-empty array always contains the
+     * value, which is why that one stays wide.
+     *
      * @template K of array-key
      *
      * @param array<K, mixed> $array
      *
-     * @return null|K
+     * @return ($array is non-empty-array ? K : null)
      */
     public static function firstKeyOrNull(array $array): int|string|null
     {
@@ -221,12 +229,12 @@ final class Arr
      *
      * @return K
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function lastKey(array $array): int|string
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot get last key of an empty array.');
+            throw new EmptySourceException('Cannot get last key of an empty array.');
         }
 
         return array_key_last($array);
@@ -235,11 +243,15 @@ final class Arr
     /**
      * Returns the last key of the array, or null if it is empty.
      *
+     * Carries the array's own key type, and drops the `null` arm outright when
+     * the array is statically non-empty — see {@see firstKeyOrNull()} for why
+     * the conditional is legitimate here and not on {@see searchOrNull()}.
+     *
      * @template K of array-key
      *
      * @param array<K, mixed> $array
      *
-     * @return null|K
+     * @return ($array is non-empty-array ? K : null)
      */
     public static function lastKeyOrNull(array $array): int|string|null
     {
@@ -257,7 +269,7 @@ final class Arr
      *
      * @return T
      *
-     * @throws OutOfBoundsException when no element matches
+     * @throws LookupException when no element matches
      */
     public static function find(array $array, callable $predicate): mixed
     {
@@ -267,7 +279,7 @@ final class Arr
             }
         }
 
-        throw new OutOfBoundsException('No element matches the predicate.');
+        throw new LookupException('No element matches the predicate.');
     }
 
     /**
@@ -333,6 +345,45 @@ final class Arr
     }
 
     /**
+     * Maps each element to an iterable via $callback (called with value and key)
+     * and returns the results flattened one level, re-indexed as a 0-based list.
+     * The eager twin of {@see Iter::flatMap()}; one level only, so a callback
+     * returning nested iterables leaves the inner ones untouched.
+     *
+     * @template K of array-key
+     * @template T
+     * @template R
+     *
+     * @param array<K, T>                 $array
+     * @param callable(T, K): iterable<R> $callback
+     *
+     * @return list<R>
+     *
+     * @throws BadCallbackException when $callback returns a non-iterable
+     */
+    public static function flatMap(array $array, callable $callback): array
+    {
+        $result = [];
+        foreach ($array as $key => $value) {
+            $mapped = $callback($value, $key);
+            // The guard is unreachable for a caller that honours the declared
+            // `iterable<R>`, which is exactly why PHPStan reports it — but the
+            // declaration is PHPDoc on a public API, not something PHP enforces.
+            // Without the guard an untyped caller loses the element in silence:
+            // `foreach` over a non-iterable only warns and skips.
+            // @phpstan-ignore staticMethod.alreadyNarrowedType
+            if (!Type::isIterable($mapped)) {
+                throw new BadCallbackException('Callback must return an iterable. Got: ' . Type::of($mapped));
+            }
+            foreach ($mapped as $sub) {
+                $result[] = $sub;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Reduces the array to a single value by repeatedly applying $callback.
      *
      * @template K of array-key
@@ -363,12 +414,12 @@ final class Arr
      *
      * @return list<mixed>
      *
-     * @throws InvalidArgumentException when $depth is negative
+     * @throws MalformedArgumentException when $depth is negative
      */
     public static function flatten(array $array, int $depth = PHP_INT_MAX): array
     {
         if ($depth < 0) {
-            throw new InvalidArgumentException('Depth must be non-negative.');
+            throw new MalformedArgumentException('Depth must be non-negative.');
         }
         $result = [];
         foreach ($array as $item) {
@@ -444,12 +495,12 @@ final class Arr
      *
      * @return list<non-empty-list<T>>
      *
-     * @throws InvalidArgumentException when $size is less than 1
+     * @throws MalformedArgumentException when $size is less than 1
      */
     public static function chunk(array $array, int $size): array
     {
         if ($size < 1) {
-            throw new InvalidArgumentException('Chunk size must be at least 1.');
+            throw new MalformedArgumentException('Chunk size must be at least 1.');
         }
 
         return array_chunk($array, $size);
@@ -510,13 +561,13 @@ final class Arr
      *
      * @param array<array-key, mixed> $array
      *
-     * @throws OutOfBoundsException when $path does not resolve
+     * @throws LookupException when $path does not resolve
      */
     public static function get(array $array, int|string $path): mixed
     {
         [$found, $value] = self::resolvePath($array, $path);
         if (!$found) {
-            throw new OutOfBoundsException("Path \"{$path}\" not found in array.");
+            throw new LookupException("Path \"{$path}\" not found in array.");
         }
 
         return $value;
@@ -540,12 +591,12 @@ final class Arr
      *
      * @param array<array-key, mixed> $array
      *
-     * @throws OutOfBoundsException when $key is not present
+     * @throws LookupException when $key is not present
      */
     public static function getKey(array $array, int|string $key): mixed
     {
         if (!array_key_exists($key, $array)) {
-            throw new OutOfBoundsException("Key \"{$key}\" not found in array.");
+            throw new LookupException("Key \"{$key}\" not found in array.");
         }
 
         return $array[$key];
@@ -694,35 +745,111 @@ final class Arr
      * default). The key-returning counterpart of {@see find()}, which returns the
      * value.
      *
-     * @param array<array-key, mixed> $array
+     * Carries the array's own key type: over a `list` the result is typed
+     * `int<0, max>`, where {@see searchOrNull()} can only widen to
+     * `int|string|null` — see the note there.
      *
-     * @return array-key
+     * @template K of array-key
      *
-     * @throws OutOfBoundsException when $value is not present
+     * @param array<K, mixed> $array
+     *
+     * @return K
+     *
+     * @throws LookupException when $value is not present
      */
     public static function search(array $array, mixed $value, bool $strict = true): int|string
     {
-        $key = self::searchOrNull($array, $value, $strict);
-        if ($key === null) {
-            throw new OutOfBoundsException('Value not found in array.');
+        // array_keys() with a search value, not array_search(): over
+        // `array<K, mixed>` the latter's stub yields `int|string|false` — it does
+        // not propagate the key template — so its result cannot prove the K this
+        // method promises, and no annotation fixes that from the outside.
+        // array_keys() returns `list<K>` and does. The comparison is `==` / `===`
+        // exactly as the $strict flag selects in either native, so the first
+        // match is the same key. The cost is one full scan with no early exit,
+        // plus a list of every match where only the first is used.
+        $keys = array_keys($array, $value, $strict);
+        if ($keys === []) {
+            throw new LookupException('Value not found in array.');
         }
 
-        return $key;
+        return $keys[0];
     }
 
     /**
      * Returns the key of the first element equal to $value (strict comparison by
      * default), or null when $value is not present.
      *
-     * @param array<array-key, mixed> $array
+     * Unlike {@see search()}, this cannot carry the array's key type. The result
+     * is intrinsically `K|null` — the value may simply be absent — and PHPStan
+     * does not resolve a template inside a union with null, neither as a plain
+     * return nor inside a conditional branch. The one shape that does resolve,
+     * `($array is non-empty-array ? K : null)`, would be false here: it claims a
+     * non-empty array always finds the value, which would make every caller's
+     * `=== null` check look like dead code. The wider type is the honest one, so
+     * the `null|K` below degrades to `int|string|null` at every call site — it is
+     * spelled with the template to state the intent, and to pick the precision up
+     * for free should PHPStan ever resolve it. Use {@see search()} when you need
+     * the precise key and can treat a miss as exceptional.
      *
-     * @return null|array-key
+     * @template K of array-key
+     *
+     * @param array<K, mixed> $array
+     *
+     * @return null|K
      */
     public static function searchOrNull(array $array, mixed $value, bool $strict = true): int|string|null
     {
         $key = array_search($value, $array, $strict);
 
         return $key === false ? null : $key;
+    }
+
+    /**
+     * Returns the 0-based position of $key in the array's iteration order — the
+     * positional counterpart of {@see search()}, which answers value => key.
+     * Key matching follows {@see hasKey()}: PHP normalises a numeric-string key
+     * to an int on write, so `'1'` finds the key `1`.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @return int<0, max>
+     *
+     * @throws LookupException when $key is not present
+     */
+    public static function keyPosition(array $array, int|string $key): int
+    {
+        $position = self::keyPositionOrNull($array, $key);
+        if ($position === null) {
+            throw new LookupException("Key \"{$key}\" not found in array.");
+        }
+
+        return $position;
+    }
+
+    /**
+     * Returns the 0-based position of $key in the array's iteration order, or
+     * null when $key is not present.
+     *
+     * @param array<array-key, mixed> $array
+     *
+     * @return null|int<0, max>
+     */
+    public static function keyPositionOrNull(array $array, int|string $key): ?int
+    {
+        // PHP normalises a numeric-string key to int on write, so normalise the
+        // needle the same way — otherwise '1' would miss the key 1 that
+        // hasKey()/array_key_exists() report as present.
+        $normalized = array_key_first([$key => null]);
+
+        $position = 0;
+        foreach ($array as $existing => $ignored) {
+            if ($existing === $normalized) {
+                return $position;
+            }
+            ++$position;
+        }
+
+        return null;
     }
 
     /**
@@ -736,8 +863,8 @@ final class Arr
      *
      * @return ($indexKey is null ? list<mixed> : array<int|string, mixed>)
      *
-     * @throws OutOfBoundsException     when $indexKey is given and an item lacks it
-     * @throws UnexpectedValueException when the resolved key is not an int or string
+     * @throws LookupException      when $indexKey is given and an item lacks it
+     * @throws BadCallbackException when the resolved key is not an int or string
      */
     public static function pluck(array $array, int|string $key, int|string|null $indexKey = null): array
     {
@@ -764,9 +891,9 @@ final class Arr
      *
      * @return array<int|string, T>
      *
-     * @throws OutOfBoundsException     when $key is a column name and an item is
-     *                                  not an array or lacks that column
-     * @throws UnexpectedValueException when the resolved key is not an int or string
+     * @throws LookupException      when $key is a column name and an item is
+     *                              not an array or lacks that column
+     * @throws BadCallbackException when the resolved key is not an int or string
      */
     public static function keyBy(array $array, callable|int|string $key): array
     {
@@ -778,12 +905,12 @@ final class Arr
                 $k = $key($item);
             } else {
                 if (!is_array($item) || !array_key_exists($key, $item)) {
-                    throw new OutOfBoundsException("Item missing key \"{$key}\"");
+                    throw new LookupException("Item missing key \"{$key}\"");
                 }
                 $k = $item[$key];
             }
             if (!Num::isInt($k) && !Str::is($k)) {
-                throw new UnexpectedValueException('Resolved key must be an int or string.');
+                throw new BadCallbackException('Resolved key must be an int or string.');
             }
             $result[$k] = $item;
         }
@@ -793,24 +920,32 @@ final class Arr
 
     /**
      * Returns $array sorted with the natural `<=>` comparator (or $comparator
-     * when given). Values are re-indexed as a 0-based list.
+     * when given). Values are re-indexed as a 0-based list unless $preserveKeys
+     * is true, which keeps each value under its own key ({@see uasort()}
+     * semantics). Note that a `list` sorted with $preserveKeys does *not* come
+     * back a list — its keys survive, in their new order.
      *
+     * @template K of array-key
      * @template T
      *
-     * @param array<array-key, T>      $array
+     * @param array<K, T>              $array
      * @param null|callable(T, T): int $comparator
      *
-     * @return list<T>
+     * @return ($preserveKeys is true ? array<K, T> : list<T>)
      */
-    public static function sort(array $array, ?callable $comparator = null): array
+    public static function sort(array $array, ?callable $comparator = null, bool $preserveKeys = false): array
     {
+        $comparator ??= static fn (mixed $a, mixed $b): int => $a <=> $b;
+
+        if ($preserveKeys) {
+            uasort($array, $comparator);
+
+            return $array;
+        }
+
         // @infection-ignore-all: usort reindexes its subject anyway; the explicit array_values only pins the list type
         $values = array_values($array);
-        if ($comparator === null) {
-            usort($values, static fn (mixed $a, mixed $b): int => $a <=> $b);
-        } else {
-            usort($values, $comparator);
-        }
+        usort($values, $comparator);
 
         return $values;
     }
@@ -818,7 +953,9 @@ final class Arr
     /**
      * Returns $array sorted by the value produced by $keyExtractor for each
      * element (called with value and key). Values are re-indexed as a 0-based
-     * list.
+     * list unless $preserveKeys is true, which keeps each value under its own
+     * key — the same axis {@see sort()} offers, sorting by a derived key
+     * instead of by the value itself.
      *
      * @template K of array-key
      * @template T
@@ -826,15 +963,22 @@ final class Arr
      * @param array<K, T>           $array
      * @param callable(T, K): mixed $keyExtractor
      *
-     * @return list<T>
+     * @return ($preserveKeys is true ? array<K, T> : list<T>)
      */
-    public static function sortBy(array $array, callable $keyExtractor): array
+    public static function sortBy(array $array, callable $keyExtractor, bool $preserveKeys = false): array
     {
         $annotated = [];
         foreach ($array as $key => $value) {
-            $annotated[] = [$keyExtractor($value, $key), $value];
+            $annotated[$key] = [$keyExtractor($value, $key), $value];
         }
-        usort($annotated, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
+
+        $comparator = static fn (array $a, array $b): int => $a[0] <=> $b[0];
+        if ($preserveKeys) {
+            uasort($annotated, $comparator);
+
+            return array_map(static fn (array $pair): mixed => $pair[1], $annotated);
+        }
+        usort($annotated, $comparator);
 
         return array_map(static fn (array $pair): mixed => $pair[1], $annotated);
     }
@@ -885,9 +1029,12 @@ final class Arr
     }
 
     /**
-     * Returns the number of elements in the array.
+     * Returns the number of elements in the array. Typed `int<0, max>`, so the
+     * result satisfies a {@see Countable::count()} implementation directly.
      *
      * @param array<array-key, mixed> $array
+     *
+     * @return int<0, max>
      */
     public static function count(array $array): int
     {
@@ -927,6 +1074,38 @@ final class Arr
     }
 
     /**
+     * Returns $array with $length elements removed starting at $index, closing
+     * the gap — the pure form of {@see array_splice()}, which mutates its
+     * subject. The input is left untouched.
+     *
+     * Index and length follow {@see slice()}: a negative $index counts from the
+     * end (clamped to the start once it reaches past it), and a negative $length
+     * stops that many elements before the end. An $index past the end, or a
+     * $length that resolves to nothing, removes nothing. Integer keys are
+     * renumbered, string keys kept.
+     *
+     * To drop the first or last element and keep it, see {@see shift()} /
+     * {@see pop()}.
+     *
+     * @template T
+     *
+     * @param array<array-key, T> $array
+     *
+     * @return ($array is list<T> ? list<T> : array<array-key, T>)
+     */
+    public static function removeAt(array $array, int $index, int $length = 1): array
+    {
+        // array_splice mutates, but $array is by value, so the caller's array is
+        // untouched — the same way sortKeys() uses ksort(). Delegating instead
+        // of composing slice() + merge() keeps every edge case (negative-index
+        // clamping, negative length, out-of-range) identical to the native by
+        // construction rather than by re-derivation.
+        array_splice($array, $index, $length);
+
+        return $array;
+    }
+
+    /**
      * Returns the array with keys and values swapped. Values must be int or
      * string; on duplicate values the last key wins.
      *
@@ -949,12 +1128,12 @@ final class Arr
      *
      * @return array<array-key, T>
      *
-     * @throws InvalidArgumentException when $keys and $values differ in length
+     * @throws MalformedArgumentException when $keys and $values differ in length
      */
     public static function combine(array $keys, array $values): array
     {
         if (count($keys) !== count($values)) {
-            throw new InvalidArgumentException('Keys and values must have the same number of elements.');
+            throw new MalformedArgumentException('Keys and values must have the same number of elements.');
         }
 
         return array_combine($keys, $values);
@@ -1054,12 +1233,12 @@ final class Arr
      *
      * @return ($array is list<T> ? array{0: T, 1: list<T>} : array{0: T, 1: array<array-key, T>})
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function shift(array $array): array
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot shift from an empty array.');
+            throw new EmptySourceException('Cannot shift from an empty array.');
         }
 
         return [self::first($array), self::slice($array, 1)];
@@ -1091,12 +1270,12 @@ final class Arr
      *
      * @return ($array is list<T> ? array{0: T, 1: list<T>} : array{0: T, 1: array<array-key, T>})
      *
-     * @throws UnderflowException when the array is empty
+     * @throws EmptySourceException when the array is empty
      */
     public static function pop(array $array): array
     {
         if ($array === []) {
-            throw new UnderflowException('Cannot pop from an empty array.');
+            throw new EmptySourceException('Cannot pop from an empty array.');
         }
 
         return [self::last($array), self::slice($array, 0, -1)];
@@ -1147,12 +1326,12 @@ final class Arr
      *
      * @return list<T>
      *
-     * @throws InvalidArgumentException when $count is negative
+     * @throws MalformedArgumentException when $count is negative
      */
     public static function fill(int $count, mixed $value): array
     {
         if ($count < 0) {
-            throw new InvalidArgumentException('Count must be non-negative.');
+            throw new MalformedArgumentException('Count must be non-negative.');
         }
 
         return array_fill(0, $count, $value);
@@ -1180,12 +1359,12 @@ final class Arr
      *
      * @return list<int>
      *
-     * @throws InvalidArgumentException when $step is zero
+     * @throws MalformedArgumentException when $step is zero
      */
     public static function range(int $start, int $end, int $step = 1): array
     {
         if ($step === 0) {
-            throw new InvalidArgumentException('Step cannot be zero.');
+            throw new MalformedArgumentException('Step cannot be zero.');
         }
         // @infection-ignore-all: readability guard — for these inputs both loop conditions below fail on entry, so
         // falling through (or mismatching the guard) still yields []

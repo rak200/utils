@@ -86,7 +86,7 @@ Returns the backed values of every case, in declaration order. Throws when the c
 
 ```php
 Enum::values(Status::class);  // ['active', 'inactive']
-Enum::values(Suit::class);    // InvalidArgumentException (pure enum)
+Enum::values(Suit::class);    // MalformedArgumentException (pure enum)
 ```
 
 [↑ Back to top](#enum)
@@ -99,7 +99,7 @@ Looks up a case by its **name** — the gap PHP leaves open (the native `from()`
 
 ```php
 Enum::fromName(Suit::class, 'Hearts');       // Suit::Hearts
-Enum::fromName(Suit::class, 'Clubs');        // OutOfBoundsException
+Enum::fromName(Suit::class, 'Clubs');        // LookupException
 
 Enum::tryFromName(Status::class, 'Active');  // Status::Active
 Enum::tryFromName(Status::class, 'Unknown'); // null
@@ -115,7 +115,7 @@ Looks up a case by its **backed value**, loosely — the counterpart of [`fromNa
 
 Accepts an `int` or a `string`. For an int-backed enum a string goes through [`Num::parseIntOrNull`](num.md#parseint--parseintornull) — **strict**, so surrounding whitespace is rejected, matching [`Num::is`](num.md#is). Any other type misses.
 
-`tryFromValue` is total and never throws: a pure enum and an enum with no cases both return `null`, so it composes with `tryFromName` as a fallback chain without a prior guard. `fromValue` distinguishes the two failures instead — `InvalidArgumentException` when the class is not a backed enum, `OutOfBoundsException` when no case carries the value.
+`tryFromValue` is total and never throws: a pure enum and an enum with no cases both return `null`, so it composes with `tryFromName` as a fallback chain without a prior guard. `fromValue` distinguishes the two failures instead — `MalformedArgumentException` when the class is not a backed enum, `LookupException` when no case carries the value.
 
 ```php
 enum Priority: int { case Low = 1; case High = 10; }
@@ -133,8 +133,8 @@ Enum::tryFromValue(Suit::class, 'Hearts');     // null   (pure enum has no value
 Enum::tryFromValue(Status::class, 'Active') ?? Enum::tryFromName(Status::class, 'Active');   // Status::Active
 
 Enum::fromValue(Priority::class, '10');        // Priority::High
-Enum::fromValue(Priority::class, 7);           // OutOfBoundsException
-Enum::fromValue(Suit::class, 'Hearts');        // InvalidArgumentException (not a backed enum)
+Enum::fromValue(Priority::class, 7);           // LookupException
+Enum::fromValue(Suit::class, 'Hearts');        // MalformedArgumentException (not a backed enum)
 ```
 
 [↑ Back to top](#enum)

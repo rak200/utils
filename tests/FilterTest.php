@@ -105,6 +105,29 @@ final class FilterTest extends TestCase
         $this->assertSame('a@b.comscript', Filter::email('a@b.com<script>'));
     }
 
+    public function testIsEmail(): void
+    {
+        $this->assertTrue(Filter::isEmail('john.doe@example.com'));
+        $this->assertTrue(Filter::isEmail('a+tag@sub.example.co.uk'));
+
+        $this->assertFalse(Filter::isEmail(''));
+        $this->assertFalse(Filter::isEmail('john.doe'));            // no @
+        $this->assertFalse(Filter::isEmail('@example.com'));        // no local part
+        $this->assertFalse(Filter::isEmail('john@'));               // no domain
+        $this->assertFalse(Filter::isEmail('john doe@example.com')); // inner space
+        $this->assertFalse(Filter::isEmail(' john@example.com '));  // surrounding whitespace
+        $this->assertFalse(Filter::isEmail('john@localhost'));      // dot-less domain
+    }
+
+    public function testIsEmailDoesNotValidateWhatEmailSanitises(): void
+    {
+        // Sanitising is not validating: email() drops the illegal characters and
+        // the *result* passes isEmail(), but the input it came from never did.
+        $this->assertFalse(Filter::isEmail('a@b.com<script>'));
+        $this->assertSame('a@b.comscript', Filter::email('a@b.com<script>'));
+        $this->assertTrue(Filter::isEmail(Filter::email('a@b.com<script>')));
+    }
+
     public function testUrl(): void
     {
         $this->assertSame('https://example.com/path', Filter::url('https://example.com/path'));

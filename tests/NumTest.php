@@ -803,6 +803,13 @@ final class NumTest extends TestCase
         Num::div(5.0, 0.0);
     }
 
+    public function testDivByNumberZeroThrows(): void
+    {
+        $this->expectException(MalformedArgumentException::class);
+        $this->expectExceptionMessage('Cannot divide by zero.');
+        Num::div(new Number('5'), new Number('0'));
+    }
+
     public function testModIntByFloatUsesFmod(): void
     {
         $this->assertSame(2.0, Num::mod(7, 2.5));

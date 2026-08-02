@@ -74,7 +74,7 @@ Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
 ### Planned additions
 
-None outstanding — the 4.5.0 cycle cleared the list. New entries go here; the sections below hold what is deferred, dropped, or waiting on a release.
+None outstanding. New entries go here; the sections below hold what is deferred, dropped, or waiting on a release.
 
 ### Investigated and dropped
 
@@ -102,7 +102,7 @@ None outstanding — the 4.5.0 cycle cleared the list. New entries go here; the 
 
 ### Type-annotation corrections (PHPDoc-only, BC-safe)
 
-**Cleared by 4.5.0 — nothing outstanding.** The section existed for annotations **less precise than what the implementation already guarantees**, which block a consumer from adopting the helper at all: the declared type is wider than the call site's contract, so the "fix" would be a PHPStan suppression, which the conventions forbid. It was surfaced auditing `rak200/collections` 0.8.0 (2026-07-25) against the prefer-lib-over-native rule, and every entry shipped in 4.5.0 — the `int<0, max>` pair on `Arr::count()` / `Iter::count()`, the `Arr::search()` key type, the `firstKeyOrNull()` / `lastKeyOrNull()` pair, and the `int`-preserving conditionals on `Num`. New entries go here; they are PHPDoc-only, so they ship in a minor with no runtime change.
+**None outstanding.** This section holds annotations **less precise than what the implementation already guarantees**, which block a consumer from adopting the helper at all: the declared type is wider than the call site's contract, so the "fix" would be a PHPStan suppression, which the conventions forbid. Auditing a consumer library against the prefer-lib-over-native rule is what surfaces them. New entries go here; they are PHPDoc-only, so they ship in a minor with no runtime change.
 
 Two limits are recorded so they are not re-proposed as if they were oversights:
 
@@ -111,10 +111,12 @@ Two limits are recorded so they are not re-proposed as if they were oversights:
 
 ### Test coverage (pragmatic; literal 100% is a deferred decision)
 
-The suite targets **pragmatic** line coverage — measured at **97.89%** (1620/1655) for 4.5.0 — closing every reasonably-testable branch, error/`@throws` paths included (an invalid input that makes the native emit a warning is tested with `@` suppressing that expected warning, the same idiom `Regex::is` uses). The lines left uncovered are deliberate:
+The suite targets **pragmatic** line coverage — measured at **97.95%** (1625/1659) — closing every reasonably-testable branch, error/`@throws` paths included (an invalid input that makes the native emit a warning is tested with `@` suppressing that expected warning, the same idiom `Regex::is` uses). The 34 lines left uncovered are deliberate, and the two categories below account for **all** of them — anything outside this inventory is a gap, not a decision:
 
-- **Unreachable defensive code** — the 17 private `__construct() {}` of the static-only classes, and the post-loop `return self::BITS;` in `Bit::leadingZeros`/`trailingZeros` (a non-zero value always finds a set bit inside the loop).
-- **Branches that only fire when a native call fails despite valid preconditions** — `File::read`/`delete`/`size`/`lines`/`temp`/`list`/`readCsv`/`writeCsv` and `File::mime`'s finfo branches (the file exists / handle is valid but `file_get_contents`/`unlink`/`filesize`/`fopen`/`tempnam`/`glob`/`fputcsv`/`finfo_*` returns `false`), `Dt::fromEpochMs`'s `createFromFormat` failure (the format string is built from ints, so it always parses), and `Filter::ascii`'s iconv-unavailable fallback (iconv is present).
+- **Unreachable defensive code** (22) — the 18 private `__construct() {}` of the static-only classes; the post-loop `return self::BITS;` in `Bit::leadingZeros`/`trailingZeros` (a non-zero value always finds a set bit inside the loop); and the `return;` after `yield from` in `Iter::doRange`/`doRepeat` (both delegate to an infinite generator, which never completes, so control never reaches the line).
+- **Branches that only fire when a native call fails despite valid preconditions** (12) — `File::read`/`delete`/`size`/`lines`/`temp`/`list`/`readCsv`/`writeCsv` and `File::mime`'s finfo branches (the file exists / handle is valid but `file_get_contents`/`unlink`/`filesize`/`fopen`/`tempnam`/`glob`/`fputcsv`/`finfo_*` returns `false`), `Dt::fromEpochMs`'s `createFromFormat` failure (the format string is built from ints, so it always parses), and `Filter::ascii`'s iconv-unavailable fallback (iconv is present).
+
+The exhaustive count is the point: it is what turns a Codecov patch report into a decision. `Num::div`'s `BcMath\Number` divide-by-zero guard sat uncovered for several releases precisely because nobody could tell it apart from the deliberate list — and `minCoveredMsi` cannot flag it, since mutants on an uncovered line are not counted.
 
 Forcing these to **literal 100%** would need fragile, platform-specific setups (read-only dirs via `chmod`/`icacls`, invalidated handles, mocking `finfo`) that contradict the suite's clean style. **Deferred:** decide later whether to pursue literal 100%, and how — going literal would also unlock raising the Infection gate from the current `minCoveredMsi: 100` to the full `minMsi: 100` (uncovered lines' mutants cannot be killed, which is why `infection.json5.dist` deliberately omits `minMsi`).
 

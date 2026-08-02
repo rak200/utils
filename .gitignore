@@ -1,10 +1,13 @@
 /vendor/
+/node_modules/
+.claude/
 /composer.lock
+/phpstan.neon
+/infection.json5
 .phpunit.result.cache
 .phpunit.cache/
 .phpstan.cache/
 .php-cs-fixer.cache
-.claude/
-/phpstan.neon
 infection.log
-/infection.json5
+semgrep.sarif
+coverage.xml

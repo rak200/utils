@@ -211,7 +211,6 @@ final class Iter
             $mapped = $callback($value, $key);
             // See the twin {@see Arr::flatMap()} for why this guard is kept
             // despite being unreachable under the declared type.
-            // @phpstan-ignore staticMethod.alreadyNarrowedType
             if (!Type::isIterable($mapped)) {
                 throw new BadCallbackException('Callback must return an iterable. Got: ' . Type::of($mapped));
             }

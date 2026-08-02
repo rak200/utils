@@ -77,7 +77,7 @@ final class Dt
         int $second = 0,
         ?DateTimeZone $tz = null,
     ): DateTimeImmutable {
-        return (new DateTimeImmutable('now', $tz))
+        return new DateTimeImmutable('now', $tz)
             ->setDate($year, $month, $day)
             ->setTime($hour, $minute, $second)
         ;

@@ -1,103 +1,72 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
-The **cross-library rak200 PHP conventions** (baseline & tooling, dev dependencies, CI, code style, naming, `use function` inventory, first-class callables, correctness-over-efficiency, safe defaults, testing, versioning, README badges) are shared and imported below. This file keeps only what is specific to **utils**.
+@.rak200/CONVENTIONS.md
+@vendor/rak200/coding-standard-php/CONVENTIONS.md
 
-@~/.claude/rak200-php-conventions.md
+> If `.rak200/` is empty, the clone skipped its submodule:
+> `git submodule update --init --recursive`. If the second import is missing, run
+> `composer install` — PHP development needs it anyway.
 
-## Project Overview
+## What this repository is
 
-**rak200/utils** is a standalone PHP 8.4+ library of static utility helpers. It groups commonly-used helpers into a small set of `final` classes with short Laravel-style names, replacing scattered global functions with a discoverable, type-strict API. No runtime dependencies.
+**rak200/utils** is a standalone PHP 8.4+ library of static utility helpers. It groups
+commonly-used helpers into a small set of `final` classes with short Laravel-style names,
+replacing scattered global functions with a discoverable, type-strict API. No runtime Composer
+dependencies — only `ext-bcmath` (for `Num`'s `BcMath\Number` support) and `ext-mbstring`.
 
-## Structure
+## Architecture
 
 ```
-utils/
-├── src/
-│   ├── Str.php       # strings (Tier 1)
-│   ├── Arr.php       # arrays (Tier 1)
-│   ├── Iter.php      # lazy iterables / generators (Tier 1)
-│   ├── Num.php       # numbers (Tier 1)
-│   ├── Rand.php      # randomness, uuid, ulid, nanoid (Tier 1)
-│   ├── Regex.php     # regular expressions (Tier 2)
-│   ├── Hash.php      # hashing + passwords (Tier 2)
-│   ├── Bit.php       # bit manipulation (Tier 2)
-│   ├── File.php      # filesystem (Tier 2)
-│   ├── Json.php      # JSON (Tier 2)
-│   ├── Base64.php    # Base64 encode/decode (Tier 2)
-│   ├── Hex.php       # hexadecimal encode/decode of binary strings (Tier 2)
-│   ├── Dt.php        # DateTimeImmutable helpers (Tier 2)
-│   ├── Url.php       # URL parse/build, query encode/decode (Tier 2)
-│   ├── Path.php      # logical path manipulation, no disk access (Tier 2)
-│   ├── Type.php      # type-checking predicates accepting mixed (Tier 2)
-│   ├── Enum.php      # class-level enum operations (Tier 2)
-│   ├── Filter.php    # input sanitisation + mixed-to-typed coercion (Tier 2)
-│   └── Exception/    # UtilsException marker + domain exceptions (IOException → Filesystem branch)
-└── tests/            # mirrors src/ layout (one *Test.php per class)
-    └── StaticAnalysis/  # PHPStan-only assertType fixtures (no Test suffix; never run by PHPUnit)
+src/
+├── Str.php       # strings (Tier 1)
+├── Arr.php       # arrays (Tier 1)
+├── Iter.php      # lazy iterables / generators (Tier 1)
+├── Num.php       # numbers (Tier 1)
+├── Rand.php      # randomness, uuid, ulid, nanoid (Tier 1)
+├── Regex.php     # regular expressions (Tier 2)
+├── Hash.php      # hashing + passwords (Tier 2)
+├── Bit.php       # bit manipulation (Tier 2)
+├── File.php      # filesystem (Tier 2)
+├── Json.php      # JSON (Tier 2)
+├── Base64.php    # Base64 encode/decode (Tier 2)
+├── Hex.php       # hexadecimal encode/decode of binary strings (Tier 2)
+├── Dt.php        # DateTimeImmutable helpers (Tier 2)
+├── Url.php       # URL parse/build, query encode/decode (Tier 2)
+├── Path.php      # logical path manipulation, no disk access (Tier 2)
+├── Type.php      # type-checking predicates accepting mixed (Tier 2)
+├── Enum.php      # class-level enum operations (Tier 2)
+├── Filter.php    # input sanitisation + mixed-to-typed coercion (Tier 2)
+└── Exception/    # UtilsException marker + domain exceptions
+tests/            # mirrors src/, one *Test.php per class
+└── StaticAnalysis/  # PHPStan-only assertType fixtures; no Test suffix, never run by PHPUnit
 ```
 
-Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes live under `Rak200\Utils\Tests\` (PSR-4 from `tests/`, dev-only).
+Production classes live under `Rak200\Utils\` (PSR-4 from `src/`); test classes under
+`Rak200\Utils\Tests\` (PSR-4 from `tests/`, dev-only).
 
-## Conventions (utils-specific)
+## Conventions specific to this library
 
-The general PHP conventions live in the imported shared file above. What follows is specific to this library:
+- **Static-only classes.** Every class is `final` with a `private` constructor and only
+  `public static` methods — pure functions, no instances, no state. The public API takes and
+  returns native PHP types; no wrapper objects. The one deliberate carve-out is `src/Exception/`:
+  exception classes are instantiable by nature — empty-bodied domain classes over their SPL
+  parents plus the `UtilsException` marker (`IOException` is the one abstract grouping node),
+  carrying no behaviour of their own. See [docs/exceptions.md](docs/exceptions.md).
+- **Purity is the contract.** No mutable / in-place / pointer natives, no global / impure /
+  low-level state. Impure concerns belong in a sibling library (`rak200/http-input`), not here.
+  The exclusions are recorded in [ROADMAP.md](ROADMAP.md) under *Out of scope*, so a rejected
+  idea is not re-litigated.
+- **`Filter`'s carve-out from prefer-lib-over-native.** `Filter` sanitizers keep
+  `preg_replace(...) ?? ''` rather than `Regex::replace`, because `Regex::replace` throws on the
+  `null` that invalid UTF-8 yields under the `/u` modifier — which would violate `Filter`'s
+  "never throws" guarantee.
 
-- **Static-only classes.** Every class is `final` with a `private` constructor and only `public static` methods — pure functions, no instances, no state. Public API takes/returns native PHP types; no custom wrapper objects. The one deliberate carve-out is `src/Exception/`: exception classes are instantiable by nature — empty-bodied domain classes over their SPL parents plus the `UtilsException` marker (`IOException` is the one abstract grouping node), carrying no behaviour of their own (see [docs/exceptions.md](docs/exceptions.md)).
-- **Purity is the contract.** No mutable / in-place / pointer natives, no global / impure / low-level state — see [Out of scope](#out-of-scope-by-design--wont-do). Impure concerns belong in a separate sibling library (e.g. `rak200/http-input`), not here.
-- **Per-class docs.** utils ships a full per-class reference under `docs/` (index: [docs/README.md](docs/README.md)); every new or changed public method must be reflected there, following the layout in the shared conventions.
-- **`Filter`'s prefer-lib-over-native carve-out.** The general rule is in the shared file; the notable utils exception: `Filter` sanitizers keep `preg_replace(...) ?? ''` rather than `Regex::replace`, because `Regex::replace` throws on the `null` that invalid UTF-8 yields under the `/u` modifier — which would violate `Filter`'s "never throws" guarantee.
+## Testing specifics
 
-## Testing
-
-General testing conventions are in the shared file. utils specifics:
-
-- PHPUnit is configured via `phpunit.xml` with a single `Unit` suite.
-- Single file: `vendor/bin/phpunit tests/StrTest.php`.
-- Time-sensitive tests (`Rand::uuidV7`, `Dt::now`) assert structural properties rather than exact values.
-
-### Mutation testing — differential CI (utils-specific divergence)
-
-A full Infection run over `src/` takes ~27 minutes, so utils **diverges from the shared conventions' full-run-in-CI prescription** — waiting for it on every push was not viable. What changes is *when and what* gets mutated; the `minCoveredMsi: 100` gate itself is unchanged.
-
-- **Pull requests (blocking):** only the **changed lines** are mutated — `composer infection -- --git-diff-lines --git-diff-base=origin/master --ignore-msi-with-no-mutations`, floor `8.4` job. Needs `fetch-depth: 0` on checkout so `origin/master` is available to diff against; `--ignore-msi-with-no-mutations` lets a docs/tests-only PR pass instead of failing on zero mutants.
-- **Push to `master`:** no mutation step at all (`master` is branch-protected, so changes arrive through a PR that already passed the diff gate).
-- **Full run:** manual only, via the workflow's `workflow_dispatch` trigger. Run it before a significant release — it is the safety net for cross-file MSI drift, which the diff gate cannot see (a change in file A that stops a test from killing a mutant in untouched file B).
-- **Locally:** `composer infection-diff` mutates just your uncommitted changes against `master`.
-
-Ported to http-input (0.4.1). Still to port if it keeps proving out: `~/.claude/rak200-php-conventions.md` + caster.
-
-## Roadmap
-
-Planned additions and corrections. Released items live in `CHANGELOG.md`.
-
-### Planned additions
-
-None outstanding. New entries go here; the sections below hold what is deferred. Work this library's releases unlock **in consumer libraries** is tracked in those repositories' own roadmaps, not here.
-
-### Type-annotation corrections (PHPDoc-only, BC-safe)
-
-**None outstanding.** This section holds annotations **less precise than what the implementation already guarantees**, which block a consumer from adopting the helper at all: the declared type is wider than the call site's contract, so the "fix" would be a PHPStan suppression, which the conventions forbid. Auditing a consumer library against the prefer-lib-over-native rule is what surfaces them. New entries go here; they are PHPDoc-only, so they ship in a minor with no runtime change.
-
-### Test coverage (pragmatic; literal 100% is a deferred decision)
-
-The suite targets **pragmatic** line coverage — measured at **97.95%** (1625/1659) — closing every reasonably-testable branch, error/`@throws` paths included (an invalid input that makes the native emit a warning is tested with `@` suppressing that expected warning, the same idiom `Regex::is` uses). The 34 lines left uncovered are deliberate, and the two categories below account for **all** of them — anything outside this inventory is a gap, not a decision:
-
-- **Unreachable defensive code** (22) — the 18 private `__construct() {}` of the static-only classes; the post-loop `return self::BITS;` in `Bit::leadingZeros`/`trailingZeros` (a non-zero value always finds a set bit inside the loop); and the `return;` after `yield from` in `Iter::doRange`/`doRepeat` (both delegate to an infinite generator, which never completes, so control never reaches the line).
-- **Branches that only fire when a native call fails despite valid preconditions** (12) — `File::read`/`delete`/`size`/`lines`/`temp`/`list`/`readCsv`/`writeCsv` and `File::mime`'s finfo branches (the file exists / handle is valid but `file_get_contents`/`unlink`/`filesize`/`fopen`/`tempnam`/`glob`/`fputcsv`/`finfo_*` returns `false`), `Dt::fromEpochMs`'s `createFromFormat` failure (the format string is built from ints, so it always parses), and `Filter::ascii`'s iconv-unavailable fallback (iconv is present).
-
-The exhaustive count is the point: it is what turns a Codecov patch report into a decision. `Num::div`'s `BcMath\Number` divide-by-zero guard sat uncovered for several releases precisely because nobody could tell it apart from the deliberate list — and `minCoveredMsi` cannot flag it, since mutants on an uncovered line are not counted.
-
-Forcing these to **literal 100%** would need fragile, platform-specific setups (read-only dirs via `chmod`/`icacls`, invalidated handles, mocking `finfo`) that contradict the suite's clean style. **Deferred:** decide later whether to pursue literal 100%, and how — going literal would also unlock raising the Infection gate from the current `minCoveredMsi: 100` to the full `minMsi: 100` (uncovered lines' mutants cannot be killed, which is why `infection.json5.dist` deliberately omits `minMsi`).
-
-### Contingent (additive — ships in any minor when there's demand)
-
-- **`Math`** — only worth splitting out if trigonometry, logarithms, number theory, or scientific constants are ever added. Until then, basic arithmetic (`pow`/`sqrt`/`floor`/`ceil`/`mod`) stays in `Num` to keep one class per topic. Trig / log / `exp` / `pi` / `deg2rad`, and number-theory helpers such as `gcd` / `lcm` (no native; `gcd` via Euclid, `lcm` derived from it), belong here, **not** in `Num`. Purely additive — there's no point creating an empty class, so it lands in a minor release when real demand appears.
-- **`Email::local()` / `Email::domain()`** — splitting an address at the `@`. Deliberately *not* bundled with the 4.5.0 validator: extraction is not a `Filter` concern (that class is sanitisation, predicates and coercion), so these would need an `Email` topic class of their own, and a class born to hold two methods needs a real consumer first. Open decisions to settle when one appears: behaviour with no `@` at all, with multiple `@` (quoted local parts are legal), and throw vs `*OrNull` — none of which is worth deciding speculatively. Note the split would land `Email::is()` there too, moving the validator and leaving `Filter::isEmail()` as a deprecated alias, so this is not a free addition.
-### Out of scope (by design — won't do)
-
-Deliberate exclusions, not pending work: these contradict the library's pure / immutable / stateless contract. Impure concerns belong in a separate sibling library (e.g. `rak200/http-input`), not here.
-
-- **Mutable / pointer / in-place natives** — `array_pop` / `array_shift` / `array_splice`, in-place `sort`, `end` / `reset` / `next` / `current`, `settype` — break the pure / immutable contract. The useful cases already have immutable equivalents: `array_push` / `array_unshift` → `Arr::append` / `prepend`, in-place `sort` → `Arr::sort` / `sortBy` / `sortKeys`, `settype` → `Filter::to*`, `end` / `reset` / `current` → `Arr::first` / `last`. The *mutating* `array_shift` / `array_pop` stay out, but their pure `[element, rest]` form ships as `Arr::shift` / `Arr::pop` (+ `*OrNull`) — both halves returned without touching the input; for a single half use `Arr::first` / `last` (element) or `Arr::slice` (remainder). The same qualifier covers `array_splice`: the in-place native stays out, its pure form ships as `Arr::removeAt` (remove from any position, discarding what was removed). Note that these pure forms may still *use* the in-place native internally on a by-value parameter — `removeAt` calls `array_splice`, `sortKeys` calls `ksort` — which is not a contradiction: the exclusion is of the mutating operation in the public API, and delegating is what keeps every edge case identical to the native. See [docs/arr.md](docs/arr.md#dropping-the-first--last-element-array_shift--array_pop).
-- **Global / impure / low-level** — `setlocale`, `ini_*`, raw stream / resource handling — out of scope for a pure helper library.
+- A single PHPUnit `Unit` suite, configured in `phpunit.xml`. One file:
+  `vendor/bin/phpunit tests/StrTest.php`.
+- Time-sensitive tests (`Rand::uuidV7`, `Dt::now`) assert structural properties, never literals.
+- **The 34 uncovered lines are an inventory, not a gap** — see [ROADMAP.md](ROADMAP.md),
+  *Test coverage*. Anything outside that inventory is a gap.

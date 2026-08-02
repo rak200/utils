@@ -303,7 +303,7 @@ final class File
      *
      * @throws FilesystemException when the directory cannot be created
      */
-    public static function mkdir(string $path, bool $recursive = true, int $mode = /* @infection-ignore-all: the effective permissions are masked by umask and ignored on Windows — not portably assertable */ 0777): void
+    public static function mkdir(string $path, bool $recursive = true, int $mode = /* @infection-ignore-all: the effective permissions are masked by umask and ignored on Windows — not portably assertable */ 0o777): void
     {
         if (is_dir($path)) {
             return;

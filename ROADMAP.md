@@ -18,12 +18,17 @@ surfaces them. They are PHPDoc-only, so they ship in a minor with no runtime cha
 
 ## Test coverage — the deliberate 34
 
-The suite targets **pragmatic** line coverage, measured at **97.95%** (1625/1659) and enforced by
-`.coverage-floor`. Every reasonably-testable branch is closed, error and `@throws` paths included
+The suite targets **pragmatic** line coverage, enforced by `.coverage-floor` at **97.89%**
+(1624/1659) — the figure CI measures, under **pcov**. A local run under **xdebug** reports
+1625/1659 (97.95%): the two drivers disagree on exactly one statement, and which one is not yet
+identified. The floor carries the CI number because CI is what enforces it; a local run reading
+one statement higher is expected and is not evidence of anything. Every reasonably-testable
+branch is closed, error and `@throws` paths included
 (an invalid input that makes a native emit a warning is tested with `@` suppressing that expected
-warning, the idiom `Regex::is` uses). The 34 uncovered lines are deliberate, and the two
-categories below account for **all** of them — anything outside this inventory is a gap, not a
-decision:
+warning, the idiom `Regex::is` uses). The 34 lines uncovered **under xdebug** are deliberate, and the two
+categories below account for all of them — anything outside this inventory is a gap, not a
+decision. Under pcov the count is 35, by the one-statement disagreement above, so the inventory
+is exhaustive against the driver it was taken with and short by one against the other:
 
 - **Unreachable defensive code (22)** — the 18 private `__construct() {}` of the static-only
   classes; the post-loop `return self::BITS;` in `Bit::leadingZeros` / `trailingZeros` (a non-zero

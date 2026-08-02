@@ -367,11 +367,9 @@ final class Arr
         foreach ($array as $key => $value) {
             $mapped = $callback($value, $key);
             // The guard is unreachable for a caller that honours the declared
-            // `iterable<R>`, which is exactly why PHPStan reports it — but the
-            // declaration is PHPDoc on a public API, not something PHP enforces.
-            // Without the guard an untyped caller loses the element in silence:
-            // `foreach` over a non-iterable only warns and skips.
-            // @phpstan-ignore staticMethod.alreadyNarrowedType
+            // `iterable<R>` — but the declaration is PHPDoc on a public API, not
+            // something PHP enforces. Without the guard an untyped caller loses the
+            // element in silence: `foreach` over a non-iterable only warns and skips.
             if (!Type::isIterable($mapped)) {
                 throw new BadCallbackException('Callback must return an iterable. Got: ' . Type::of($mapped));
             }

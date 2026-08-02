@@ -1,5 +1,9 @@
+# Static analysis is Layer 2: the level and the analyser's own settings live in
+# vendor/rak200/coding-standard-php. What to look at, and where to cache, is ours.
+includes:
+    - vendor/rak200/coding-standard-php/phpstan.neon.dist
+
 parameters:
-    level: max
     paths:
         - src
         - tests

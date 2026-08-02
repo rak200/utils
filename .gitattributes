@@ -1,13 +1,30 @@
+# Line endings are LF everywhere, working tree included: development happens on
+# Windows and CI on Linux, and without this the tree is platform-dependent.
 * text=auto eol=lf
 
-# Files & directories excluded from `composer archive` / dist tarballs.
-/.github                export-ignore
-/.gitattributes         export-ignore
-/.gitignore             export-ignore
-/.git-blame-ignore-revs export-ignore
-/tests                  export-ignore
-/phpunit.xml            export-ignore
-/phpstan.neon.dist      export-ignore
-/.php-cs-fixer.dist.php export-ignore
-/CLAUDE.md              export-ignore
-/docs                   export-ignore
+# The distribution tarball carries consumption, not development. This file is
+# per-variant because what counts as "development" is: a package that ships
+# configuration distributes the very .dist files a library hides.
+/.github/                export-ignore
+/.githooks/              export-ignore
+/.rak200                 export-ignore
+/.gitmodules             export-ignore
+/tests/                  export-ignore
+/docs/                   export-ignore
+/.editorconfig           export-ignore
+/.gitattributes          export-ignore
+/.gitignore              export-ignore
+/.git-blame-ignore-revs  export-ignore
+/.coverage-floor         export-ignore
+/CLAUDE.md               export-ignore
+/ROADMAP.md              export-ignore
+/ARCHITECTURE.md         export-ignore
+
+# PHP tool configuration. A library consumes none of it, and a tarball that ships
+# it hands the consumer a phpunit.xml that will never be run.
+/phpunit.xml                    export-ignore
+/phpstan.neon.dist              export-ignore
+/.php-cs-fixer.dist.php         export-ignore
+/infection.json5.dist           export-ignore
+/release-please-config.json     export-ignore
+/.release-please-manifest.json  export-ignore

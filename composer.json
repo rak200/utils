@@ -1,7 +1,6 @@
 {
     "name": "rak200/utils",
     "description": "General-purpose static utility helpers for PHP 8.4+ (Str, Arr, Iter, Num, Rand, Regex, Hash, Bit, File, Json, Base64, Hex, Dt, Url, Path, Type, Enum, Filter).",
-    "version": "4.5.0",
     "type": "library",
     "license": "MIT",
     "keywords": ["utils", "helpers", "string", "array", "iterator", "lazy", "generator", "uuid", "ulid", "datetime", "sanitize", "php84"],
@@ -27,11 +26,11 @@
             "Rak200\\Utils\\": "src/"
         }
     },
+    "repositories": [
+        { "type": "vcs", "url": "https://github.com/rak200/coding-standard-php" }
+    ],
     "require-dev": {
-        "phpunit/phpunit": "^13.1",
-        "phpstan/phpstan": "^2.1",
-        "friendsofphp/php-cs-fixer": "^3.75",
-        "infection/infection": "^0.34"
+        "rak200/coding-standard-php": "^0.3.0"
     },
     "autoload-dev": {
         "psr-4": {
@@ -44,19 +43,25 @@
         }
     },
     "scripts": {
+        "lint": "php-cs-fixer fix --dry-run --diff",
+        "fix": "php-cs-fixer fix",
+        "analyse": "phpstan analyse --memory-limit=512M",
         "test": "phpunit",
-        "phpstan": "phpstan analyse --memory-limit=512M",
-        "cs-check": "php-cs-fixer fix --dry-run --diff",
-        "cs-fix": "php-cs-fixer fix",
-        "infection": [
+        "coverage": "coverage-floor",
+        "scan": "semgrep scan --config=p/php --severity=ERROR --sarif -o semgrep.sarif",
+        "mutation": [
             "Composer\\Config::disableProcessTimeout",
             "@putenv XDEBUG_MODE=coverage",
             "infection --threads=max"
-        ],
-        "infection-diff": [
-            "Composer\\Config::disableProcessTimeout",
-            "@putenv XDEBUG_MODE=coverage",
-            "infection --threads=max --git-diff-lines --git-diff-base=master"
         ]
+    },
+    "scripts-descriptions": {
+        "lint": "Formatting, check-only",
+        "fix": "Formatting, applied — the only local-only verb",
+        "analyse": "Static analysis",
+        "test": "The suite",
+        "coverage": "The coverage floor, from .coverage-floor",
+        "scan": "The security scanner (semgrep — installed outside Composer)",
+        "mutation": "The mutation floor; CI narrows it to the changed lines on a pull request"
     }
 }

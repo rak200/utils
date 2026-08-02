@@ -74,25 +74,7 @@ Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
 ### Planned additions
 
-None outstanding. New entries go here; the sections below hold what is deferred or waiting on a release.
-
-### Downstream follow-ups (waiting on a published release)
-
-- **collections' `HashesValues` and `Num::toStr()` — expect *no* change, and here is why.** `hashValue()` does `'f:' . var_export($value, true)` over an arbitrary float, and the roadmap listed it as the consumer that would adopt `Num::toStr()`. It will not: `toStr` throws on NAN/INF (a deliberate choice — no string form of those reads back through `parseFloat`), so the call site would need `Num::isFinite($v) ? Num::toStr($v) : var_export($v, true)`, which is **longer than the native it replaces**. Keeping `var_export` there is correct. Recorded so a future prefer-lib-over-native pass does not "fix" it and make that file worse.
-
-- **collections' `MultiSet::count()` and `LinkedList::remove()` — expect *no* change either.** Both clamp into an `int<0, max>` property with the native `max(0, $x)`, and the `Num` conditionals cannot replace it: PHPStan derives that range from the literal `0` in the native's own stub, and no conditional over `iterable<int>` can express it. Keeping `max()` there is correct. What the conditionals did unlock downstream is `Num::sum()` becoming usable in plain `int`-returning methods such as `MultiMap::total()`.
-
-- **collections' `MultiMap::removeValue()` can also drop its `array_search` for `Arr::search()`** — once 4.5.0 is published. The helper now carries the array's key type, so the `int` the call site needs survives; today it keeps the native precisely because the helper did not. Weigh it against the cost noted in the changelog: `search` calls `array_keys()` rather than `array_search()`, so it has no early exit and pays a flat full-scan (~80 µs per 10,000 elements) where the native returns in ~2 µs on an early match. For `MultiMap`'s per-key lists (short by construction) that is irrelevant.
-
-- **collections' `MultiMap::removeValue()` switches to `Arr::removeAt()`** — once 4.5.0 is published. `array_splice($this->items[$key], $idx, 1)` becomes `$this->items[$key] = Arr::removeAt($this->items[$key], $idx);`, dropping that library's only `use function array_splice;`. Note the assignment: the helper is pure where the native spliced in place.
-
-- **collections' `Set::key()` and `OrderedSet::key()` switch to `Arr::keyPositionOrNull()`** — once 4.5.0 is published. Both are byte-identical `array_search(parent::key(), Arr::keys($this->items), true)` plus the `=== false` dance, and both drop their `use function array_search;`. One wrinkle: `parent::key()` returns `int|string|null`, so the call still needs a null guard — the helper takes `int|string`.
-
-- **collections' `MultiMap::values()` and `MultiMap::flattenSnapshot()` collapse to single `Arr::flatMap()` calls** — once 4.5.0 is published. Both are hand-rolled nested `foreach`es today; `flattenSnapshot` is the one that needs the key, which is why the callback is signed `callable(T, K)`.
-
-- **collections' `OrderedSet::add()` switches to `Arr::sort(..., preserveKeys: true)`** — once 4.5.0 is published. That `uasort` (`src/OrderedSet.php`) is the only one in that library, so the switch drops its `use function uasort;` import outright. The call becomes `$this->items = Arr::sort($this->items, $this->comparator, preserveKeys: true);` — note the assignment: the helper is pure, where the native sorted the property in place.
-
-- **http-input's `Rule::email()` switches to `Filter::isEmail()`** — once 4.5.0 is published. That verifier is the last native `filter_var` in that library, and its `use function filter_var;` is a one-member import group, so the switch drops the whole group and closes the prefer-lib-over-native carve-out documented there. Its sibling `Rule::url()` already delegates to `Url::is()`, so the two end up symmetric.
+None outstanding. New entries go here; the sections below hold what is deferred. Work this library's releases unlock **in consumer libraries** is tracked in those repositories' own roadmaps, not here.
 
 ### Type-annotation corrections (PHPDoc-only, BC-safe)
 

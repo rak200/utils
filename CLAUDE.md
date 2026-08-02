@@ -74,19 +74,13 @@ Planned additions and corrections. Released items live in `CHANGELOG.md`.
 
 ### Planned additions
 
-None outstanding. New entries go here; the sections below hold what is deferred, dropped, or waiting on a release.
-
-### Investigated and dropped
-
-- **`Arr::searchOrNull()` binding the key type** (dropped 2026-07-29; the `search()` half shipped). PHPStan does not resolve a template inside a union with `null`. Three shapes measured: `null|K` — does not resolve; `($array is non-empty-array ? K|null : null)` — does not resolve; `($array is non-empty-array ? K : null)` — **resolves, but is false**, since a non-empty array may simply not contain the value, and adopting it would make every caller's `=== null` check look like dead code to the analyser. The wide type is the honest one, so the signature is spelled `@return null|K` to state the intent while the analyser degrades it to `int|string|null`, and a `tests/StaticAnalysis` fixture pins the degraded type on purpose so nobody "fixes" it into the lie that type-checks. **The deciding question is not whether the conditional type-checks — it does — but whether it is true.** That is what separated this from `firstKeyOrNull()` / `lastKeyOrNull()`, which carried the identical `null|K` defect but where the conditional *is* true (a non-empty array always has a first key): those two shipped the conditional in 4.5.0, needing no guard — the annotation alone proved out against the untouched one-line bodies.
-
-- **A class-name membership predicate accepting an unvalidated string** (dropped 2026-07-28). The premise was that `Type::isInstance()` / `isA()` are unusable when the class name is a runtime string, because the fallback `isClassName($n) && isInstance($v, $n)` misses interfaces (`class_exists` is false for them). That half is true. What the roadmap missed is that **`isInterfaceName` already exists and also declares `@phpstan-assert-if-true class-string`**, so `isClassName($n) || isInterfaceName($n)` narrows the name and `isInstance()` then type-checks — covering class, interface and enum (an enum is a class) with no new API. Verified with a PHPStan probe; pinned by `tests/StaticAnalysis/TypeNarrowing.php` and documented in `docs/type.md`. It was a documentation gap, not a missing helper.
-  - Also settled, so it is not re-proposed: **loosening `isA` with a conditional cannot work.** Widening to `@param class-string<T>|string` normalises to plain `string`, and PHPStan then reports `Template type T of method Type::isA() is not referenced in a parameter` — the template stops resolving, the narrowing leaks as an unresolved placeholder, and `Filter::toStr()` in this very library breaks (3 repo-wide errors). Recovering `T` from a runtime string is impossible by construction.
-  - The alternative shape — a new method duplicating `isInstance` with a relaxed contract — was rejected as public API existing solely to satisfy the analyser.
+None outstanding. New entries go here; the sections below hold what is deferred or waiting on a release.
 
 ### Downstream follow-ups (waiting on a published release)
 
 - **collections' `HashesValues` and `Num::toStr()` — expect *no* change, and here is why.** `hashValue()` does `'f:' . var_export($value, true)` over an arbitrary float, and the roadmap listed it as the consumer that would adopt `Num::toStr()`. It will not: `toStr` throws on NAN/INF (a deliberate choice — no string form of those reads back through `parseFloat`), so the call site would need `Num::isFinite($v) ? Num::toStr($v) : var_export($v, true)`, which is **longer than the native it replaces**. Keeping `var_export` there is correct. Recorded so a future prefer-lib-over-native pass does not "fix" it and make that file worse.
+
+- **collections' `MultiSet::count()` and `LinkedList::remove()` — expect *no* change either.** Both clamp into an `int<0, max>` property with the native `max(0, $x)`, and the `Num` conditionals cannot replace it: PHPStan derives that range from the literal `0` in the native's own stub, and no conditional over `iterable<int>` can express it. Keeping `max()` there is correct. What the conditionals did unlock downstream is `Num::sum()` becoming usable in plain `int`-returning methods such as `MultiMap::total()`.
 
 - **collections' `MultiMap::removeValue()` can also drop its `array_search` for `Arr::search()`** — once 4.5.0 is published. The helper now carries the array's key type, so the `int` the call site needs survives; today it keeps the native precisely because the helper did not. Weigh it against the cost noted in the changelog: `search` calls `array_keys()` rather than `array_search()`, so it has no early exit and pays a flat full-scan (~80 µs per 10,000 elements) where the native returns in ~2 µs on an early match. For `MultiMap`'s per-key lists (short by construction) that is irrelevant.
 
@@ -103,11 +97,6 @@ None outstanding. New entries go here; the sections below hold what is deferred,
 ### Type-annotation corrections (PHPDoc-only, BC-safe)
 
 **None outstanding.** This section holds annotations **less precise than what the implementation already guarantees**, which block a consumer from adopting the helper at all: the declared type is wider than the call site's contract, so the "fix" would be a PHPStan suppression, which the conventions forbid. Auditing a consumer library against the prefer-lib-over-native rule is what surfaces them. New entries go here; they are PHPDoc-only, so they ship in a minor with no runtime change.
-
-Two limits are recorded so they are not re-proposed as if they were oversights:
-
-- **The `Num` conditionals do not recover the `max(0, $x)` idiom**, where the target is `int<0, max>` — PHPStan derives that range from the literal `0` in the native's own stub, and no conditional over `iterable<int>` can express it. Consumers clamping into an `int<0, max>` property (`MultiSet::count()`, `LinkedList::remove()` in `rak200/collections`) keep the native `max()` either way; the win delivered was `Num::sum()` becoming usable in plain `int`-returning methods such as `MultiMap::total()`.
-- **`Num::sum()` / `product()` claim `int` for an all-int input even though overflow past `PHP_INT_MAX` promotes to float**, which is knowingly accepted rather than overlooked: it is the identical claim PHPStan's own stub makes for `array_sum()`, and widening would leave the helper less precise than the native it replaces. It differs from the conditional rejected on `Arr::searchOrNull()` in that it makes no caller's code look unreachable. Do not "correct" it — extend the docblock instead. `min()` / `max()` are exact, since they return an element rather than computing.
 
 ### Test coverage (pragmatic; literal 100% is a deferred decision)
 

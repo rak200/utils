@@ -33,6 +33,15 @@ use function strip_tags;
  * return null), whereas {@see Filter::toInt()} and friends are lenient `mixed`
  * coercers that trim and fall back to a default.
  *
+ * The sanitisers call {@see preg_replace()} directly, with `?? ''`, rather than
+ * {@see Regex::replace()} — the one carve-out from this library's own
+ * prefer-lib-over-native rule, and it is what makes "no method throws" true.
+ * Under the `/u` modifier an invalid UTF-8 subject makes PCRE return `null`,
+ * which {@see Regex::replace()} turns into an exception; that is correct there
+ * and fatal here, because invalid UTF-8 is exactly what untrusted input is made
+ * of. Replacing these calls silently converts the guarantee into a throw on the
+ * inputs this class exists for.
+ *
  * @author rak200 <rak.ricardo@windowslive.com>
  */
 final class Filter

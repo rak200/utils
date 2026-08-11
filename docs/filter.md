@@ -2,7 +2,7 @@
 
 [← Reference](README.md)
 
-Input sanitisation and lenient coercion of untrusted values. Every method is total — none throws. **Sanitisers** are `string → string` transforms; **predicates** (`is*`) answer a `string → bool` format question without changing the value; **coercers** (`to*`) turn a `mixed` value into a typed result, returning the caller-supplied `$default` when the value cannot be represented.
+Input sanitisation and lenient coercion of untrusted values. Every method is total — none throws, **including on invalid UTF-8**, which is the input this class exists for. **Sanitisers** are `string → string` transforms; **predicates** (`is*`) answer a `string → bool` format question without changing the value; **coercers** (`to*`) turn a `mixed` value into a typed result, returning the caller-supplied `$default` when the value cannot be represented.
 
 ```php
 use Rak200\Utils\Filter;

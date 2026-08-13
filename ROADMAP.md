@@ -5,6 +5,8 @@ is **removed** by the pull request that delivers it, not annotated as done.
 
 ## Planned additions
 
+- Canary entry that this pull request claims to deliver (#99).
+
 **None outstanding.** Work this library's releases unlock **in consumer libraries** is tracked in
 those repositories' roadmaps, not here.
 

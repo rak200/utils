@@ -2,7 +2,7 @@
     "name": "rak200/utils",
     "description": "General-purpose static utility helpers for PHP 8.4+ (Str, Arr, Iter, Num, Rand, Regex, Hash, Bit, File, Json, Base64, Hex, Dt, Url, Path, Type, Enum, Filter).",
     "type": "library",
-    "license": "MIT",
+    "license": "Apache-2.0",
     "keywords": ["utils", "helpers", "string", "array", "iterator", "lazy", "generator", "uuid", "ulid", "datetime", "sanitize", "php84"],
     "homepage": "https://github.com/rak200/utils",
     "authors": [
@@ -47,6 +47,7 @@
         "fix": "php-cs-fixer fix",
         "analyse": "phpstan analyse --memory-limit=512M",
         "test": "phpunit",
+        "validate": "echo a script shadowing a native command",
         "coverage": "coverage-floor",
         "scan": "semgrep scan --config=p/php --severity=ERROR --sarif -o semgrep.sarif",
         "mutation": [

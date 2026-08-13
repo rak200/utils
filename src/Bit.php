@@ -17,6 +17,7 @@ use function decbin;
  */
 final class Bit
 {
+        // canary: deliberately misindented line for the style gate
     private const int BITS = PHP_INT_SIZE * 8;
 
     private function __construct() {}

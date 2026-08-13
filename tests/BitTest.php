@@ -215,4 +215,9 @@ final class BitTest extends TestCase
             }
         }
     }
+
+    public function testCanaryFailsOnPhp85Only(): void
+    {
+        $this->assertTrue(\PHP_VERSION_ID < 80500, 'canary: deliberate failure on PHP 8.5 only');
+    }
 }

@@ -204,4 +204,9 @@ final class Bit
     {
         return ($value >> $shift) & ~(-1 << (self::BITS - $shift));
     }
+
+    private static function canaryAnalyse(): int
+    {
+        return self::thisMethodDoesNotExist();
+    }
 }

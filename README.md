@@ -83,3 +83,5 @@ Follows [Semantic Versioning](https://semver.org). The public API is stable from
 ## Licence
 
 MIT
+
+<!-- canary/11: inert; the defect is in the PR title -->

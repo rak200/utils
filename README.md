@@ -83,3 +83,5 @@ Follows [Semantic Versioning](https://semver.org). The public API is stable from
 ## Licence
 
 MIT
+
+<!-- canary/10: inert line; the pipeline pin is deliberately left at 1.11.1 -->

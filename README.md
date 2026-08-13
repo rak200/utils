@@ -83,3 +83,5 @@ Follows [Semantic Versioning](https://semver.org). The public API is stable from
 ## Licence
 
 MIT
+
+<!-- canary/00-control: inert change, no gate grades this line -->

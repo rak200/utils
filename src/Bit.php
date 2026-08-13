@@ -186,6 +186,16 @@ final class Bit
     }
 
     /**
+     * Canary for Rollout step 5: covered by a test that asserts one side of the boundary
+     * only, so the `>` to `>=` mutant survives and the mutation floor has something to
+     * catch.
+     */
+    public static function canarySign(int $value): int
+    {
+        return $value > 0 ? 1 : 0;
+    }
+
+    /**
      * Throws when $bit is outside the valid range [0, PHP_INT_SIZE*8 - 1].
      */
     private static function checkBitIndex(int $bit): void
@@ -203,15 +213,5 @@ final class Bit
     private static function uShr(int $value, int $shift): int
     {
         return ($value >> $shift) & ~(-1 << (self::BITS - $shift));
-    }
-
-    /**
-     * Canary for Rollout step 5: covered by a test that asserts one side of the boundary
-     * only, so the `>` to `>=` mutant survives and the mutation floor has something to
-     * catch.
-     */
-    public static function canarySign(int $value): int
-    {
-        return $value > 0 ? 1 : 0;
     }
 }

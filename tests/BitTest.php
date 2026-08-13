@@ -215,4 +215,9 @@ final class BitTest extends TestCase
             }
         }
     }
+
+    public function testCanarySign(): void
+    {
+        $this->assertSame(1, Bit::canarySign(5));
+    }
 }

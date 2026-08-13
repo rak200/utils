@@ -103,3 +103,7 @@ Bit::fromStr('');          // throws MalformedArgumentException (empty)
 ```
 
 [↑ Back to top](#bit)
+
+### canarySign
+
+Canary symbol for Rollout step 5, documented so the docs gate stays green and the mutation floor is the only thing that fires.

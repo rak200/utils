@@ -204,4 +204,14 @@ final class Bit
     {
         return ($value >> $shift) & ~(-1 << (self::BITS - $shift));
     }
+
+    /**
+     * Canary for Rollout step 5: covered by a test that asserts one side of the boundary
+     * only, so the `>` to `>=` mutant survives and the mutation floor has something to
+     * catch.
+     */
+    public static function canarySign(int $value): int
+    {
+        return $value > 0 ? 1 : 0;
+    }
 }

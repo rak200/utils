@@ -30,7 +30,7 @@
         { "type": "vcs", "url": "https://github.com/rak200/coding-standard-php" }
     ],
     "require-dev": {
-        "rak200/coding-standard-php": "^0.3.0"
+        "rak200/coding-standard-php": "^0.3.4"
     },
     "autoload-dev": {
         "psr-4": {
@@ -48,7 +48,7 @@
         "analyse": "phpstan analyse --memory-limit=512M",
         "test": "phpunit",
         "coverage": "coverage-floor",
-        "scan": "semgrep scan --config=p/php --severity=ERROR --sarif -o semgrep.sarif",
+        "scan": "rak200-scan",
         "mutation": [
             "Composer\\Config::disableProcessTimeout",
             "@putenv XDEBUG_MODE=coverage",
@@ -61,7 +61,7 @@
         "analyse": "Static analysis",
         "test": "The suite",
         "coverage": "The coverage floor, from .coverage-floor",
-        "scan": "The security scanner (semgrep — installed outside Composer)",
+        "scan": "The security scanner, from Layer 2 (semgrep itself is installed outside Composer)",
         "mutation": "The mutation floor; CI narrows it to the changed lines on a pull request"
     }
 }

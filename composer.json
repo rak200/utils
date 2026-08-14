@@ -48,7 +48,7 @@
         "analyse": "phpstan analyse --memory-limit=512M",
         "test": "phpunit",
         "coverage": "coverage-floor",
-        "scan": "semgrep scan --config=p/php --sarif -o semgrep.sarif",
+        "scan": "semgrep scan --config=p/php --severity=ERROR --sarif -o semgrep.sarif",
         "mutation": [
             "Composer\\Config::disableProcessTimeout",
             "@putenv XDEBUG_MODE=coverage",

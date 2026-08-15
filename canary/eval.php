@@ -5,19 +5,34 @@ declare(strict_types=1);
 /**
  * RFC 0017, rollout step 5 — the scanner canary. NOT FOR MERGE.
  *
- * A deliberately vulnerable fixture, planted so that `Scanner findings block the merge`
- * can be observed failing. semgrep's `p/security-audit` pack carries `eval-use`, which
- * matches the shape below; `p/php` alone does not, which is the regression this canary
- * exists to prove is fixed.
+ * Round 2 of the design measured this exact fixture against this exact command and
+ * recorded `4 findings (4 blocking)`, exit 1. It is reproduced here shape for shape,
+ * because the first attempt at this canary did not reproduce it: that version routed the
+ * request value through an intermediate variable, and a pattern-based rule does not
+ * follow an assignment the way a taint-mode rule does. Zero findings there is not
+ * evidence about the scanner — it is evidence about a fixture nobody had measured.
  *
- * It lives outside `src/` and `tests/` on purpose. Every other verb in this repository
- * looks only at those two directories — phpstan.neon.dist, .php-cs-fixer.dist.php,
- * phpunit.xml and infection.json5.dist all say so — while semgrep scans `.`. A fixture
- * inside `src/` would redden `analyse` and `coverage` first, and the scanner step would
- * never run: that is exactly how three canaries were masked during the 2026-08-12
- * campaign, and a canary that fails an earlier gate has tested the earlier gate.
+ * Three shapes, the ones `sql-builder` and `http-input` really have:
+ *   1. a superglobal concatenated into SQL
+ *   2. `eval` on request input
+ *   3. a shell call on request input
+ *
+ * It lives outside `src/` and `tests/` on purpose. Every other verb here looks only at
+ * those two directories — phpstan.neon.dist, .php-cs-fixer.dist.php, phpunit.xml and
+ * infection.json5.dist all say so — while semgrep scans `.`. A fixture inside `src/`
+ * would redden `analyse` and `coverage` first and the scanner step would never run,
+ * which is how three canaries were masked during the 2026-08-12 campaign.
+ *
+ * @param \PDO $connection
  */
+function canary(\PDO $connection): void
+{
+    // 1. Request input concatenated straight into a query.
+    $connection->query('SELECT * FROM users WHERE id = ' . $_GET['id']);
 
-$payload = $_POST['cmd'];
+    // 2. Request input evaluated as code, undivided — no intermediate variable.
+    eval($_POST['cmd']);
 
-eval($payload);
+    // 3. Request input handed to a shell.
+    system('ping -c 1 ' . $_GET['host']);
+}

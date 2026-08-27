@@ -3,7 +3,20 @@
     "description": "General-purpose static utility helpers for PHP 8.4+ (Str, Arr, Iter, Num, Rand, Regex, Hash, Bit, File, Json, Base64, Hex, Dt, Url, Path, Type, Enum, Filter).",
     "type": "library",
     "license": "MIT",
-    "keywords": ["utils", "helpers", "string", "array", "iterator", "lazy", "generator", "uuid", "ulid", "datetime", "sanitize", "php84"],
+    "keywords": [
+        "utils",
+        "helpers",
+        "string",
+        "array",
+        "iterator",
+        "lazy",
+        "generator",
+        "uuid",
+        "ulid",
+        "datetime",
+        "sanitize",
+        "php84"
+    ],
     "homepage": "https://github.com/rak200/utils",
     "authors": [
         {
@@ -27,7 +40,10 @@
         }
     },
     "repositories": [
-        { "type": "vcs", "url": "https://github.com/rak200/coding-standard-php" }
+        {
+            "type": "vcs",
+            "url": "https://github.com/rak200/coding-standard-php"
+        }
     ],
     "require-dev": {
         "rak200/coding-standard-php": "^0.3.4"

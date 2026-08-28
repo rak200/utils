@@ -5,9 +5,6 @@ is **removed** by the pull request that delivers it, not annotated as done.
 
 ## Planned additions
 
-- **Canary entry for RFC 0017 step 5** (#999) — deliberately left in place, so the pruning
-  gate has something to find. Never merged.
-
 **None outstanding.** Work this library's releases unlock **in consumer libraries** is tracked in
 those repositories' roadmaps, not here.
 

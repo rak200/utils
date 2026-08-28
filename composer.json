@@ -32,11 +32,12 @@
     "require": {
         "php": "^8.4",
         "ext-bcmath": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "rak200/deliberately-absent": "^99.0"
     },
     "autoload": {
         "psr-4": {
-            "Rak200\\Utils\\": 123
+            "Rak200\\Utils\\": "src/"
         }
     },
     "repositories": [

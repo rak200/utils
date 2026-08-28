@@ -32,8 +32,7 @@
     "require": {
         "php": "^8.4",
         "ext-bcmath": "*",
-        "ext-mbstring": "*",
-        "rak200/deliberately-absent": "^99.0"
+        "ext-mbstring": "*"
     },
     "autoload": {
         "psr-4": {
@@ -74,7 +73,7 @@
     },
     "scripts-descriptions": {
         "lint": "Formatting, check-only",
-        "fix": "Formatting, applied \u2014 the only local-only verb",
+        "fix": "Formatting, applied — the only local-only verb",
         "analyse": "Static analysis",
         "test": "The suite",
         "coverage": "The coverage floor, from .coverage-floor",

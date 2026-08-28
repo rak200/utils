@@ -36,7 +36,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Rak200\\Utils\\": "src/"
+            "Rak200\\Utils\\": 123
         }
     },
     "repositories": [
@@ -73,7 +73,7 @@
     },
     "scripts-descriptions": {
         "lint": "Formatting, check-only",
-        "fix": "Formatting, applied — the only local-only verb",
+        "fix": "Formatting, applied \u2014 the only local-only verb",
         "analyse": "Static analysis",
         "test": "The suite",
         "coverage": "The coverage floor, from .coverage-floor",

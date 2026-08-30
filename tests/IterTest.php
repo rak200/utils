@@ -142,7 +142,7 @@ final class IterTest extends TestCase
         // iterable<TResult>` — which is the whole point: the guard exists for
         // callers that do not honour a contract PHP cannot enforce. PHPStan is
         // right to reject the call, so the rejection is what gets ignored here.
-        // @phpstan-ignore argument.type, argument.templateType
+        // @phpstan-ignore argument.type (the guard exists for callers that do not honour a contract PHP cannot enforce, so the rejection is what this test needs), argument.templateType (the guard exists for callers that do not honour a contract PHP cannot enforce, so the rejection is what this test needs)
         $result = Iter::flatMap([1], static fn (): mixed => 42);
 
         $this->expectException(BadCallbackException::class);

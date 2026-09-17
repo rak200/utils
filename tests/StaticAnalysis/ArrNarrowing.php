@@ -109,13 +109,28 @@ function arrSearchCarriesTheKeyType(array $list, array $intMap, array $stringMap
 }
 
 /**
- * @param list<string>       $list
- * @param array<string, int> $map
+ * Every key shape, as for `search` above: now that `searchOrNull` carries the key
+ * type too, a regression can hide in whichever shape is left untested.
+ *
+ * @param list<string>          $list
+ * @param array<int, string>    $intMap
+ * @param array<string, int>    $stringMap
+ * @param array<array-key, int> $mixedMap
  */
-function arrSearchOrNullCannotCarryIt(array $list, array $map): void
-{
-    assertType('int|string|null', Arr::searchOrNull($list, 'a'));
-    assertType('int|string|null', Arr::searchOrNull($map, 1));
+function arrSearchOrNullCarriesItToo(
+    array $list,
+    array $intMap,
+    array $stringMap,
+    array $mixedMap,
+): void {
+    assertType('int<0, max>|null', Arr::searchOrNull($list, 'a'));
+    assertType('int|null', Arr::searchOrNull($intMap, 'a'));
+    assertType('string|null', Arr::searchOrNull($stringMap, 1));
+    // Rendered WITHOUT the parentheses `search` needs for the same array: there the
+    // `array-key` bound is the whole type and `(int|string)` says so, while here it is
+    // one member of a union with `null` and the parentheses would be redundant. The
+    // difference is PHPStan's rendering, not a difference in what was inferred.
+    assertType('int|string|null', Arr::searchOrNull($mixedMap, 1));
 }
 
 /*

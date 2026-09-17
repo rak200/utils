@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.3](https://github.com/rak200/utils/compare/4.5.2...4.5.3) (2026-09-17)
+
+
+### Bug Fixes
+
+* searchOrNull carries the key type now, and the fixture said it could not ([#75](https://github.com/rak200/utils/issues/75)) ([8c47848](https://github.com/rak200/utils/commit/8c47848c46b2d69a19e1cd830bab8aef8bdfcdc0))
+
 ## [4.5.2](https://github.com/rak200/utils/compare/4.5.1...4.5.2) (2026-08-30)
 
 

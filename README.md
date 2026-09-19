@@ -7,7 +7,7 @@
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%20max-brightgreen?logo=php&logoColor=white)](https://phpstan.org/)
 [![Mutation testing](https://img.shields.io/badge/Infection-min%20covered%20MSI%20100%25-brightgreen?logo=php&logoColor=white)](infection.json5.dist)
 [![Code style](https://img.shields.io/badge/code%20style-PHP--CS--Fixer-blue?logo=php&logoColor=white)](.php-cs-fixer.dist.php)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License: ISC](https://img.shields.io/badge/license-ISC-blue)](LICENSE)
 [![SemVer](https://img.shields.io/badge/semver-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 [![Keep a Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-orange)](CHANGELOG.md)
 

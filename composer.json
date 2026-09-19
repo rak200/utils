@@ -2,7 +2,7 @@
     "name": "rak200/utils",
     "description": "General-purpose static utility helpers for PHP 8.4+ (Str, Arr, Iter, Num, Rand, Regex, Hash, Bit, File, Json, Base64, Hex, Dt, Url, Path, Type, Enum, Filter).",
     "type": "library",
-    "license": "MIT",
+    "license": "ISC",
     "keywords": [
         "utils",
         "helpers",

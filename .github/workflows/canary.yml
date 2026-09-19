@@ -1,0 +1,15 @@
+# NOT FOR MERGE — a canary for rak200/.github#106. Both violations in one file: a job that
+# hands every secret to a called workflow, and a step that interpolates a pull request title
+# into a command. `workflow_dispatch` so it never runs; the check reads the file, not a run.
+name: canary
+on: workflow_dispatch
+
+jobs:
+  inherits:
+    uses: rak200/.github/.github/workflows/base.yml@2.8.0
+    secrets: inherit
+
+  interpolates:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{ github.event.pull_request.title }}"

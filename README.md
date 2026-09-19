@@ -83,3 +83,6 @@ Follows [Semantic Versioning](https://semver.org). The public API is stable from
 ## Licence
 
 MIT
+
+<!-- canary -->
+See [rak200/no-such-repository](https://github.com/rak200/no-such-repository) for the reasoning.

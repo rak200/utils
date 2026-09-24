@@ -18,7 +18,12 @@ PHP's standard library is broad but inconsistent in naming, type-strictness and 
 ## Requirements
 
 - PHP 8.4+
-- Extensions: `bcmath` (used by `Num` for `BcMath\Number` support) and `mbstring` (used by `Str`). Both are bundled with PHP and enabled by default on most distributions.
+- Extensions required: `bcmath` (`Num`, for `BcMath\Number`), `mbstring` (`Str`), `ctype` (`Filter`),
+  `filter` (`Filter`, `Url`) and `fileinfo` (`File::mime`). All are bundled with PHP and enabled by
+  default on most distributions.
+- Extension suggested: `iconv`, for the `ASCII//TRANSLIT` transliteration in `Str::slug` and
+  `Filter::ascii`. Both guard with `function_exists` and return the input unchanged without it, so it
+  is optional rather than required.
 - No Composer runtime dependencies.
 
 ## Installation

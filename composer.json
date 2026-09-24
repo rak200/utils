@@ -32,7 +32,13 @@
     "require": {
         "php": "^8.4",
         "ext-bcmath": "*",
+        "ext-ctype": "*",
+        "ext-fileinfo": "*",
+        "ext-filter": "*",
         "ext-mbstring": "*"
+    },
+    "suggest": {
+        "ext-iconv": "For Str::slug and Filter::ascii transliteration (ASCII//TRANSLIT). Both guard with function_exists and return the input unchanged without it, so it is optional by design."
     },
     "autoload": {
         "psr-4": {

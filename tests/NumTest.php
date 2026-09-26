@@ -417,6 +417,32 @@ final class NumTest extends TestCase
         $this->assertSame('123456789012345678901234567890.5', (string) $n);
     }
 
+    #[DataProvider('parseNumberFailureProvider')]
+    public function testParseNumberThrowsNamingTheRejectedValue(float|string $value, string $expectedMessage): void
+    {
+        $this->expectException(MalformedArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+        Num::parseNumber($value);
+    }
+
+    /**
+     * A string is named as written, with no quotes added; a non-finite float as PHP
+     * renders it. The quotes are what var_export would add, so a message that grows
+     * them has taken the wrong branch.
+     *
+     * @return iterable<string, array{float|string, string}>
+     */
+    public static function parseNumberFailureProvider(): iterable
+    {
+        yield 'non-numeric string' => ['abc', 'Cannot parse "abc" as number.'];
+
+        yield 'surrounding whitespace' => [' 42 ', 'Cannot parse " 42 " as number.'];
+
+        yield 'INF' => [INF, 'Cannot parse "INF" as number.'];
+
+        yield 'NAN' => [NAN, 'Cannot parse "NAN" as number.'];
+    }
+
     public function testParseNumberOrNullRejectsNonNumeric(): void
     {
         $this->assertNull(Num::parseNumberOrNull('abc'));

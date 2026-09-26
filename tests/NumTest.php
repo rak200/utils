@@ -121,6 +121,14 @@ final class NumTest extends TestCase
         $this->assertNull(Num::parseIntOrNull('2', 2));
     }
 
+    public function testParseIntOrNullDefaultsToBaseTen(): void
+    {
+        // Every other default-base assertion here is a rejection, and 'abc', '' and
+        // ' 42 ' are null in bases 9, 10 and 11 alike. A successful parse is what pins
+        // the default: 42 reads as 38 in base 9 and as 46 in base 11.
+        $this->assertSame(42, Num::parseIntOrNull('42'));
+    }
+
     public function testParseIntOrNullRejectsSurroundingWhitespace(): void
     {
         $this->assertNull(Num::parseIntOrNull(' 42 '));
@@ -415,6 +423,32 @@ final class NumTest extends TestCase
         $n = Num::parseNumber('123456789012345678901234567890.5');
         $this->assertInstanceOf(Number::class, $n);
         $this->assertSame('123456789012345678901234567890.5', (string) $n);
+    }
+
+    #[DataProvider('parseNumberFailureProvider')]
+    public function testParseNumberThrowsNamingTheRejectedValue(float|string $value, string $expectedMessage): void
+    {
+        $this->expectException(MalformedArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+        Num::parseNumber($value);
+    }
+
+    /**
+     * A string is named as written, with no quotes added; a non-finite float as PHP
+     * renders it. The quotes are what var_export would add, so a message that grows
+     * them has taken the wrong branch.
+     *
+     * @return iterable<string, array{float|string, string}>
+     */
+    public static function parseNumberFailureProvider(): iterable
+    {
+        yield 'non-numeric string' => ['abc', 'Cannot parse "abc" as number.'];
+
+        yield 'surrounding whitespace' => [' 42 ', 'Cannot parse " 42 " as number.'];
+
+        yield 'INF' => [INF, 'Cannot parse "INF" as number.'];
+
+        yield 'NAN' => [NAN, 'Cannot parse "NAN" as number.'];
     }
 
     public function testParseNumberOrNullRejectsNonNumeric(): void

@@ -320,7 +320,7 @@ final class Num
     {
         $parsed = self::parseNumberOrNull($value);
         if ($parsed === null) {
-            $display = is_float($value) && !is_finite($value)
+            $display = is_float($value) && /* @infection-ignore-all: only strings and non-finite floats reach here — every finite float parses — and var_export and the cast render INF, -INF and NAN identically */ !is_finite($value)
                 ? var_export($value, true)
                 : /* @infection-ignore-all: every non-float parse failure is already a string, so the cast is an identity */ (string) $value;
 
@@ -346,6 +346,7 @@ final class Num
         }
         if (is_float($value)) {
             if (!is_finite($value)) {
+                // @infection-ignore-all: the cast gives "INF", "-INF" or "NAN", which isStrictNumericString rejects below, so falling through returns the same null
                 return null;
             }
             $value = (string) $value;

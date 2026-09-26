@@ -154,6 +154,17 @@ final class DtTest extends TestCase
         $this->assertSame(1, Dt::toEpoch(Dt::fromEpochMs(1500, new DateTimeZone('UTC'))));
     }
 
+    public function testFromEpochMsScalesAtPresentDayMagnitudes(): void
+    {
+        // The small values above cannot tell a divisor of 1000 from 999 — 1500 gives 1
+        // and 2000 gives 2 either way. A present-day timestamp can: 1 700 000 000 123 ms
+        // is 1 700 000 000 s, where dividing by 999 would read 1 701 701 701.
+        $dt = Dt::fromEpochMs(1_700_000_000_123, new DateTimeZone('UTC'));
+
+        $this->assertSame(1_700_000_000, Dt::toEpoch($dt));
+        $this->assertSame('123000', $dt->format('u'));
+    }
+
     public function testToEpochFloatKeepsMicroseconds(): void
     {
         $dt = Dt::fromEpochMs(1500, new DateTimeZone('UTC'));

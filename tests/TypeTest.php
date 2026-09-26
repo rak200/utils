@@ -8,6 +8,7 @@ use ArrayIterator;
 use BcMath\Number;
 use Countable;
 use DateTimeImmutable;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Type;
@@ -16,9 +17,8 @@ use Stringable;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Type::class)]
 final class TypeTest extends TestCase
 {
     public function testOf(): void

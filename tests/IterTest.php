@@ -6,6 +6,7 @@ namespace Rak200\Utils\Tests;
 
 use ArrayIterator;
 use Exception;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\BadCallbackException;
 use Rak200\Utils\Exception\EmptySourceException;
@@ -15,9 +16,8 @@ use Rak200\Utils\Iter;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Iter::class)]
 final class IterTest extends TestCase
 {
     // ---- Sources ----------------------------------------------------------

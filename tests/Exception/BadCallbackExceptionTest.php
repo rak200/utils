@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests\Exception;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\BadCallbackException;
 use Rak200\Utils\Exception\UtilsException;
@@ -11,9 +12,8 @@ use UnexpectedValueException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(BadCallbackException::class)]
 final class BadCallbackExceptionTest extends TestCase
 {
     public function testExtendsUnexpectedValueExceptionAndCarriesTheMarker(): void

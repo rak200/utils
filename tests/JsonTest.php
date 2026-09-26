@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests;
 
 use JsonException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\MalformedJsonException;
@@ -13,9 +14,8 @@ use stdClass;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Json::class)]
 final class JsonTest extends TestCase
 {
     public function testEncode(): void

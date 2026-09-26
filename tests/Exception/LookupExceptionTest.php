@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests\Exception;
 
 use OutOfBoundsException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\LookupException;
 use Rak200\Utils\Exception\UtilsException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(LookupException::class)]
 final class LookupExceptionTest extends TestCase
 {
     public function testExtendsOutOfBoundsExceptionAndCarriesTheMarker(): void

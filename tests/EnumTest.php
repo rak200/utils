@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests;
 
 use BackedEnum;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Enum;
@@ -16,9 +17,8 @@ use UnitEnum;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Enum::class)]
 final class EnumTest extends TestCase
 {
     #[DataProvider('isProvider')]

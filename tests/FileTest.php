@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\FilesystemException;
 use Rak200\Utils\File;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(File::class)]
 final class FileTest extends TestCase
 {
     private string $tempDir;

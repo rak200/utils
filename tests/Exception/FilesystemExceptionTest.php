@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests\Exception;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\FilesystemException;
 use Rak200\Utils\Exception\IOException;
@@ -12,9 +13,8 @@ use RuntimeException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(FilesystemException::class)]
 final class FilesystemExceptionTest extends TestCase
 {
     public function testExtendsTheIOBranchAndCarriesTheMarker(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Filter;
@@ -12,9 +13,8 @@ use Stringable;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Filter::class)]
 final class FilterTest extends TestCase
 {
     public function testEscapeHtml(): void

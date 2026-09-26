@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests;
 
 use Generator;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Arr;
@@ -16,9 +17,8 @@ use stdClass;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Arr::class)]
 final class ArrTest extends TestCase
 {
     #[DataProvider('isProvider')]

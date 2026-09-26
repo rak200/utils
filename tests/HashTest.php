@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Hash;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Hash::class)]
 final class HashTest extends TestCase
 {
     public function testMd5(): void

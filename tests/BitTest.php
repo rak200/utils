@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Bit;
 use Rak200\Utils\Exception\MalformedArgumentException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Bit::class)]
 final class BitTest extends TestCase
 {
     public function testSet(): void

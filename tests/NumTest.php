@@ -6,6 +6,7 @@ namespace Rak200\Utils\Tests;
 
 use BcMath\Number;
 use Generator;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\EmptySourceException;
@@ -15,9 +16,8 @@ use RoundingMode;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Num::class)]
 final class NumTest extends TestCase
 {
     #[DataProvider('isProvider')]

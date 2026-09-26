@@ -8,6 +8,7 @@ use DateInterval;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Dt;
@@ -17,9 +18,8 @@ use stdClass;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Dt::class)]
 final class DtTest extends TestCase
 {
     #[DataProvider('isProvider')]

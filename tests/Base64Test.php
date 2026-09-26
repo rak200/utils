@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Base64;
 use Rak200\Utils\Exception\MalformedArgumentException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Base64::class)]
 final class Base64Test extends TestCase
 {
     public function testIsAcceptsStandardAndUrlSafe(): void

@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests\Exception;
 
 use JsonException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\MalformedJsonException;
 use Rak200\Utils\Exception\UtilsException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(MalformedJsonException::class)]
 final class MalformedJsonExceptionTest extends TestCase
 {
     public function testExtendsTheNativeJsonExceptionAndCarriesTheMarker(): void

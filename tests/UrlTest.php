@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Url;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Url::class)]
 final class UrlTest extends TestCase
 {
     public function testIsAcceptsAbsoluteUrls(): void

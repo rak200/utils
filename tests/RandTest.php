@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\EmptySourceException;
 use Rak200\Utils\Exception\MalformedArgumentException;
@@ -11,9 +12,8 @@ use Rak200\Utils\Rand;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(Rand::class)]
 final class RandTest extends TestCase
 {
     public function testIntInRange(): void

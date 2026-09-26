@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Rak200\Utils\Tests\Exception;
 
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\MalformedArgumentException;
 use Rak200\Utils\Exception\UtilsException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(MalformedArgumentException::class)]
 final class MalformedArgumentExceptionTest extends TestCase
 {
     public function testExtendsInvalidArgumentExceptionAndCarriesTheMarker(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests\Exception;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\IOException;
 use Rak200\Utils\Exception\UtilsException;
@@ -12,9 +13,8 @@ use RuntimeException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(IOException::class)]
 final class IOExceptionTest extends TestCase
 {
     public function testIsAbstractExtendsRuntimeExceptionAndCarriesTheMarker(): void

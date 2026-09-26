@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rak200\Utils\Tests\Exception;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Rak200\Utils\Exception\EmptySourceException;
 use Rak200\Utils\Exception\UtilsException;
@@ -11,9 +12,8 @@ use UnderflowException;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversClass(EmptySourceException::class)]
 final class EmptySourceExceptionTest extends TestCase
 {
     public function testExtendsUnderflowExceptionAndCarriesTheMarker(): void

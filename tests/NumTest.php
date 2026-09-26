@@ -121,6 +121,14 @@ final class NumTest extends TestCase
         $this->assertNull(Num::parseIntOrNull('2', 2));
     }
 
+    public function testParseIntOrNullDefaultsToBaseTen(): void
+    {
+        // Every other default-base assertion here is a rejection, and 'abc', '' and
+        // ' 42 ' are null in bases 9, 10 and 11 alike. A successful parse is what pins
+        // the default: 42 reads as 38 in base 9 and as 46 in base 11.
+        $this->assertSame(42, Num::parseIntOrNull('42'));
+    }
+
     public function testParseIntOrNullRejectsSurroundingWhitespace(): void
     {
         $this->assertNull(Num::parseIntOrNull(' 42 '));

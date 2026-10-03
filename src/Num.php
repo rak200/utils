@@ -33,7 +33,8 @@ use function var_export;
  *
  * Accepts {@see Number} (PHP 8.4 arbitrary precision) alongside int|float in
  * aggregation and per-element methods; the return widens to Number when any
- * input is one (no silent narrowing to float). Parsing helpers stay scalar;
+ * input is one (no silent narrowing to float), and a float widens as the
+ * shortest decimal that reads back as the same float. Parsing helpers stay scalar;
  * {@see parseNumber()} / {@see parseNumberOrNull()} accept everything
  * {@see is()} reports as numeric for arbitrary-precision work.
  *
@@ -320,8 +321,9 @@ final class Num
     /**
      * Parses $value as an arbitrary-precision {@see Number}. Accepts exactly
      * the values {@see is()} reports as numeric: a Number (returned as-is), an
-     * int, a finite float (expanded to its exact decimal form, so a value whose
-     * string form is scientific notation converts cleanly), or a strict numeric
+     * int, a finite float (as the shortest decimal that reads back as the same
+     * float, expanded out of scientific notation: `0.1 + 0.2` is
+     * `0.30000000000000004`, not `0.3`), or a strict numeric
      * string in decimal or scientific notation (e.g. `1.5e3`, `2e-10`;
      * scientific input is expanded, so no precision is lost).
      *
@@ -360,10 +362,16 @@ final class Num
         }
         if (is_float($value)) {
             if (!is_finite($value)) {
-                // @infection-ignore-all: the cast gives "INF", "-INF" or "NAN", which isStrictNumericString rejects below, so falling through returns the same null
                 return null;
             }
-            $value = (string) $value;
+            // The shortest decimal that reads back as the same float, which toStr() gives. The
+            // cast is not it: it prints 14 significant digits, so `(string) (0.1 + 0.2)` is `0.3`,
+            // a different number. toStr() marks an integral float `3.0`, a fractional digit the
+            // decimal does not have, so the mark goes.
+            $value = self::toStr($value);
+            if (Str::endsWith($value, '.0')) {
+                $value = Str::sub($value, 0, /* @infection-ignore-all: dropping only the 0 leaves `3.`, which BcMath reads as `3`, scale 0 */ -2);
+            }
         }
         if (!self::isStrictNumericString($value)) {
             return null;
@@ -378,7 +386,8 @@ final class Num
 
     /**
      * Constrains $value to the closed interval [$min, $max]. A float and an int are compared as
-     * the values they are, so a float just past a large int bound is held to that bound.
+     * the values they are, so a float just past a large int bound is held to that bound; beside a
+     * {@see Number}, a float is the decimal {@see parseNumber()} reads it as.
      *
      * @throws MalformedArgumentException when $min > $max
      */
@@ -404,6 +413,7 @@ final class Num
      * Returns true if $value lies within the closed interval [$min, $max]. A float and an int
      * are compared as the values they are, not as the float the int rounds to: past 2⁵³ an int
      * does not survive that trip, and `PHP_INT_MAX` rounds up to 2⁶³, a float no int can hold.
+     * Beside a {@see Number}, a float is the decimal {@see parseNumber()} reads it as.
      */
     public static function inRange(
         float|int|Number $value,
@@ -444,7 +454,7 @@ final class Num
         float|int|Number $outMin,
         float|int|Number $outMax,
     ): float|int|Number {
-        if ($inMin == $inMax) {
+        if (self::compare($inMin, $inMax) === 0) {
             throw new MalformedArgumentException('Input range cannot be empty (inMin equals inMax).');
         }
 
@@ -567,7 +577,8 @@ final class Num
 
     /**
      * Returns the smallest of $values. An all-int input is typed `int`, exactly
-     * — the result is one of the elements, so no arithmetic can widen it.
+     * — the result is one of the elements, so no arithmetic can widen it. Mixed
+     * elements are ordered as {@see inRange()} orders them.
      *
      * @param iterable<float|int|Number> $values
      *
@@ -579,7 +590,7 @@ final class Num
     {
         $min = null;
         foreach ($values as $value) {
-            if ($min === null || $value < $min) {
+            if ($min === null || self::compare($value, $min) === -1) {
                 $min = $value;
             }
         }
@@ -592,7 +603,8 @@ final class Num
 
     /**
      * Returns the largest of $values. An all-int input is typed `int`, exactly —
-     * the result is one of the elements, so no arithmetic can widen it.
+     * the result is one of the elements, so no arithmetic can widen it. Mixed
+     * elements are ordered as {@see inRange()} orders them.
      *
      * @param iterable<float|int|Number> $values
      *
@@ -604,7 +616,7 @@ final class Num
     {
         $max = null;
         foreach ($values as $value) {
-            if ($max === null || $value > $max) {
+            if ($max === null || self::compare($value, $max) === 1) {
                 $max = $value;
             }
         }
@@ -645,14 +657,14 @@ final class Num
     /**
      * Returns $base raised to $exp. Widens to {@see Number} when either operand
      * is one.
+     *
+     * @throws MalformedArgumentException when one operand is a Number and the other a float no
+     *                                    Number can hold (NAN, INF)
      */
     public static function pow(float|int|Number $base, float|int|Number $exp): float|int|Number
     {
         if ($base instanceof Number || $exp instanceof Number) {
-            $baseN = $base instanceof Number ? $base : new Number((string) $base);
-            $expN = $exp instanceof Number ? $exp : new Number((string) $exp);
-
-            return $baseN ** $expN;
+            return self::widen($base) ** self::widen($exp);
         }
 
         return $base ** $exp;
@@ -718,7 +730,8 @@ final class Num
      * Returns the truncated modulo of $a divided by $b (sign of the result
      * follows the dividend, matching PHP's `%`).
      *
-     * @throws MalformedArgumentException when $b is zero
+     * @throws MalformedArgumentException when $b is zero, or when one operand is a Number and the
+     *                                    other a float no Number can hold (NAN, INF)
      */
     public static function mod(float|int|Number $a, float|int|Number $b): float|int|Number
     {
@@ -730,10 +743,7 @@ final class Num
             throw new MalformedArgumentException('Cannot mod by zero.');
         }
         if ($a instanceof Number || $b instanceof Number) {
-            $aN = $a instanceof Number ? $a : new Number((string) $a);
-            $bN = $b instanceof Number ? $b : new Number((string) $b);
-
-            return $aN % $bN;
+            return self::widen($a) % self::widen($b);
         }
         if (is_int($a) && is_int($b)) {
             return $a % $b;
@@ -761,14 +771,16 @@ final class Num
      * Adds two values, widening to {@see Number} when either operand is one.
      * Centralises the union arithmetic the type system cannot express in a single
      * expression — the same widening {@see sub()} / {@see mul()} / {@see div()} apply.
+     * A float widens as {@see parseNumber()} reads it: the shortest decimal that reads
+     * back as the same float.
+     *
+     * @throws MalformedArgumentException when one operand is a Number and the other a float no
+     *                                    Number can hold (NAN, INF)
      */
     public static function add(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($a instanceof Number || $b instanceof Number) {
-            $aN = $a instanceof Number ? $a : new Number((string) $a);
-            $bN = $b instanceof Number ? $b : new Number((string) $b);
-
-            return $aN + $bN;
+            return self::widen($a) + self::widen($b);
         }
 
         return $a + $b;
@@ -776,14 +788,14 @@ final class Num
 
     /**
      * Subtracts $b from $a, widening to {@see Number} when either operand is one.
+     *
+     * @throws MalformedArgumentException when one operand is a Number and the other a float no
+     *                                    Number can hold (NAN, INF)
      */
     public static function sub(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($a instanceof Number || $b instanceof Number) {
-            $aN = $a instanceof Number ? $a : new Number((string) $a);
-            $bN = $b instanceof Number ? $b : new Number((string) $b);
-
-            return $aN - $bN;
+            return self::widen($a) - self::widen($b);
         }
 
         return $a - $b;
@@ -791,14 +803,14 @@ final class Num
 
     /**
      * Multiplies two values, widening to {@see Number} when either operand is one.
+     *
+     * @throws MalformedArgumentException when one operand is a Number and the other a float no
+     *                                    Number can hold (NAN, INF)
      */
     public static function mul(float|int|Number $a, float|int|Number $b): float|int|Number
     {
         if ($a instanceof Number || $b instanceof Number) {
-            $aN = $a instanceof Number ? $a : new Number((string) $a);
-            $bN = $b instanceof Number ? $b : new Number((string) $b);
-
-            return $aN * $bN;
+            return self::widen($a) * self::widen($b);
         }
 
         return $a * $b;
@@ -809,7 +821,8 @@ final class Num
      * and evenly divisible, a float otherwise, and a {@see Number} when either
      * operand is one.
      *
-     * @throws MalformedArgumentException when $b is zero
+     * @throws MalformedArgumentException when $b is zero, or when one operand is a Number and the
+     *                                    other a float no Number can hold (NAN, INF)
      */
     public static function div(float|int|Number $a, float|int|Number $b): float|int|Number
     {
@@ -821,10 +834,7 @@ final class Num
             throw new MalformedArgumentException('Cannot divide by zero.');
         }
         if ($a instanceof Number || $b instanceof Number) {
-            $aN = $a instanceof Number ? $a : new Number((string) $a);
-            $bN = $b instanceof Number ? $b : new Number((string) $b);
-
-            return $aN / $bN;
+            return self::widen($a) / self::widen($b);
         }
 
         return $a / $b;
@@ -839,36 +849,44 @@ final class Num
     /**
      * Orders $a against $b: -1, 0 or 1, or null when one is `NAN` and the two have no order.
      *
-     * PHP orders a float against an int by turning the int into a float, which past 2⁵³ is a
-     * different number; that pair is ordered exactly here. A `Number` against a float is left as
-     * PHP has it, which truncates the float — what a float means beside a `Number` is still open,
-     * in rak200/utils#102.
+     * Two pairs PHP gets wrong are ordered here instead. A float against an int: PHP turns the int
+     * into a float, which past 2⁵³ is a different number. A `Number` against a float: BcMath
+     * converts the float as a parameter typed `int|string` would. Under strict types it refuses
+     * it, and the pair has no order: `<`, `<=`, `==`, `>=` and `>` all answer false, and `<=>`
+     * answers 1 whichever way round. Without strict types it truncates the float to an int. Here a
+     * float beside a `Number` is the decimal {@see widen()} gives it, and an infinity lies beyond
+     * every `Number`.
      */
     private static function compare(float|int|Number $a, float|int|Number $b): ?int
     {
+        if ((is_float($a) && is_nan($a)) || (is_float($b) && is_nan($b))) {
+            return null;
+        }
+        if ($a instanceof Number || $b instanceof Number) {
+            if (is_float($a) && is_infinite($a)) {
+                return $a === INF ? 1 : -1;
+            }
+            if (is_float($b) && is_infinite($b)) {
+                return $b === INF ? -1 : 1;
+            }
+
+            return self::widen($a) <=> self::widen($b);
+        }
         if (is_float($a) && is_int($b)) {
             return self::compareFloatToInt($a, $b);
         }
         if (is_int($a) && is_float($b)) {
-            $order = self::compareFloatToInt($b, $a);
-
-            return $order === null ? null : -$order;
-        }
-        if ((is_float($a) && is_nan($a)) || (is_float($b) && is_nan($b))) {
-            return null;
+            return -self::compareFloatToInt($b, $a);
         }
 
         return $a <=> $b;
     }
 
     /**
-     * Orders a float against an int exactly, or null when the float is `NAN`.
+     * Orders a float that is not `NAN` against an int, exactly.
      */
-    private static function compareFloatToInt(float $float, int $int): ?int
+    private static function compareFloatToInt(float $float, int $int): int
     {
-        if (is_nan($float)) {
-            return null;
-        }
         if ($float >= self::INT_CEILING) {
             return 1;
         }
@@ -882,6 +900,18 @@ final class Num
         $whole = (int) $float;
 
         return ($whole <=> $int) ?: ($float <=> $whole);
+    }
+
+    /**
+     * The {@see Number} a value stands for, as {@see parseNumber()} reads it: a float is the
+     * shortest decimal that reads back as the same float, so `0.1 + 0.2` is
+     * `0.30000000000000004`, not the `0.3` a 14-digit cast prints.
+     *
+     * @throws MalformedArgumentException when $value is a float no Number can hold (NAN, INF)
+     */
+    private static function widen(float|int|Number $value): Number
+    {
+        return $value instanceof Number ? $value : self::parseNumber($value);
     }
 
     private static function isStrictNumericString(string $value): bool

@@ -12,6 +12,8 @@ use RoundingMode;
 
 Aggregation and per-element methods (`sum`/`avg`/`min`/`max`/`abs`/`sign`/`clamp`/`inRange`/`pow`/`sqrt`/`floor`/`ceil`/`mod`/`round`/`format`) accept `int|float|BcMath\Number` and propagate `Number` when any input is one — no silent narrowing to `float`.
 
+Beside a `Number`, a `float` stands for the shortest decimal that reads back as the same float — the form [`toStr`](#tostr) prints — so `0.1 + 0.2` is `0.30000000000000004`, never the `0.3` a `(string)` cast prints. No `Number` holds `INF` or `NAN`, so arithmetic that would widen one throws `MalformedArgumentException`.
+
 ## Contents
 
 - [`is`](#is)
@@ -229,6 +231,8 @@ Num::toStr(INF);   // MalformedArgumentException: Cannot represent INF as an exa
 
 Arbitrary-precision parse. Accepts exactly the strings [`is`](#is) reports as numeric: decimal and scientific notation. Scientific input is expanded to its exact decimal form (no precision lost). Surrounding whitespace is rejected.
 
+An int is read as itself, and a finite float as the shortest decimal that reads back as the same float, the form [`toStr`](#tostr) prints. An integral float has no fractional digit, so `3.0` reads as `3`.
+
 ```php
 Num::parseNumber('123456789012345678901234567890.5');
 // BcMath\Number('123456789012345678901234567890.5')
@@ -236,6 +240,9 @@ Num::parseNumber('123456789012345678901234567890.5');
 Num::parseNumber('-0.0001');                  // BcMath\Number('-0.0001')
 Num::parseNumber('1.5e3');                    // BcMath\Number('1500')
 Num::parseNumber('1.5e-3');                   // BcMath\Number('0.0015')
+Num::parseNumber(0.1 + 0.2);                  // BcMath\Number('0.30000000000000004')
+Num::parseNumber(3.0);                        // BcMath\Number('3')
+Num::parseNumberOrNull(NAN);                  // null
 Num::parseNumberOrNull(' 42 ');               // null  (surrounding whitespace rejected)
 Num::parseNumberOrNull('abc');                // null
 Num::parseNumberOrNull('1e999999999');        // null  (decimal form impractical)
@@ -247,7 +254,7 @@ Num::parseNumberOrNull('1e999999999');        // null  (decimal form impractical
 
 ## `clamp`
 
-Constrains to the closed interval `[$min, $max]`. Propagates `BcMath\Number` when any operand is one.
+Constrains to the closed interval `[$min, $max]`. Propagates `BcMath\Number` when any operand is one. Operands are ordered as [`inRange`](#inrange) orders them.
 
 ```php
 Num::clamp(15, 0, 10);                                    // 10
@@ -255,6 +262,7 @@ Num::clamp(-5, 0, 10);                                    // 0
 Num::clamp(5, 0, 10);                                     // 5
 Num::clamp(new Number('15'), new Number('0'), new Number('10'));
 // BcMath\Number('10')
+Num::clamp(new Number('0.5'), 0.9, 2.0);                  // 0.9
 ```
 
 [↑ Back to top](#num)
@@ -263,7 +271,7 @@ Num::clamp(new Number('15'), new Number('0'), new Number('10'));
 
 ## `inRange`
 
-Closed interval.
+Closed interval. Operands of different types are ordered as the values they are, which PHP's operators do for neither pair: a float against an int exactly, where PHP would turn the int into a float that past 2⁵³ is a different number, and a float beside a `Number` as the decimal [`parseNumber`](#parsenumber--parsenumberornull) reads it as. An infinity lies beyond every `Number`, and `NAN` is in no range.
 
 ```php
 Num::inRange(5, 0, 10);                                   // true
@@ -271,6 +279,8 @@ Num::inRange(10, 0, 10);                                  // true
 Num::inRange(11, 0, 10);                                  // false
 Num::inRange(new Number('5.5'), new Number('5'), new Number('6'));
 // true
+Num::inRange(new Number('1.1'), 0.0, 1.2);               // true
+Num::inRange(2.0 ** 63, PHP_INT_MIN, PHP_INT_MAX);        // false (2⁶³ is past PHP_INT_MAX)
 ```
 
 [↑ Back to top](#num)
@@ -390,9 +400,10 @@ Num::avg([new Number('1'), new Number('2'), new Number('3')]);
 Num::min([3, 1, 4, 1, 5, 9]);                             // 1
 Num::max([3, 1, 4, 1, 5, 9]);                             // 9
 Num::max([1, new Number('2.5'), 2]);                      // BcMath\Number('2.5')
+Num::max([new Number('0.5'), 0.9]);                       // 0.9
 ```
 
-Both preserve `int` through an all-int input, like [`sum`](#sum) — and here the guarantee is exact, with no overflow caveat: the result is one of the elements, so there is no arithmetic that could widen it.
+Mixed elements are ordered as [`inRange`](#inrange) orders them. Both preserve `int` through an all-int input, like [`sum`](#sum) — and here the guarantee is exact, with no overflow caveat: the result is one of the elements, so there is no arithmetic that could widen it.
 
 [↑ Back to top](#num)
 
@@ -512,6 +523,9 @@ Num::div(6, 3);        // 2     (int, evenly divisible)
 Num::div(1, 0);        // throws MalformedArgumentException
 Num::add(new Number('0.1'), new Number('0.2'));   // BcMath\Number('0.3')
 Num::mul(new Number('2'), 3);                      // BcMath\Number('6')
+Num::add(new Number('0'), 0.1 + 0.2);             // BcMath\Number('0.30000000000000004')
+Num::add(new Number('1'), 1e25);                   // BcMath\Number('10000000000000000000000001')
+Num::add(new Number('1'), INF);                    // throws MalformedArgumentException
 ```
 
 [↑ Back to top](#num)

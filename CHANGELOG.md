@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.5](https://github.com/rak200/utils/compare/4.5.4...4.5.5) (2026-10-03)
+
+
+### Bug Fixes
+
+* a float meeting a Number keeps its value ([#104](https://github.com/rak200/utils/issues/104)) ([f8e3fbf](https://github.com/rak200/utils/commit/f8e3fbfcfcae49dc9c3037b44d9cac8d448869c2))
+* inRange and clamp order a float against an int exactly ([#103](https://github.com/rak200/utils/issues/103)) ([d15cc03](https://github.com/rak200/utils/commit/d15cc03cf7f3f6f44f4cfc2134aa27d1ea992685))
+* parseInt reaches both ends of the int range ([#101](https://github.com/rak200/utils/issues/101)) ([9d32ee8](https://github.com/rak200/utils/commit/9d32ee8d7d16771ac6e4c1eeef727f574dbdca51))
+
 ## [4.5.4](https://github.com/rak200/utils/compare/4.5.3...4.5.4) (2026-09-25)
 
 

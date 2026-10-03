@@ -142,6 +142,60 @@ final class NumTest extends TestCase
         Num::parseIntOrNull('1', 37);
     }
 
+    #[DataProvider('intBoundaryProvider')]
+    public function testParseIntOrNullReachesBothEndsOfTheIntRange(string $value, int $base, ?int $expected): void
+    {
+        // The ends are where an int stops being one. PHP_INT_MIN's magnitude has no positive
+        // int, and one step past either end is a float — which the return type refused with a
+        // TypeError, escaping every catch of this library's own exception.
+        $this->assertSame($expected, Num::parseIntOrNull($value, $base));
+    }
+
+    /**
+     * @return iterable<string, array{string, int, ?int}>
+     */
+    public static function intBoundaryProvider(): iterable
+    {
+        yield 'the largest int' => ['9223372036854775807', 10, PHP_INT_MAX];
+
+        yield 'the largest int, signed' => ['+9223372036854775807', 10, PHP_INT_MAX];
+
+        yield 'the smallest int' => ['-9223372036854775808', 10, PHP_INT_MIN];
+
+        yield 'one past the largest' => ['9223372036854775808', 10, null];
+
+        yield 'one past the smallest' => ['-9223372036854775809', 10, null];
+
+        yield 'a digit past the largest' => ['92233720368547758070', 10, null];
+
+        yield 'a digit past the smallest' => ['-92233720368547758080', 10, null];
+
+        yield 'the largest int in hex' => ['7fffffffffffffff', 16, PHP_INT_MAX];
+
+        yield 'the smallest int in hex' => ['-8000000000000000', 16, PHP_INT_MIN];
+
+        yield 'one past the largest in hex' => ['8000000000000000', 16, null];
+
+        yield 'minus zero' => ['-0', 10, 0];
+    }
+
+    public function testParseIntRejectsAValueOutsideTheIntRangeWithItsOwnException(): void
+    {
+        $this->expectException(MalformedArgumentException::class);
+        $this->expectExceptionMessage('Cannot parse "9223372036854775808" as integer in base 10.');
+        Num::parseInt('9223372036854775808');
+    }
+
+    public function testParseIntInvertsToBaseAtBothEndsOfTheIntRange(): void
+    {
+        // toBase() names parseInt() as its inverse, and the ends of the range are where that
+        // promise was broken.
+        foreach ([2, 7, 10, 16, 36] as $base) {
+            $this->assertSame(PHP_INT_MIN, Num::parseInt(Num::toBase(PHP_INT_MIN, $base), $base));
+            $this->assertSame(PHP_INT_MAX, Num::parseInt(Num::toBase(PHP_INT_MAX, $base), $base));
+        }
+    }
+
     public function testParseFloat(): void
     {
         $this->assertSame(3.14, Num::parseFloat('3.14'));

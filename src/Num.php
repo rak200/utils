@@ -48,6 +48,12 @@ final class Num
      */
     private const int MAX_NUMBER_DIGITS = 65536;
 
+    /**
+     * 2⁶³: the first float above every int, and the negation of `PHP_INT_MIN`, which a float
+     * holds exactly where it cannot hold `PHP_INT_MAX`.
+     */
+    private const float INT_CEILING = 2.0 ** 63;
+
     private function __construct() {}
 
     /**
@@ -363,7 +369,8 @@ final class Num
     }
 
     /**
-     * Constrains $value to the closed interval [$min, $max].
+     * Constrains $value to the closed interval [$min, $max]. A float and an int are compared as
+     * the values they are, so a float just past a large int bound is held to that bound.
      *
      * @throws MalformedArgumentException when $min > $max
      */
@@ -372,13 +379,13 @@ final class Num
         float|int|Number $min,
         float|int|Number $max,
     ): float|int|Number {
-        if ($min > $max) {
+        if (self::compare($min, $max) === 1) {
             throw new MalformedArgumentException('Min cannot be greater than max.');
         }
-        if ($value < $min) {
+        if (self::compare($value, $min) === -1) {
             return $min;
         }
-        if ($value > $max) {
+        if (self::compare($value, $max) === 1) {
             return $max;
         }
 
@@ -386,14 +393,19 @@ final class Num
     }
 
     /**
-     * Returns true if $value lies within the closed interval [$min, $max].
+     * Returns true if $value lies within the closed interval [$min, $max]. A float and an int
+     * are compared as the values they are, not as the float the int rounds to: past 2⁵³ an int
+     * does not survive that trip, and `PHP_INT_MAX` rounds up to 2⁶³, a float no int can hold.
      */
     public static function inRange(
         float|int|Number $value,
         float|int|Number $min,
         float|int|Number $max,
     ): bool {
-        return $value >= $min && $value <= $max;
+        $low = self::compare($value, $min);
+        $high = self::compare($value, $max);
+
+        return $low !== null && $high !== null && $low >= 0 && $high <= 0;
     }
 
     /**
@@ -816,6 +828,54 @@ final class Num
      * since 8.0; this rejects it so the numeric contract stays strict, matching
      * {@see parseInt()} and {@see parseNumber()}.
      */
+    /**
+     * Orders $a against $b: -1, 0 or 1, or null when one is `NAN` and the two have no order.
+     *
+     * PHP orders a float against an int by turning the int into a float, which past 2⁵³ is a
+     * different number; that pair is ordered exactly here. A `Number` against a float is left as
+     * PHP has it, which truncates the float — what a float means beside a `Number` is still open,
+     * in rak200/utils#102.
+     */
+    private static function compare(float|int|Number $a, float|int|Number $b): ?int
+    {
+        if (is_float($a) && is_int($b)) {
+            return self::compareFloatToInt($a, $b);
+        }
+        if (is_int($a) && is_float($b)) {
+            $order = self::compareFloatToInt($b, $a);
+
+            return $order === null ? null : -$order;
+        }
+        if ((is_float($a) && is_nan($a)) || (is_float($b) && is_nan($b))) {
+            return null;
+        }
+
+        return $a <=> $b;
+    }
+
+    /**
+     * Orders a float against an int exactly, or null when the float is `NAN`.
+     */
+    private static function compareFloatToInt(float $float, int $int): ?int
+    {
+        if (is_nan($float)) {
+            return null;
+        }
+        if ($float >= self::INT_CEILING) {
+            return 1;
+        }
+        if ($float < -self::INT_CEILING) {
+            return -1;
+        }
+
+        // Between -2⁶³ and 2⁶³ a float truncates to an int without wrapping. When the whole
+        // parts tie, the fraction decides, and the native comparison is exact there: $whole
+        // came from $float, so it converts back to $float without rounding.
+        $whole = (int) $float;
+
+        return ($whole <=> $int) ?: ($float <=> $whole);
+    }
+
     private static function isStrictNumericString(string $value): bool
     {
         return is_numeric($value)

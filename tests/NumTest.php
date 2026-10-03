@@ -270,6 +270,81 @@ final class NumTest extends TestCase
         $this->assertFalse(Num::inRange(11, 0, 10));
     }
 
+    #[DataProvider('inRangeAcrossFloatAndIntProvider')]
+    public function testInRangeComparesAFloatAndAnIntAsTheValuesTheyAre(
+        float|int|Number $value,
+        float|int|Number $min,
+        float|int|Number $max,
+        bool $expected,
+    ): void {
+        // PHP turns the int into a float to compare the two, and past 2⁵³ that is a different
+        // number: PHP_INT_MAX rounds up to 2⁶³, so a float that no int can hold read as inside
+        // the int range, and the (int) cast the check guarded wrapped to PHP_INT_MIN.
+        $this->assertSame($expected, Num::inRange($value, $min, $max));
+    }
+
+    /**
+     * @return iterable<string, array{float|int|Number, float|int|Number, float|int|Number, bool}>
+     */
+    public static function inRangeAcrossFloatAndIntProvider(): iterable
+    {
+        yield '2⁶³, the first float past PHP_INT_MAX' => [2.0 ** 63, PHP_INT_MIN, PHP_INT_MAX, false];
+
+        yield '-2⁶³, which is PHP_INT_MIN' => [-(2.0 ** 63), PHP_INT_MIN, PHP_INT_MAX, true];
+
+        yield 'the first float below PHP_INT_MIN' => [-(2.0 ** 63) - 2048.0, PHP_INT_MIN, PHP_INT_MAX, false];
+
+        yield 'the first float below PHP_INT_MIN, under an int bound' => [-(2.0 ** 63) - 2048.0, -(2.0 ** 64), 0, true];
+
+        yield 'a float between float bounds' => [0.5, 0.0, 1.0, true];
+
+        yield 'both ends of the int range, as ints' => [PHP_INT_MAX, PHP_INT_MIN, PHP_INT_MAX, true];
+
+        yield 'PHP_INT_MAX under a 2⁶³ float bound' => [PHP_INT_MAX, 0, 2.0 ** 63, true];
+
+        yield 'a float just below an int bound past 2⁵³' => [2.0 ** 62, 4611686018427387950, PHP_INT_MAX, false];
+
+        yield 'an int just above a float bound past 2⁵³' => [4611686018427387950, 0, 2.0 ** 62, false];
+
+        yield 'an int equal to a float bound past 2⁵³' => [4611686018427387904, 0, 2.0 ** 62, true];
+
+        yield 'a fraction above an int bound' => [1.5, 0, 1, false];
+
+        yield 'a fraction below a negative int bound' => [-1.5, -1, 0, false];
+
+        yield 'a fraction between int bounds' => [0.5, 0, 1, true];
+
+        yield 'NAN between float bounds' => [NAN, 0.0, 1.0, false];
+
+        yield 'NAN between int bounds' => [NAN, PHP_INT_MIN, PHP_INT_MAX, false];
+
+        yield 'a NAN lower bound' => [0.5, NAN, 1.0, false];
+
+        yield 'a NAN upper bound' => [0.5, 0.0, NAN, false];
+
+        yield 'an int against a NAN lower bound' => [1, NAN, 2, false];
+
+        yield 'a Number between int bounds' => [new Number('5'), 1, 10, true];
+    }
+
+    public function testClampHoldsAFloatPastAnIntBoundToThatBound(): void
+    {
+        $this->assertSame(PHP_INT_MAX, Num::clamp(2.0 ** 63, PHP_INT_MIN, PHP_INT_MAX));
+        $this->assertSame(PHP_INT_MIN, Num::clamp(-(2.0 ** 63) - 2048.0, PHP_INT_MIN, 0));
+        $this->assertSame(4611686018427387950, Num::clamp(2.0 ** 62, 4611686018427387950, PHP_INT_MAX));
+        $this->assertSame(1, Num::clamp(1.5, 0, 1));
+        $this->assertSame(-1, Num::clamp(-1.5, -1, 0));
+        $this->assertNan(Num::clamp(NAN, 0, 1));
+    }
+
+    public function testClampRejectsAnIntMinAboveAFloatMaxPast2To53(): void
+    {
+        // 4611686018427387950 rounds to the float 2⁶², so the native comparison read the two
+        // bounds as equal and the empty interval went through.
+        $this->expectException(MalformedArgumentException::class);
+        Num::clamp(0, 4611686018427387950, 2.0 ** 62);
+    }
+
     public function testLerp(): void
     {
         $this->assertSame(5.0, Num::lerp(0, 10, 0.5));

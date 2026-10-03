@@ -157,9 +157,9 @@ final class Num
     }
 
     /**
-     * Parses $value as an integer in the given $base (2-36).
+     * Parses $value as an integer in the given $base (2-36), from `PHP_INT_MIN` to `PHP_INT_MAX`.
      *
-     * @throws MalformedArgumentException when $value is not a valid integer in $base, or $base is out of range
+     * @throws MalformedArgumentException when $value is not a valid integer in $base, does not fit an int, or $base is out of range
      */
     public static function parseInt(string $value, int $base = 10): int
     {
@@ -172,7 +172,8 @@ final class Num
     }
 
     /**
-     * Parses $value as an integer in the given $base (2-36); returns null on failure.
+     * Parses $value as an integer in the given $base (2-36); returns null on failure, which
+     * includes a value outside `PHP_INT_MIN` to `PHP_INT_MAX`.
      *
      * @throws MalformedArgumentException when $base is outside 2-36
      */
@@ -185,17 +186,20 @@ final class Num
             return null;
         }
 
-        $sign = 1;
-        if ($value[0] === '-') {
-            $sign = -1;
-            $value = Str::sub($value, 1);
-        } elseif ($value[0] === '+') {
+        $negative = $value[0] === '-';
+        if ($negative || $value[0] === '+') {
             $value = Str::sub($value, 1);
         }
         if ($value === '') {
             return null;
         }
 
+        // Accumulated on the negative side, where the int range is one wider: PHP_INT_MIN's
+        // magnitude has no positive int, so a positive accumulator cannot hold it. Each step
+        // is checked before it is taken, because an int that overflows becomes a float, and
+        // the return type turns that float into a TypeError rather than the null it means.
+        $limit = $negative ? PHP_INT_MIN : -PHP_INT_MAX;
+        $floor = intdiv($limit, $base);
         $result = 0;
         foreach (Str::split(Str::lower($value), '') as $char) {
             $digit = match (true) {
@@ -204,13 +208,17 @@ final class Num
                 // @infection-ignore-all: any negative sentinel is rejected by the $digit < 0 guard below
                 default => -1,
             };
-            if ($digit < 0 || $digit >= $base) {
+            if ($digit < 0 || $digit >= $base || $result < $floor) {
                 return null;
             }
-            $result = $result * $base + $digit;
+            $result *= $base;
+            if ($result < $limit + $digit) {
+                return null;
+            }
+            $result -= $digit;
         }
 
-        return $sign * $result;
+        return $negative ? $result : -$result;
     }
 
     /**

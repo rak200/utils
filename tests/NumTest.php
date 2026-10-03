@@ -381,6 +381,40 @@ final class NumTest extends TestCase
         yield 'a Number between int bounds' => [new Number('5'), 1, 10, true];
     }
 
+    #[DataProvider('inRangeAcrossNumberAndFloatProvider')]
+    public function testInRangeReadsAFloatBesideANumberAsTheDecimalItStandsFor(
+        float|int|Number $value,
+        float|int|Number $min,
+        float|int|Number $max,
+        bool $expected,
+    ): void {
+        // BcMath converts a float as a parameter typed int|string would, so under strict types it
+        // refuses one: the pair had no order, `<`, `==` and `>` all answered false, and `<=>` 1.
+        $this->assertSame($expected, Num::inRange($value, $min, $max));
+    }
+
+    /**
+     * @return iterable<string, array{float|int|Number, float|int|Number, float|int|Number, bool}>
+     */
+    public static function inRangeAcrossNumberAndFloatProvider(): iterable
+    {
+        yield 'a Number below a fractional float lower bound' => [new Number('0.5'), 0.9, new Number('2'), false];
+
+        yield 'a Number under a fractional float upper bound' => [new Number('1.1'), 0.0, 1.2, true];
+
+        yield 'a Number equal to the decimal a float reads as' => [new Number('0.1'), 0.1, 0.1, true];
+
+        yield 'a Number under 0.1 + 0.2, which is not 0.3' => [new Number('0.30000000000000001'), 0.0, 0.1 + 0.2, true];
+
+        yield 'a float between Number bounds' => [0.5, new Number('0'), new Number('1'), true];
+
+        yield 'a float below a Number lower bound' => [0.5, new Number('0.9'), 2, false];
+
+        yield 'a Number between infinite bounds' => [new Number('1'), -INF, INF, true];
+
+        yield 'a Number against a NAN bound' => [new Number('1'), NAN, 2, false];
+    }
+
     public function testClampHoldsAFloatPastAnIntBoundToThatBound(): void
     {
         $this->assertSame(PHP_INT_MAX, Num::clamp(2.0 ** 63, PHP_INT_MIN, PHP_INT_MAX));
@@ -625,6 +659,35 @@ final class NumTest extends TestCase
     {
         $this->assertSame('42', (string) Num::parseNumber(42));
         $this->assertSame('-7', (string) Num::parseNumber(-7));
+    }
+
+    #[DataProvider('parseNumberFloatProvider')]
+    public function testParseNumberReadsAFloatAsTheShortestDecimalThatReadsBack(float $value, string $expected): void
+    {
+        // The cast prints 14 significant digits, and for a float that needs more it prints a
+        // different number: (string) (0.1 + 0.2) is '0.3'. A digit is never dropped now, and a
+        // float the cast already prints exactly keeps the scale it had.
+        $this->assertSame($expected, (string) Num::parseNumber($value));
+    }
+
+    /**
+     * @return iterable<string, array{float, string}>
+     */
+    public static function parseNumberFloatProvider(): iterable
+    {
+        yield 'a float the cast rounds away' => [0.1 + 0.2, '0.30000000000000004'];
+
+        yield 'one third' => [1 / 3, '0.3333333333333333'];
+
+        yield 'fifteen digits before the point' => [123456789012345.67, '123456789012345.67'];
+
+        yield 'a float the cast prints exactly' => [0.1, '0.1'];
+
+        yield 'an integral float, with no scale' => [3.0, '3'];
+
+        yield 'an integral float the cast rounds away' => [123456789012345.0, '123456789012345'];
+
+        yield '2⁶³, as the shortest decimal that reads back as it' => [2.0 ** 63, '9223372036854776000'];
     }
 
     public function testParseNumberAcceptsFiniteFloat(): void
@@ -924,16 +987,77 @@ final class NumTest extends TestCase
         Num::remap(5, 2, 2, 0, 10);
     }
 
+    public function testRemapRefusesAnEmptyRangeBetweenANumberAndAFloat(): void
+    {
+        // The two read as unequal, and the empty range failed later, as a division by zero.
+        $this->expectException(MalformedArgumentException::class);
+        $this->expectExceptionMessage('Input range cannot be empty (inMin equals inMax).');
+        Num::remap(1, new Number('1'), 1.0, 0, 1);
+    }
+
     public function testMinMaxKeepFirstOfEqualElements(): void
     {
         $this->assertSame(3, Num::min([3, 3.0]));
         $this->assertSame(3, Num::max([3, 3.0]));
     }
 
+    public function testMinMaxOrderMixedElementsAsTheValuesTheyAre(): void
+    {
+        // A Number against a float had no order under strict types, so the first element won; a
+        // float against an int turned the int into a float, and PHP_INT_MAX into 2⁶³.
+        $half = new Number('0.5');
+        $this->assertSame(0.9, Num::max([$half, 0.9]));
+        $this->assertSame($half, Num::min([0.9, $half]));
+        $this->assertSame(2.0 ** 63, Num::max([PHP_INT_MAX, 2.0 ** 63]));
+        $this->assertSame(PHP_INT_MAX, Num::min([2.0 ** 63, PHP_INT_MAX]));
+    }
+
     public function testAbsReturnsZeroNumberAsIs(): void
     {
         $zero = new Number('0');
         $this->assertSame($zero, Num::abs($zero));
+    }
+
+    public function testArithmeticWidensAFloatWithoutLosingItsValue(): void
+    {
+        // The widening used `new Number((string) $float)`: 14 digits, and scientific notation
+        // that the Number constructor refuses with a ValueError — which escapes every catch of
+        // this library's own exception.
+        $this->assertSame('10000000000000000000000001', (string) Num::add(new Number('1'), 1e25));
+        $this->assertSame('-0.30000000000000004', (string) Num::sub(new Number('0'), 0.1 + 0.2));
+        $this->assertSame('246913578024691.34', (string) Num::mul(new Number('2'), 123456789012345.67));
+        $this->assertSame('2500000000000000000000000', (string) Num::div(1e25, new Number('4')));
+        $this->assertSame('1', (string) Num::mod(1e25, new Number('3')));
+        $this->assertSame('0.0900000000000000240000000000000016', (string) Num::pow(0.1 + 0.2, new Number('2')));
+    }
+
+    public function testArithmeticRefusesAFloatNoNumberCanHold(): void
+    {
+        $this->expectException(MalformedArgumentException::class);
+        $this->expectExceptionMessage('Cannot parse "INF" as number.');
+        Num::add(new Number('1'), INF);
+    }
+
+    public function testClampHoldsANumberToAFractionalFloatBound(): void
+    {
+        $this->assertSame(0.9, Num::clamp(new Number('0.5'), 0.9, 2.0));
+        $inside = new Number('1.1');
+        $this->assertSame($inside, Num::clamp($inside, 0.0, 1.2));
+    }
+
+    public function testClampOrdersAnInfinityAgainstANumber(): void
+    {
+        // No Number holds an infinity, so it is ordered by its sign rather than widened: beyond
+        // every Number on its side, whichever operand it is.
+        $low = new Number('0');
+        $high = new Number('1');
+        $five = new Number('5');
+        $this->assertSame($high, Num::clamp(INF, $low, $high));
+        $this->assertSame($low, Num::clamp(-INF, $low, $high));
+        $this->assertSame($five, Num::clamp($five, -INF, INF));
+        $this->assertSame($five, Num::clamp($five, $low, INF));
+        $this->assertSame(INF, Num::clamp($five, INF, INF));
+        $this->assertSame(-INF, Num::clamp($five, -INF, -INF));
     }
 
     public function testArithmeticWidensFloatOperandToNumber(): void
